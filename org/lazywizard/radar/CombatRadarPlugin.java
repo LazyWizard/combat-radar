@@ -177,12 +177,6 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
             return;
         }
 
-        // DEBUG
-        if (player.getFacing() > 180f)
-        {
-            return;
-        }
-
         // Set OpenGL flags
         GL11.glEnable(GL11.GL_BLEND);
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
@@ -197,7 +191,8 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
     public void init(CombatEngineAPI engine)
     {
         this.engine = engine;
-        renderPos = new Vector2f(Display.getWidth() * .8f, Display.getHeight() * .2f);
         renderRadius = Display.getHeight() / 10f;
+        renderPos = new Vector2f(Display.getWidth() - (renderRadius * 1.5f),
+                renderRadius * 1.5f);
     }
 }
