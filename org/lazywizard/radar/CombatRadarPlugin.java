@@ -15,6 +15,12 @@ import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.vector.Vector2f;
 
+// TODO: Add box and darkened edges
+// TODO: Add marker around current target
+// TODO: Lower alpha of phased ships
+// TODO: Display asteroids
+// TODO: Display missiles
+// TODO: Display shield arcs (?)
 public class CombatRadarPlugin implements EveryFrameCombatPlugin
 {
     // Radar box color constants
@@ -171,8 +177,7 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
          }*/
 
         ShipAPI player = engine.getPlayerShip();
-        if (player == null || !engine.isEntityInPlay(player)
-                || player.isShuttlePod() || player.isHulk())
+        if (player == null || player.isHulk() || !engine.isEntityInPlay(player))
         {
             return;
         }
