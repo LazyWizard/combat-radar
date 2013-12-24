@@ -61,11 +61,11 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
     {
         // Draw the radar 'box'
         GL11.glColor4f(0f, 0f, 0f, RADAR_BOX_ALPHA);
-        DrawUtils.drawCircle(renderPos.x, renderPos.y, renderRadius, 30, true);
+        DrawUtils.drawCircle(renderPos.x, renderPos.y, renderRadius, 72, true);
         GL11.glColor4f(RADAR_R, RADAR_G, RADAR_B, RADAR_BOX_ALPHA);
-        DrawUtils.drawCircle(renderPos.x, renderPos.y, renderRadius, 30, false);
-        DrawUtils.drawCircle(renderPos.x, renderPos.y, renderRadius * .66f, 30, false);
-        DrawUtils.drawCircle(renderPos.x, renderPos.y, renderRadius * .33f, 30, false);
+        DrawUtils.drawCircle(renderPos.x, renderPos.y, renderRadius, 72, false);
+        DrawUtils.drawCircle(renderPos.x, renderPos.y, renderRadius * .66f, 54, false);
+        DrawUtils.drawCircle(renderPos.x, renderPos.y, renderRadius * .33f, 36, false);
         GL11.glBegin(GL11.GL_LINES);
         GL11.glVertex2f(renderPos.x - renderRadius, renderPos.y);
         GL11.glVertex2f(renderPos.x + renderRadius, renderPos.y);
