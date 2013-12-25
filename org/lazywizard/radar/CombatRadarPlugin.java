@@ -24,6 +24,7 @@ import org.lwjgl.util.vector.Vector2f;
 // TODO: Add box and darkened edges
 // TODO: Add marker around current target
 // TODO: Lower alpha of phased ships
+// TODO: Switch to pre-calculated rotations for ships
 // TODO: Display asteroids
 // TODO: Display missiles
 // TODO: Display shield arcs (?)
@@ -49,7 +50,7 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
     private float renderRadius;
     private CombatEngineAPI engine;
 
-    static void loadSettings() throws IOException, JSONException
+    static void reloadSettings() throws IOException, JSONException
     {
         JSONObject settings = Global.getSettings().loadJSON(SETTINGS_FILE);
 
@@ -136,17 +137,15 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         GL11.glVertex2f(x + center.x, y + center.y);
     }
 
-    private List getVisibleContacts(ShipAPI ship, float sightRadius)
+    private List<ShipAPI> getVisibleContacts(ShipAPI ship, float sightRadius)
     {
         sightRadius *= sightRadius;
 
-        List visible = new ArrayList();
-        ShipAPI contact;
-        for (Iterator contacts = engine.getShips().iterator(); contacts.hasNext();)
+        List<ShipAPI> visible = new ArrayList<ShipAPI>();
+        for (ShipAPI contact : engine.getShips())
         {
-            contact = (ShipAPI) contacts.next();
-
-            if (MathUtils.getDistanceSquared(ship, contact) > sightRadius)
+            if (MathUtils.getDistanceSquared(ship.getLocation(),
+                    contact.getLocation()) > sightRadius)
             {
                 continue;
             }
@@ -164,10 +163,10 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         ShipAPI contact;
         Vector2f loc = new Vector2f();
         GL11.glBegin(GL11.GL_TRIANGLES);
-        for (Iterator iter = getVisibleContacts(player,
+        for (Iterator<ShipAPI> iter = getVisibleContacts(player,
                 RADAR_SIGHT_RANGE).iterator(); iter.hasNext();)
         {
-            contact = (ShipAPI) iter.next();
+            contact = iter.next();
 
             // Allies
             if (contact.getOwner() == player.getOwner())
@@ -194,7 +193,7 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
     }
 
     @Override
-    public void advance(float amount, List events)
+    public void advance(float amount, List<InputEventAPI> events)
     {
         // This also acts as a main menu check
         ShipAPI player = engine.getPlayerShip();
@@ -204,13 +203,13 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         }
 
         // Radar toggle
-        for (Iterator iter = events.iterator(); iter.hasNext();)
+        for (InputEventAPI event : events)
         {
-            InputEventAPI event = (InputEventAPI) iter.next();
             if (event.isKeyDownEvent() && event.getEventValue() == RADAR_TOGGLE_KEY)
             {
                 enabled = !enabled;
                 event.consume();
+                break;
             }
         }
 
@@ -225,6 +224,7 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         GL11.glOrtho(0, Display.getWidth(), 0, Display.getHeight(), 1, -1);
         GL11.glLineWidth(1f);
 
+        // Draw the radar
         renderBox();
         renderContacts(player);
     }

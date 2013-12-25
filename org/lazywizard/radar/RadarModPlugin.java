@@ -7,6 +7,6 @@ public class RadarModPlugin extends BaseModPlugin
     @Override
     public void onApplicationLoad() throws Exception
     {
-        CombatRadarPlugin.loadSettings();
+        CombatRadarPlugin.reloadSettings();
     }
 }
