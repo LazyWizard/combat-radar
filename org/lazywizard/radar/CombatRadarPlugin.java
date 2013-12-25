@@ -31,6 +31,7 @@ import org.lwjgl.util.vector.Vector2f;
 public class CombatRadarPlugin implements EveryFrameCombatPlugin
 {
     private static final String SETTINGS_FILE = "data/config/combat_radar.json";
+    private static float RADAR_SIGHT_RANGE;
     // Radar box color settings
     private static final float RADAR_BOX_ALPHA = .25f;
     private static float RADAR_R, RADAR_G, RADAR_B;
@@ -57,6 +58,11 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         Global.getLogger(CombatRadarPlugin.class).log(Level.INFO,
                 "Radar toggle key set to " + Keyboard.getKeyName(RADAR_TOGGLE_KEY)
                 + " (" + RADAR_TOGGLE_KEY + ")");
+
+        // Radar range
+        RADAR_SIGHT_RANGE = (float) settings.getDouble("radarRange");
+        Global.getLogger(CombatRadarPlugin.class).log(Level.INFO,
+                "Radar range set to " + RADAR_SIGHT_RANGE + " su");
 
         // Radar color
         Color tmp = Global.getSettings().getColor("textFriendColor");
@@ -153,14 +159,13 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
 
     private void renderContacts(ShipAPI player)
     {
-        float sightRadius = player.getMutableStats().getSightRadiusMod()
-                .computeEffective(2500f);
-        float radarScaling = renderRadius / sightRadius;
+        float radarScaling = renderRadius / RADAR_SIGHT_RANGE;
         // Draw contacts
         ShipAPI contact;
         Vector2f loc = new Vector2f();
         GL11.glBegin(GL11.GL_TRIANGLES);
-        for (Iterator iter = getVisibleContacts(player, sightRadius).iterator(); iter.hasNext();)
+        for (Iterator iter = getVisibleContacts(player,
+                RADAR_SIGHT_RANGE).iterator(); iter.hasNext();)
         {
             contact = (ShipAPI) iter.next();
 
