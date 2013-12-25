@@ -4,13 +4,19 @@ import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.CombatEngineAPI;
 import com.fs.starfarer.api.combat.EveryFrameCombatPlugin;
 import com.fs.starfarer.api.combat.ShipAPI;
+import com.fs.starfarer.api.input.InputEventAPI;
 import java.awt.Color;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import org.apache.log4j.Level;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.lazywizard.lazylib.FastTrig;
 import org.lazywizard.lazylib.MathUtils;
 import org.lazywizard.lazylib.opengl.DrawUtils;
+import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.vector.Vector2f;
@@ -21,23 +27,37 @@ import org.lwjgl.util.vector.Vector2f;
 // TODO: Display asteroids
 // TODO: Display missiles
 // TODO: Display shield arcs (?)
+// TODO: Add settings file
 public class CombatRadarPlugin implements EveryFrameCombatPlugin
 {
-    // Radar box color constants
+    private static final String SETTINGS_FILE = "data/config/combat_radar.json";
+    // Radar box color settings
     private static final float RADAR_BOX_ALPHA = .25f;
-    private static final float RADAR_R, RADAR_G, RADAR_B;
-    // Radar contact color constants
+    private static float RADAR_R, RADAR_G, RADAR_B;
+    // Radar contact color settings
     private static final float RADAR_CONTACT_ALPHA = .85f;
-    private static final float FRIENDLY_R, FRIENDLY_G, FRIENDLY_B;
-    private static final float ENEMY_R, ENEMY_G, ENEMY_B;
-    private static final float NEUTRAL_R, NEUTRAL_G, NEUTRAL_B;
+    private static float FRIENDLY_R, FRIENDLY_G, FRIENDLY_B;
+    private static float ENEMY_R, ENEMY_G, ENEMY_B;
+    private static float NEUTRAL_R, NEUTRAL_G, NEUTRAL_B;
+    // Radar toggle button constant
+    private static int RADAR_TOGGLE_KEY;
+    // Whether the radar is active
+    private static boolean enabled = true;
     // Location and size of radar on screen
     private Vector2f renderPos;
     private float renderRadius;
     private CombatEngineAPI engine;
 
-    static
+    static void loadSettings() throws IOException, JSONException
     {
+        JSONObject settings = Global.getSettings().loadJSON(SETTINGS_FILE);
+
+        // Toggle key
+        RADAR_TOGGLE_KEY = settings.getInt("toggleKey");
+        Global.getLogger(CombatRadarPlugin.class).log(Level.INFO,
+                "Radar toggle key set to " + Keyboard.getKeyName(RADAR_TOGGLE_KEY)
+                + " (" + RADAR_TOGGLE_KEY + ")");
+
         // Radar color
         Color tmp = Global.getSettings().getColor("textFriendColor");
         RADAR_R = tmp.getRed() / 255f;
@@ -97,7 +117,7 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         float x = (float) (size * FastTrig.cos(angle));
         float y = (float) (size * FastTrig.sin(angle));
 
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < 2; i++)
         {
             // Output vertex
             GL11.glVertex2f(x + center.x, y + center.y);
@@ -107,7 +127,7 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
             x = (cos * x) - (sin * y);
             y = (sin * t) + (cos * y);
         }
-        //GL11.glVertex2f(x + center.x, y + center.y);
+        GL11.glVertex2f(x + center.x, y + center.y);
     }
 
     private List getVisibleContacts(ShipAPI ship, float sightRadius)
@@ -134,7 +154,7 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
     private void renderContacts(ShipAPI player)
     {
         float sightRadius = player.getMutableStats().getSightRadiusMod()
-                .computeEffective(1500f);
+                .computeEffective(2500f);
         float radarScaling = renderRadius / sightRadius;
         // Draw contacts
         ShipAPI contact;
@@ -171,13 +191,25 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
     @Override
     public void advance(float amount, List events)
     {
-        /*if (engine.isPaused())
-         {
-         return;
-         }*/
-
+        // This also acts as a main menu check
         ShipAPI player = engine.getPlayerShip();
         if (player == null || player.isHulk() || !engine.isEntityInPlay(player))
+        {
+            return;
+        }
+
+        // Radar toggle
+        for (Iterator iter = events.iterator(); iter.hasNext();)
+        {
+            InputEventAPI event = (InputEventAPI) iter.next();
+            if (event.isKeyDownEvent() && event.getEventValue() == RADAR_TOGGLE_KEY)
+            {
+                enabled = !enabled;
+                event.consume();
+            }
+        }
+
+        if (!enabled)
         {
             return;
         }
