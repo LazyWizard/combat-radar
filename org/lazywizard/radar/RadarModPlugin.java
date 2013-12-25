@@ -4,5 +4,9 @@ import com.fs.starfarer.api.BaseModPlugin;
 
 public class RadarModPlugin extends BaseModPlugin
 {
-    // For the moment this does nothing
+    @Override
+    public void onApplicationLoad() throws Exception
+    {
+        CombatRadarPlugin.loadSettings();
+    }
 }
