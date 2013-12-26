@@ -205,6 +205,11 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         // Radar toggle
         for (InputEventAPI event : events)
         {
+            if (event.isConsumed())
+            {
+                continue;
+            }
+
             if (event.isKeyDownEvent() && event.getEventValue() == RADAR_TOGGLE_KEY)
             {
                 enabled = !enabled;
