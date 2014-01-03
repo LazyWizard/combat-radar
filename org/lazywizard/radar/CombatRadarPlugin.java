@@ -51,12 +51,12 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
     // Radar color settings
     private static float RADAR_ALPHA, CONTACT_ALPHA;
     private static float RADAR_FADE, RADAR_MIDFADE;
-    private static Color RADAR_COLOR, RADAR_MIDFADED_COLOR, RADAR_FADED_COLOR;
-    private static Color RADAR_DEAD_COLOR, RADAR_DEAD_MIDFADED_COLOR, RADAR_DEAD_FADED_COLOR;
-    private static Color FRIENDLY_COLOR;
-    private static Color ENEMY_COLOR;
-    private static Color NEUTRAL_COLOR;
-    private static Color ASTEROID_COLOR;
+    private static GLColor RADAR_COLOR;
+    private static GLColor RADAR_DEAD_COLOR;
+    private static GLColor FRIENDLY_COLOR;
+    private static GLColor ENEMY_COLOR;
+    private static GLColor NEUTRAL_COLOR;
+    private static GLColor ASTEROID_COLOR;
     // Radar toggle button constant
     private static int RADAR_TOGGLE_KEY;
     // Whether the radar is active
@@ -100,42 +100,20 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
 
         // Base radar color
         Color tmp = Global.getSettings().getColor("textFriendColor");
-        RADAR_COLOR = new Color(tmp.getRed(), tmp.getGreen(),
-                tmp.getBlue(), (int) (RADAR_ALPHA * 255f));
-        RADAR_MIDFADED_COLOR = new Color(
-                (int) (RADAR_COLOR.getRed() * RADAR_MIDFADE),
-                (int) (RADAR_COLOR.getGreen() * RADAR_MIDFADE),
-                (int) (RADAR_COLOR.getBlue() * RADAR_MIDFADE),
-                RADAR_COLOR.getAlpha());
-        RADAR_FADED_COLOR = new Color(
-                (int) (RADAR_COLOR.getRed() * RADAR_FADE),
-                (int) (RADAR_COLOR.getGreen() * RADAR_FADE),
-                (int) (RADAR_COLOR.getBlue() * RADAR_FADE),
-                RADAR_COLOR.getAlpha());
+        RADAR_COLOR = new GLColor(tmp);
         tmp = Global.getSettings().getColor("textNeutralColor");
-        RADAR_DEAD_COLOR = new Color(tmp.getRed(), tmp.getGreen(),
-                tmp.getBlue(), (int) (RADAR_ALPHA * 255f));
-        RADAR_DEAD_MIDFADED_COLOR = new Color(
-                (int) (RADAR_DEAD_COLOR.getRed() * RADAR_MIDFADE),
-                (int) (RADAR_DEAD_COLOR.getGreen() * RADAR_MIDFADE),
-                (int) (RADAR_DEAD_COLOR.getBlue() * RADAR_MIDFADE),
-                RADAR_DEAD_COLOR.getAlpha());
-        RADAR_DEAD_FADED_COLOR = new Color(
-                (int) (RADAR_DEAD_COLOR.getRed() * RADAR_FADE),
-                (int) (RADAR_DEAD_COLOR.getGreen() * RADAR_FADE),
-                (int) (RADAR_DEAD_COLOR.getBlue() * RADAR_FADE),
-                RADAR_DEAD_COLOR.getAlpha());
+        RADAR_DEAD_COLOR = new GLColor(tmp);
 
         // Radar contact colors
         final boolean vanillaColors = settings.getBoolean("useVanillaColors");
         CONTACT_ALPHA = (float) settings.getDouble("contactAlpha");
-        FRIENDLY_COLOR = (vanillaColors ? Global.getSettings().getColor("iconFriendColor")
+        FRIENDLY_COLOR = new GLColor(vanillaColors ? Global.getSettings().getColor("iconFriendColor")
                 : toColor(settings.getJSONArray("friendlyColor")));
-        ENEMY_COLOR = (vanillaColors ? Global.getSettings().getColor("iconEnemyColor")
+        ENEMY_COLOR = new GLColor(vanillaColors ? Global.getSettings().getColor("iconEnemyColor")
                 : toColor(settings.getJSONArray("enemyColor")));
-        NEUTRAL_COLOR = (vanillaColors ? Global.getSettings().getColor("iconNeutralShipColor")
+        NEUTRAL_COLOR = new GLColor(vanillaColors ? Global.getSettings().getColor("iconNeutralShipColor")
                 : toColor(settings.getJSONArray("hulkColor")));
-        ASTEROID_COLOR = (vanillaColors ? Color.WHITE
+        ASTEROID_COLOR = new GLColor(vanillaColors ? Color.LIGHT_GRAY
                 : toColor(settings.getJSONArray("asteroidColor")));
     }
 
@@ -145,10 +123,9 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
                 (array.length() == 4 ? array.getInt(3) : 255));
     }
 
-    private static void glColor(Color color, float alpha)
+    private static void glColor(GLColor color, float alphaMult)
     {
-        glColor4f(color.getRed() / 255f, color.getGreen() / 255f,
-                color.getBlue() / 255f, alpha);
+        glColor4f(color.red, color.green, color.blue, color.alpha * alphaMult);
     }
 
     private List<CombatEntityAPI> filterVisible(List<? extends CombatEntityAPI> contacts)
@@ -185,11 +162,11 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         DrawUtils.drawCircle(RADAR_CENTER.x, RADAR_CENTER.y, RADAR_RADIUS, 72, true);
 
         // Outer circle
-        glColor(player.isHulk() ? RADAR_DEAD_FADED_COLOR : RADAR_FADED_COLOR, RADAR_ALPHA);
+        glColor(player.isHulk() ? RADAR_DEAD_COLOR : RADAR_COLOR, RADAR_ALPHA * RADAR_FADE);
         DrawUtils.drawCircle(RADAR_CENTER.x, RADAR_CENTER.y, RADAR_RADIUS, 72, false);
 
         // Middle circle
-        glColor(player.isHulk() ? RADAR_DEAD_MIDFADED_COLOR : RADAR_MIDFADED_COLOR, RADAR_ALPHA);
+        glColor(player.isHulk() ? RADAR_DEAD_COLOR : RADAR_COLOR, RADAR_ALPHA * RADAR_MIDFADE);
         DrawUtils.drawCircle(RADAR_CENTER.x, RADAR_CENTER.y, RADAR_RADIUS * .66f, 54, false);
 
         // Inner circle
@@ -200,37 +177,37 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         // Left line
         glColor(RADAR_COLOR, RADAR_ALPHA);
         glVertex2f(RADAR_CENTER.x, RADAR_CENTER.y);
-        glColor(RADAR_FADED_COLOR, RADAR_ALPHA);
+        glColor(RADAR_COLOR, RADAR_ALPHA * RADAR_FADE);
         glVertex2f(RADAR_CENTER.x - RADAR_RADIUS, RADAR_CENTER.y);
 
         // Right line
         glColor(RADAR_COLOR, RADAR_ALPHA);
         glVertex2f(RADAR_CENTER.x, RADAR_CENTER.y);
-        glColor(RADAR_FADED_COLOR, RADAR_ALPHA);
+        glColor(RADAR_COLOR, RADAR_ALPHA * RADAR_FADE);
         glVertex2f(RADAR_CENTER.x + RADAR_RADIUS, RADAR_CENTER.y);
 
         // Upper line
         glColor(RADAR_COLOR, RADAR_ALPHA);
         glVertex2f(RADAR_CENTER.x, RADAR_CENTER.y);
-        glColor(RADAR_FADED_COLOR, RADAR_ALPHA);
+        glColor(RADAR_COLOR, RADAR_ALPHA * RADAR_FADE);
         glVertex2f(RADAR_CENTER.x, RADAR_CENTER.y + RADAR_RADIUS);
 
         // Lower line
         glColor(RADAR_COLOR, RADAR_ALPHA);
         glVertex2f(RADAR_CENTER.x, RADAR_CENTER.y);
-        glColor(RADAR_FADED_COLOR, RADAR_ALPHA);
+        glColor(RADAR_COLOR, RADAR_ALPHA * RADAR_FADE);
         glVertex2f(RADAR_CENTER.x, RADAR_CENTER.y - RADAR_RADIUS);
         glEnd();
 
         // Border lines
         glBegin(GL_LINE_STRIP);
-        glColor(RADAR_FADED_COLOR, RADAR_ALPHA);
+        glColor(RADAR_COLOR, RADAR_ALPHA * RADAR_FADE);
         glVertex2f(RADAR_CENTER.x + (RADAR_RADIUS * 1.1f),
                 RADAR_CENTER.y + (RADAR_RADIUS * 1.1f));
         glColor(RADAR_COLOR, RADAR_ALPHA);
         glVertex2f(RADAR_CENTER.x - (RADAR_RADIUS * 1.1f),
                 RADAR_CENTER.y + (RADAR_RADIUS * 1.1f));
-        glColor(RADAR_FADED_COLOR, RADAR_ALPHA);
+        glColor(RADAR_COLOR, RADAR_ALPHA * RADAR_FADE);
         glVertex2f(RADAR_CENTER.x - (RADAR_RADIUS * 1.1f),
                 RADAR_CENTER.y - (RADAR_RADIUS * 1.1f));
         glEnd();
@@ -427,5 +404,26 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
     public void init(CombatEngineAPI engine)
     {
         this.engine = engine;
+    }
+
+    private static class GLColor
+    {
+        private final float red, green, blue, alpha;
+
+        private GLColor(Color color)
+        {
+            red = color.getRed() / 255f;
+            green = color.getGreen() / 255f;
+            blue = color.getBlue() / 255f;
+            alpha = color.getAlpha() / 255f;
+        }
+
+        private GLColor(Color color, float alphaOverride)
+        {
+            red = color.getRed() / 255f;
+            green = color.getGreen() / 255f;
+            blue = color.getBlue() / 255f;
+            alpha = alphaOverride;
+        }
     }
 }
