@@ -1,7 +1,6 @@
 package org.lazywizard.radar;
 
 import com.fs.starfarer.api.Global;
-import com.fs.starfarer.api.combat.BattleObjectiveAPI;
 import com.fs.starfarer.api.combat.CombatEngineAPI;
 import com.fs.starfarer.api.combat.CombatEntityAPI;
 import com.fs.starfarer.api.combat.EveryFrameCombatPlugin;
@@ -49,8 +48,9 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
     // Radar color settings
     private static float RADAR_OPACITY, RADAR_ALPHA, CONTACT_ALPHA;
     private static float RADAR_FADE, RADAR_MIDFADE;
-    private static GLColor RADAR_COLOR;
-    private static GLColor RADAR_DEAD_COLOR;
+    private static GLColor RADAR_BG_COLOR;
+    private static GLColor RADAR_FG_COLOR;
+    private static GLColor RADAR_FG_DEAD_COLOR;
     private static GLColor FRIENDLY_COLOR;
     private static GLColor ENEMY_COLOR;
     private static GLColor HULK_COLOR;
@@ -98,10 +98,12 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
                 "Radar range set to " + RADAR_SIGHT_RANGE + " su");
 
         // Base radar color
-        Color tmp = Global.getSettings().getColor("textFriendColor");
-        RADAR_COLOR = new GLColor(tmp);
+        Color tmp = toColor(settings.getJSONArray("radarBackgroundColor"));
+        RADAR_BG_COLOR = new GLColor(tmp);
+        tmp = Global.getSettings().getColor("textFriendColor");
+        RADAR_FG_COLOR = new GLColor(tmp);
         tmp = Global.getSettings().getColor("textNeutralColor");
-        RADAR_DEAD_COLOR = new GLColor(tmp);
+        RADAR_FG_DEAD_COLOR = new GLColor(tmp);
 
         // Radar contact colors
         final boolean vanillaColors = settings.getBoolean("useVanillaColors");
@@ -132,8 +134,8 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         List<CombatEntityAPI> visible = new ArrayList<CombatEntityAPI>();
         for (CombatEntityAPI contact : contacts)
         {
-            if (MathUtils.getDistance(contact, player.getLocation())
-                    > RADAR_SIGHT_RANGE)
+            if (MathUtils.getDistanceSquared(contact.getLocation(), player.getLocation())
+                    > (RADAR_SIGHT_RANGE * RADAR_SIGHT_RANGE))
             {
                 continue;
             }
@@ -157,57 +159,57 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         glLineWidth(1f);
 
         // Slight darkening of radar background
-        glColor4f(0f, 0f, 0f, RADAR_OPACITY);
+        glColor(RADAR_BG_COLOR, RADAR_OPACITY);
         DrawUtils.drawCircle(RADAR_CENTER.x, RADAR_CENTER.y, RADAR_RADIUS, 72, true);
 
         // Outer circle
-        glColor(player.isHulk() ? RADAR_DEAD_COLOR : RADAR_COLOR, RADAR_ALPHA * RADAR_FADE);
+        glColor(player.isHulk() ? RADAR_FG_DEAD_COLOR : RADAR_FG_COLOR, RADAR_ALPHA * RADAR_FADE);
         DrawUtils.drawCircle(RADAR_CENTER.x, RADAR_CENTER.y, RADAR_RADIUS, 72, false);
 
         // Middle circle
-        glColor(player.isHulk() ? RADAR_DEAD_COLOR : RADAR_COLOR, RADAR_ALPHA * RADAR_MIDFADE);
+        glColor(player.isHulk() ? RADAR_FG_DEAD_COLOR : RADAR_FG_COLOR, RADAR_ALPHA * RADAR_MIDFADE);
         DrawUtils.drawCircle(RADAR_CENTER.x, RADAR_CENTER.y, RADAR_RADIUS * .66f, 54, false);
 
         // Inner circle
-        glColor(player.isHulk() ? RADAR_DEAD_COLOR : RADAR_COLOR, RADAR_ALPHA);
+        glColor(player.isHulk() ? RADAR_FG_DEAD_COLOR : RADAR_FG_COLOR, RADAR_ALPHA);
         DrawUtils.drawCircle(RADAR_CENTER.x, RADAR_CENTER.y, RADAR_RADIUS * .33f, 36, false);
 
         glBegin(GL_LINES);
         // Left line
-        glColor(RADAR_COLOR, RADAR_ALPHA);
+        glColor(player.isHulk() ? RADAR_FG_DEAD_COLOR : RADAR_FG_COLOR, RADAR_ALPHA);
         glVertex2f(RADAR_CENTER.x, RADAR_CENTER.y);
-        glColor(RADAR_COLOR, RADAR_ALPHA * RADAR_FADE);
+        glColor(player.isHulk() ? RADAR_FG_DEAD_COLOR : RADAR_FG_COLOR, RADAR_ALPHA * RADAR_FADE);
         glVertex2f(RADAR_CENTER.x - RADAR_RADIUS, RADAR_CENTER.y);
 
         // Right line
-        glColor(RADAR_COLOR, RADAR_ALPHA);
+        glColor(player.isHulk() ? RADAR_FG_DEAD_COLOR : RADAR_FG_COLOR, RADAR_ALPHA);
         glVertex2f(RADAR_CENTER.x, RADAR_CENTER.y);
-        glColor(RADAR_COLOR, RADAR_ALPHA * RADAR_FADE);
+        glColor(player.isHulk() ? RADAR_FG_DEAD_COLOR : RADAR_FG_COLOR, RADAR_ALPHA * RADAR_FADE);
         glVertex2f(RADAR_CENTER.x + RADAR_RADIUS, RADAR_CENTER.y);
 
         // Upper line
-        glColor(RADAR_COLOR, RADAR_ALPHA);
+        glColor(player.isHulk() ? RADAR_FG_DEAD_COLOR : RADAR_FG_COLOR, RADAR_ALPHA);
         glVertex2f(RADAR_CENTER.x, RADAR_CENTER.y);
-        glColor(RADAR_COLOR, RADAR_ALPHA * RADAR_FADE);
+        glColor(player.isHulk() ? RADAR_FG_DEAD_COLOR : RADAR_FG_COLOR, RADAR_ALPHA * RADAR_FADE);
         glVertex2f(RADAR_CENTER.x, RADAR_CENTER.y + RADAR_RADIUS);
 
         // Lower line
-        glColor(RADAR_COLOR, RADAR_ALPHA);
+        glColor(player.isHulk() ? RADAR_FG_DEAD_COLOR : RADAR_FG_COLOR, RADAR_ALPHA);
         glVertex2f(RADAR_CENTER.x, RADAR_CENTER.y);
-        glColor(RADAR_COLOR, RADAR_ALPHA * RADAR_FADE);
+        glColor(player.isHulk() ? RADAR_FG_DEAD_COLOR : RADAR_FG_COLOR, RADAR_ALPHA * RADAR_FADE);
         glVertex2f(RADAR_CENTER.x, RADAR_CENTER.y - RADAR_RADIUS);
         glEnd();
 
         // Border lines
         glLineWidth(1.5f);
         glBegin(GL_LINE_STRIP);
-        glColor(RADAR_COLOR, RADAR_ALPHA * RADAR_FADE);
+        glColor(player.isHulk() ? RADAR_FG_DEAD_COLOR : RADAR_FG_COLOR, RADAR_ALPHA * RADAR_FADE);
         glVertex2f(RADAR_CENTER.x + (RADAR_RADIUS * 1.1f),
                 RADAR_CENTER.y + (RADAR_RADIUS * 1.1f));
-        glColor(RADAR_COLOR, RADAR_ALPHA);
+        glColor(player.isHulk() ? RADAR_FG_DEAD_COLOR : RADAR_FG_COLOR, RADAR_ALPHA);
         glVertex2f(RADAR_CENTER.x - (RADAR_RADIUS * 1.1f),
                 RADAR_CENTER.y + (RADAR_RADIUS * 1.1f));
-        glColor(RADAR_COLOR, RADAR_ALPHA * RADAR_FADE);
+        glColor(player.isHulk() ? RADAR_FG_DEAD_COLOR : RADAR_FG_COLOR, RADAR_ALPHA * RADAR_FADE);
         glVertex2f(RADAR_CENTER.x - (RADAR_RADIUS * 1.1f),
                 RADAR_CENTER.y - (RADAR_RADIUS * 1.1f));
         glEnd();
@@ -290,7 +292,7 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
                         glEnd();
                         glColor4f(0f, 1f, 1f, CONTACT_ALPHA);
                         DrawUtils.drawArc(radarLoc.x, radarLoc.y,
-                                shield.getRadius() * RADAR_SCALING,
+                                1.75f * (((ShipAPI) contact).getHullSize().ordinal() + 1),
                                 shield.getFacing() - (shield.getActiveArc() / 2f),
                                 shield.getActiveArc(),
                                 (int) (shield.getActiveArc() / 18f) + 1);
@@ -362,9 +364,9 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         if (SHOW_OBJECTIVES)
         {
             /*List<BattleObjectiveAPI> objectives = engine.getObjectives();
-            if (!objectives.isEmpty())
-            {
-            }*/
+             if (!objectives.isEmpty())
+             {
+             }*/
         }
     }
 
