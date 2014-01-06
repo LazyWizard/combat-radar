@@ -1,7 +1,6 @@
 package org.lazywizard.radar;
 
 import com.fs.starfarer.api.Global;
-import com.fs.starfarer.api.combat.BattleObjectiveAPI;
 import com.fs.starfarer.api.combat.CombatEngineAPI;
 import com.fs.starfarer.api.combat.CombatEntityAPI;
 import com.fs.starfarer.api.combat.EveryFrameCombatPlugin;
@@ -28,7 +27,6 @@ import org.lwjgl.util.vector.Vector2f;
 // TODO: Draw ships with different number of sides for each hull class
 // TODO: Add marker around current target
 // TODO: Switch to pre-calculated rotations for ships
-// TODO: Display objectives
 // TODO: Use better names for config options in the settings file
 // TODO: Change toggle to switch between 3 zoom levels + off
 // TODO: Move each render type to its own file, use extensible plugin system
@@ -60,7 +58,6 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
     private static GLColor ASTEROID_COLOR;
     // Radar toggle button constant
     private static int RADAR_TOGGLE_KEY;
-    private static final Vector2f tmp = new Vector2f();
     // Whether the radar is active
     private boolean enabled = true;
     private boolean needsRecalc = true;
@@ -151,12 +148,17 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         return visible;
     }
 
+    private static final Vector2f TMP_VECTOR = new Vector2f();
+
     private Vector2f getPointOnRadar(Vector2f worldLoc)
     {
-        Vector2f.sub(worldLoc, player.getLocation(), tmp);
-        tmp.scale(RADAR_SCALING);
-        Vector2f.add(tmp, RADAR_CENTER, tmp);
-        return tmp;
+        // Get position relative to {0,0}
+        Vector2f.sub(worldLoc, player.getLocation(), TMP_VECTOR);
+        // Scale point to fit within the radar properly
+        TMP_VECTOR.scale(RADAR_SCALING);
+        // Translate point to inside the radar box
+        Vector2f.add(TMP_VECTOR, RADAR_CENTER, TMP_VECTOR);
+        return TMP_VECTOR;
     }
 
     private void renderBox()
@@ -315,6 +317,42 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
                     drawContact(radarLoc,
                             1.5f * (contact.getHullSize().ordinal() + 1),
                             contact.getFacing());
+
+                    // Draw marker around current ship target
+                    if (player.getShipTarget() == contact)
+                    {
+                        glEnd();
+                        // TODO: Add a color setting for this
+                        float size = 1.8f * (contact.getHullSize().ordinal() + 1);
+                        float margin = size * .5f;
+                        glColor4f(1f, 1f, 1f, CONTACT_ALPHA);
+                        glBegin(GL_LINES);
+                        // Upper left corner
+                        glVertex2f(radarLoc.x - size, radarLoc.y + size);
+                        glVertex2f(radarLoc.x - margin, radarLoc.y + size);
+                        glVertex2f(radarLoc.x - size, radarLoc.y + size);
+                        glVertex2f(radarLoc.x - size, radarLoc.y + margin);
+
+                        // Upper right corner
+                        glVertex2f(radarLoc.x + size, radarLoc.y + size);
+                        glVertex2f(radarLoc.x + margin, radarLoc.y + size);
+                        glVertex2f(radarLoc.x + size, radarLoc.y + size);
+                        glVertex2f(radarLoc.x + size, radarLoc.y + margin);
+
+                        // Lower left corner
+                        glVertex2f(radarLoc.x - size, radarLoc.y - size);
+                        glVertex2f(radarLoc.x - margin, radarLoc.y - size);
+                        glVertex2f(radarLoc.x - size, radarLoc.y - size);
+                        glVertex2f(radarLoc.x - size, radarLoc.y - margin);
+
+                        // Lower right corner
+                        glVertex2f(radarLoc.x + size, radarLoc.y - size);
+                        glVertex2f(radarLoc.x + margin, radarLoc.y - size);
+                        glVertex2f(radarLoc.x + size, radarLoc.y - size);
+                        glVertex2f(radarLoc.x + size, radarLoc.y - margin);
+                        glEnd();
+                        glBegin(GL_TRIANGLES);
+                    }
                 }
                 glEnd();
 
@@ -347,13 +385,14 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
             List<CombatEntityAPI> asteroids = filterVisible(engine.getAsteroids());
             if (!asteroids.isEmpty())
             {
+                Vector2f radarLoc;
                 glColor(ASTEROID_COLOR, CONTACT_ALPHA);
                 glPointSize(2f);
                 glBegin(GL_POINTS);
                 for (CombatEntityAPI asteroid : asteroids)
                 {
-                    getPointOnRadar(asteroid.getLocation());
-                    glVertex2f(tmp.x, tmp.y);
+                    radarLoc = getPointOnRadar(asteroid.getLocation());
+                    glVertex2f(radarLoc.x, radarLoc.y);
                 }
                 glEnd();
             }
@@ -367,6 +406,7 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
             List<CombatEntityAPI> missiles = filterVisible(engine.getMissiles());
             if (!missiles.isEmpty())
             {
+                Vector2f radarLoc;
                 MissileAPI missile;
                 float alphaMod;
                 glPointSize(1.5f);
@@ -387,8 +427,8 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
                         glColor(FRIENDLY_COLOR, CONTACT_ALPHA * alphaMod);
                     }
 
-                    getPointOnRadar(missile.getLocation());
-                    glVertex2f(tmp.x, tmp.y);
+                    radarLoc = getPointOnRadar(missile.getLocation());
+                    glVertex2f(radarLoc.x, radarLoc.y);
                 }
                 glEnd();
             }
