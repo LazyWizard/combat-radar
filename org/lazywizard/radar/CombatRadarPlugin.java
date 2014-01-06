@@ -438,13 +438,14 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         // Draw the radar
         renderBox();
 
+        // Check if player alive/dead status has changed
         if (player.isHulk() ^ isHulk)
         {
             needsRecalc = true;
             isHulk = player.isHulk();
         }
 
-        if (isHulk)
+        if (!isHulk)
         {
             renderContacts();
             renderAsteroids();
