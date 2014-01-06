@@ -399,15 +399,15 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
     {
         if (SHOW_OBJECTIVES)
         {
-            List<BattleObjectiveAPI> objectives = engine.getObjectives();
-             if (!objectives.isEmpty())
-             {
-                 // TODO: Add customizable colors to settings
-                 Vector2f radarLoc;
-                 float size = 250f * RADAR_SCALING;
-                 glBegin(GL_QUADS);
-                 for (BattleObjectiveAPI objective : objectives)
-                 {
+            List<CombatEntityAPI> objectives = filterVisible(engine.getObjectives());
+            if (!objectives.isEmpty())
+            {
+                // TODO: Add customizable colors to settings
+                Vector2f radarLoc;
+                float size = 250f * RADAR_SCALING;
+                glLineWidth(size / 5f);
+                for (CombatEntityAPI objective : objectives)
+                {
                     // Owned by player
                     if (objective.getOwner() == player.getOwner())
                     {
@@ -425,13 +425,15 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
                     }
 
                     radarLoc = getPointOnRadar(objective.getLocation());
+
+                    glBegin(GL_LINE_LOOP);
                     glVertex2f(radarLoc.x, radarLoc.y + size);
-                    glVertex2f(radarLoc.x + size, radarLoc.y );
+                    glVertex2f(radarLoc.x + size, radarLoc.y);
                     glVertex2f(radarLoc.x, radarLoc.y - size);
                     glVertex2f(radarLoc.x - size, radarLoc.y);
-                 }
-                 glEnd();
-             }
+                    glEnd();
+                }
+            }
         }
     }
 
