@@ -60,9 +60,9 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
     // Radar toggle button constant
     private static int RADAR_TOGGLE_KEY;
     // Whether the radar is active
-    private static boolean enabled = true;
-    private static boolean needsRecalc = true;
     private final Vector2f tmp = new Vector2f();
+    private boolean enabled = true;
+    private boolean needsRecalc = true;
     private ShipAPI player;
     private boolean isHulk = false;
     private CombatEngineAPI engine;
@@ -288,10 +288,9 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
                 boolean isPhased;
                 glLineWidth(1f);
                 glBegin(GL_TRIANGLES);
-                for (CombatEntityAPI entity : filterVisible(engine.getShips()))
+                for (CombatEntityAPI entity : contacts)
                 {
                     contact = (ShipAPI) entity;
-                    shield = contact.getShield();
                     isPhased = (contact.getPhaseCloak() != null
                             && contact.getPhaseCloak().isOn());
 
@@ -315,20 +314,27 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
                     drawContact(radarLoc,
                             1.5f * (((ShipAPI) contact).getHullSize().ordinal() + 1),
                             contact.getFacing());
-
-                    if (SHOW_SHIELDS && shield != null && shield.isOn())
-                    {
-                        glEnd();
-                        glColor4f(0f, 1f, 1f, CONTACT_ALPHA);
-                        DrawUtils.drawArc(radarLoc.x, radarLoc.y,
-                                1.75f * (((ShipAPI) contact).getHullSize().ordinal() + 1),
-                                shield.getFacing() - (shield.getActiveArc() / 2f),
-                                shield.getActiveArc(),
-                                (int) (shield.getActiveArc() / 18f) + 1);
-                        glBegin(GL_TRIANGLES);
-                    }
                 }
                 glEnd();
+
+                if (SHOW_SHIELDS)
+                {
+                    for (CombatEntityAPI entity : contacts)
+                    {
+                        contact = (ShipAPI) entity;
+                        shield = contact.getShield();
+                        if (shield != null && shield.isOn())
+                        {
+                            glColor4f(0f, 1f, 1f, CONTACT_ALPHA);
+                            radarLoc = getPointOnRadar(contact.getLocation());
+                            DrawUtils.drawArc(radarLoc.x, radarLoc.y,
+                                    1.75f * (((ShipAPI) contact).getHullSize().ordinal() + 1),
+                                    shield.getFacing() - (shield.getActiveArc() / 2f),
+                                    shield.getActiveArc(),
+                                    (int) (shield.getActiveArc() / 18f) + 1);
+                        }
+                    }
+                }
             }
         }
     }
