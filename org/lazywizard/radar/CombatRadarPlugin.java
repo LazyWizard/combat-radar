@@ -39,6 +39,8 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
     private static final float RADAR_RADIUS;
     private static float RADAR_SIGHT_RANGE;
     private static float RADAR_SCALING;
+    // Radar OpenGL buffers/display lists
+    private static int RADAR_BOX_DISPLAY_LIST_ID = -123;
     // Radar display settings
     private static boolean SHOW_SHIPS = true;
     private static boolean SHOW_ASTEROIDS = true;
@@ -59,8 +61,10 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
     private static int RADAR_TOGGLE_KEY;
     // Whether the radar is active
     private static boolean enabled = true;
+    private static boolean needsRecalc = true;
     private final Vector2f tmp = new Vector2f();
     private ShipAPI player;
+    private boolean isHulk = false;
     private CombatEngineAPI engine;
 
     static
@@ -156,63 +160,88 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
 
     private void renderBox()
     {
-        glLineWidth(1f);
+        // Cache OpenGL commands for faster execution
+        if (!needsRecalc)
+        {
+            glCallList(RADAR_BOX_DISPLAY_LIST_ID);
+        }
+        else
+        {
+            // Delete old display list, if existant
+            if (RADAR_BOX_DISPLAY_LIST_ID >= 0)
+            {
+                Global.getLogger(CombatRadarPlugin.class).log(Level.DEBUG,
+                        "Deleting old list with ID " + RADAR_BOX_DISPLAY_LIST_ID);
+                glDeleteLists(RADAR_BOX_DISPLAY_LIST_ID, 1);
+            }
 
-        // Slight darkening of radar background
-        glColor(RADAR_BG_COLOR, RADAR_OPACITY);
-        DrawUtils.drawCircle(RADAR_CENTER.x, RADAR_CENTER.y, RADAR_RADIUS, 72, true);
+            // Generate new display list
+            RADAR_BOX_DISPLAY_LIST_ID = glGenLists(1);
+            Global.getLogger(CombatRadarPlugin.class).log(Level.DEBUG,
+                    "Creating new list with ID " + RADAR_BOX_DISPLAY_LIST_ID);
+            glNewList(RADAR_BOX_DISPLAY_LIST_ID, GL_COMPILE);
+            glLineWidth(1f);
 
-        // Outer circle
-        glColor(player.isHulk() ? RADAR_FG_DEAD_COLOR : RADAR_FG_COLOR, RADAR_ALPHA * RADAR_FADE);
-        DrawUtils.drawCircle(RADAR_CENTER.x, RADAR_CENTER.y, RADAR_RADIUS, 72, false);
+            // Slight darkening of radar background
+            glColor(RADAR_BG_COLOR, RADAR_OPACITY);
+            DrawUtils.drawCircle(RADAR_CENTER.x, RADAR_CENTER.y, RADAR_RADIUS, 72, true);
 
-        // Middle circle
-        glColor(player.isHulk() ? RADAR_FG_DEAD_COLOR : RADAR_FG_COLOR, RADAR_ALPHA * RADAR_MIDFADE);
-        DrawUtils.drawCircle(RADAR_CENTER.x, RADAR_CENTER.y, RADAR_RADIUS * .66f, 54, false);
+            GLColor color = (isHulk ? RADAR_FG_DEAD_COLOR : RADAR_FG_COLOR);
 
-        // Inner circle
-        glColor(player.isHulk() ? RADAR_FG_DEAD_COLOR : RADAR_FG_COLOR, RADAR_ALPHA);
-        DrawUtils.drawCircle(RADAR_CENTER.x, RADAR_CENTER.y, RADAR_RADIUS * .33f, 36, false);
+            // Outer circle
+            glColor(color, RADAR_ALPHA * RADAR_FADE);
+            DrawUtils.drawCircle(RADAR_CENTER.x, RADAR_CENTER.y, RADAR_RADIUS, 72, false);
 
-        glBegin(GL_LINES);
-        // Left line
-        glColor(player.isHulk() ? RADAR_FG_DEAD_COLOR : RADAR_FG_COLOR, RADAR_ALPHA);
-        glVertex2f(RADAR_CENTER.x, RADAR_CENTER.y);
-        glColor(player.isHulk() ? RADAR_FG_DEAD_COLOR : RADAR_FG_COLOR, RADAR_ALPHA * RADAR_FADE);
-        glVertex2f(RADAR_CENTER.x - RADAR_RADIUS, RADAR_CENTER.y);
+            // Middle circle
+            glColor(color, RADAR_ALPHA * RADAR_MIDFADE);
+            DrawUtils.drawCircle(RADAR_CENTER.x, RADAR_CENTER.y, RADAR_RADIUS * .66f, 54, false);
 
-        // Right line
-        glColor(player.isHulk() ? RADAR_FG_DEAD_COLOR : RADAR_FG_COLOR, RADAR_ALPHA);
-        glVertex2f(RADAR_CENTER.x, RADAR_CENTER.y);
-        glColor(player.isHulk() ? RADAR_FG_DEAD_COLOR : RADAR_FG_COLOR, RADAR_ALPHA * RADAR_FADE);
-        glVertex2f(RADAR_CENTER.x + RADAR_RADIUS, RADAR_CENTER.y);
+            // Inner circle
+            glColor(color, RADAR_ALPHA);
+            DrawUtils.drawCircle(RADAR_CENTER.x, RADAR_CENTER.y, RADAR_RADIUS * .33f, 36, false);
 
-        // Upper line
-        glColor(player.isHulk() ? RADAR_FG_DEAD_COLOR : RADAR_FG_COLOR, RADAR_ALPHA);
-        glVertex2f(RADAR_CENTER.x, RADAR_CENTER.y);
-        glColor(player.isHulk() ? RADAR_FG_DEAD_COLOR : RADAR_FG_COLOR, RADAR_ALPHA * RADAR_FADE);
-        glVertex2f(RADAR_CENTER.x, RADAR_CENTER.y + RADAR_RADIUS);
+            glBegin(GL_LINES);
+            // Left line
+            glColor(color, RADAR_ALPHA);
+            glVertex2f(RADAR_CENTER.x, RADAR_CENTER.y);
+            glColor(color, RADAR_ALPHA * RADAR_FADE);
+            glVertex2f(RADAR_CENTER.x - RADAR_RADIUS, RADAR_CENTER.y);
 
-        // Lower line
-        glColor(player.isHulk() ? RADAR_FG_DEAD_COLOR : RADAR_FG_COLOR, RADAR_ALPHA);
-        glVertex2f(RADAR_CENTER.x, RADAR_CENTER.y);
-        glColor(player.isHulk() ? RADAR_FG_DEAD_COLOR : RADAR_FG_COLOR, RADAR_ALPHA * RADAR_FADE);
-        glVertex2f(RADAR_CENTER.x, RADAR_CENTER.y - RADAR_RADIUS);
-        glEnd();
+            // Right line
+            glColor(color, RADAR_ALPHA);
+            glVertex2f(RADAR_CENTER.x, RADAR_CENTER.y);
+            glColor(color, RADAR_ALPHA * RADAR_FADE);
+            glVertex2f(RADAR_CENTER.x + RADAR_RADIUS, RADAR_CENTER.y);
 
-        // Border lines
-        glLineWidth(1.5f);
-        glBegin(GL_LINE_STRIP);
-        glColor(player.isHulk() ? RADAR_FG_DEAD_COLOR : RADAR_FG_COLOR, RADAR_ALPHA * RADAR_FADE);
-        glVertex2f(RADAR_CENTER.x + (RADAR_RADIUS * 1.1f),
-                RADAR_CENTER.y + (RADAR_RADIUS * 1.1f));
-        glColor(player.isHulk() ? RADAR_FG_DEAD_COLOR : RADAR_FG_COLOR, RADAR_ALPHA);
-        glVertex2f(RADAR_CENTER.x - (RADAR_RADIUS * 1.1f),
-                RADAR_CENTER.y + (RADAR_RADIUS * 1.1f));
-        glColor(player.isHulk() ? RADAR_FG_DEAD_COLOR : RADAR_FG_COLOR, RADAR_ALPHA * RADAR_FADE);
-        glVertex2f(RADAR_CENTER.x - (RADAR_RADIUS * 1.1f),
-                RADAR_CENTER.y - (RADAR_RADIUS * 1.1f));
-        glEnd();
+            // Upper line
+            glColor(color, RADAR_ALPHA);
+            glVertex2f(RADAR_CENTER.x, RADAR_CENTER.y);
+            glColor(color, RADAR_ALPHA * RADAR_FADE);
+            glVertex2f(RADAR_CENTER.x, RADAR_CENTER.y + RADAR_RADIUS);
+
+            // Lower line
+            glColor(color, RADAR_ALPHA);
+            glVertex2f(RADAR_CENTER.x, RADAR_CENTER.y);
+            glColor(color, RADAR_ALPHA * RADAR_FADE);
+            glVertex2f(RADAR_CENTER.x, RADAR_CENTER.y - RADAR_RADIUS);
+            glEnd();
+
+            // Border lines
+            glLineWidth(1.5f);
+            glBegin(GL_LINE_STRIP);
+            glColor(color, RADAR_ALPHA * RADAR_FADE);
+            glVertex2f(RADAR_CENTER.x + (RADAR_RADIUS * 1.1f),
+                    RADAR_CENTER.y + (RADAR_RADIUS * 1.1f));
+            glColor(color, RADAR_ALPHA);
+            glVertex2f(RADAR_CENTER.x - (RADAR_RADIUS * 1.1f),
+                    RADAR_CENTER.y + (RADAR_RADIUS * 1.1f));
+            glColor(color, RADAR_ALPHA * RADAR_FADE);
+            glVertex2f(RADAR_CENTER.x - (RADAR_RADIUS * 1.1f),
+                    RADAR_CENTER.y - (RADAR_RADIUS * 1.1f));
+            glEnd();
+            glEndList();
+            needsRecalc = false;
+        }
     }
 
     private void drawContact(Vector2f center, float size, float angle)
@@ -409,7 +438,13 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         // Draw the radar
         renderBox();
 
-        if (!player.isHulk())
+        if (player.isHulk() ^ isHulk)
+        {
+            needsRecalc = true;
+            isHulk = player.isHulk();
+        }
+
+        if (isHulk)
         {
             renderContacts();
             renderAsteroids();
