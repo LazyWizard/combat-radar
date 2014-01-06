@@ -24,8 +24,6 @@ import org.lwjgl.opengl.Display;
 import static org.lwjgl.opengl.GL11.*;
 import org.lwjgl.util.vector.Vector2f;
 
-// TODO: Draw ships with different number of sides for each hull class
-// TODO: Add marker around current target
 // TODO: Switch to pre-calculated rotations for ships
 // TODO: Use better names for config options in the settings file
 // TODO: Change toggle to switch between 3 zoom levels + off
@@ -409,12 +407,17 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
                 Vector2f radarLoc;
                 MissileAPI missile;
                 float alphaMod;
-                glPointSize(1.5f);
+                glPointSize(2f);
                 glBegin(GL_POINTS);
                 for (CombatEntityAPI entity : missiles)
                 {
                     missile = (MissileAPI) entity;
-                    alphaMod = (missile.isFading() ? .5f : 1f);
+                    // TODO: Add a setting for missile damage alpha mod
+                    alphaMod = Math.min(1f, Math.max(0.3f,
+                            missile.getDamageAmount() / 750f));
+                    alphaMod *= (missile.isFading() ? .5f : 1f);
+                    System.out.println("Drawing " + missile.getProjectileSpecId()
+                            + " at alpha " + (CONTACT_ALPHA * alphaMod));
 
                     // Enemy or burnt-out missiles
                     if (missile.isFizzling() || (missile.getOwner() + player.getOwner() == 1))
