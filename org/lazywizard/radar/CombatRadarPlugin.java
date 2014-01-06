@@ -1,6 +1,7 @@
 package org.lazywizard.radar;
 
 import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.combat.BattleObjectiveAPI;
 import com.fs.starfarer.api.combat.CombatEngineAPI;
 import com.fs.starfarer.api.combat.CombatEntityAPI;
 import com.fs.starfarer.api.combat.EveryFrameCombatPlugin;
@@ -59,8 +60,8 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
     private static GLColor ASTEROID_COLOR;
     // Radar toggle button constant
     private static int RADAR_TOGGLE_KEY;
+    private static final Vector2f tmp = new Vector2f();
     // Whether the radar is active
-    private final Vector2f tmp = new Vector2f();
     private boolean enabled = true;
     private boolean needsRecalc = true;
     private ShipAPI player;
@@ -312,7 +313,7 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
 
                     radarLoc = getPointOnRadar(contact.getLocation());
                     drawContact(radarLoc,
-                            1.5f * (((ShipAPI) contact).getHullSize().ordinal() + 1),
+                            1.5f * (contact.getHullSize().ordinal() + 1),
                             contact.getFacing());
                 }
                 glEnd();
@@ -328,7 +329,7 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
                             glColor4f(0f, 1f, 1f, CONTACT_ALPHA);
                             radarLoc = getPointOnRadar(contact.getLocation());
                             DrawUtils.drawArc(radarLoc.x, radarLoc.y,
-                                    1.75f * (((ShipAPI) contact).getHullSize().ordinal() + 1),
+                                    1.75f * (contact.getHullSize().ordinal() + 1),
                                     shield.getFacing() - (shield.getActiveArc() / 2f),
                                     shield.getActiveArc(),
                                     (int) (shield.getActiveArc() / 18f) + 1);
@@ -398,10 +399,39 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
     {
         if (SHOW_OBJECTIVES)
         {
-            /*List<BattleObjectiveAPI> objectives = engine.getObjectives();
+            List<BattleObjectiveAPI> objectives = engine.getObjectives();
              if (!objectives.isEmpty())
              {
-             }*/
+                 // TODO: Add customizable colors to settings
+                 Vector2f radarLoc;
+                 float size = 250f * RADAR_SCALING;
+                 glBegin(GL_QUADS);
+                 for (BattleObjectiveAPI objective : objectives)
+                 {
+                    // Owned by player
+                    if (objective.getOwner() == player.getOwner())
+                    {
+                        glColor(FRIENDLY_COLOR, CONTACT_ALPHA);
+                    }
+                    // Owned by opposition
+                    else if (objective.getOwner() + player.getOwner() == 1)
+                    {
+                        glColor(ENEMY_COLOR, CONTACT_ALPHA);
+                    }
+                    // Not owned yet
+                    else
+                    {
+                        glColor(HULK_COLOR, CONTACT_ALPHA);
+                    }
+
+                    radarLoc = getPointOnRadar(objective.getLocation());
+                    glVertex2f(radarLoc.x, radarLoc.y + size);
+                    glVertex2f(radarLoc.x + size, radarLoc.y );
+                    glVertex2f(radarLoc.x, radarLoc.y - size);
+                    glVertex2f(radarLoc.x - size, radarLoc.y);
+                 }
+                 glEnd();
+             }
         }
     }
 
