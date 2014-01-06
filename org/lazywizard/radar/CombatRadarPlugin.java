@@ -416,8 +416,6 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
                     alphaMod = Math.min(1f, Math.max(0.3f,
                             missile.getDamageAmount() / 750f));
                     alphaMod *= (missile.isFading() ? .5f : 1f);
-                    System.out.println("Drawing " + missile.getProjectileSpecId()
-                            + " at alpha " + (CONTACT_ALPHA * alphaMod));
 
                     // Enemy or burnt-out missiles
                     if (missile.isFizzling() || (missile.getOwner() + player.getOwner() == 1))
