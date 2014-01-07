@@ -51,7 +51,7 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
     private static boolean SHOW_MISSILES = true;
     private static boolean SHOW_OBJECTIVES = true;
     private static boolean SHOW_SHIELDS = true;
-    private static boolean SHOW_BATTLE_PROGRESS = true; // TODO: add setting
+    private static boolean SHOW_BATTLE_PROGRESS = true;
     // Radar color settings
     private static float RADAR_OPACITY, RADAR_ALPHA, CONTACT_ALPHA;
     private static float RADAR_FADE, RADAR_MIDFADE;
@@ -104,6 +104,7 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         SHOW_MISSILES = settings.getBoolean("showMissiles");
         SHOW_OBJECTIVES = settings.getBoolean("showObjectives");
         SHOW_SHIELDS = settings.getBoolean("showShields");
+        SHOW_BATTLE_PROGRESS = settings.getBoolean("showBattleProgress");
 
         // Radar range
         RADAR_SIGHT_RANGE = (float) settings.getDouble("radarRange");
