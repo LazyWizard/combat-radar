@@ -3,11 +3,14 @@ package org.lazywizard.radar;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.CombatEngineAPI;
 import com.fs.starfarer.api.combat.CombatEntityAPI;
+import com.fs.starfarer.api.combat.CombatFleetManagerAPI;
 import com.fs.starfarer.api.combat.EveryFrameCombatPlugin;
 import com.fs.starfarer.api.combat.MissileAPI;
 import com.fs.starfarer.api.combat.ShieldAPI;
 import com.fs.starfarer.api.combat.ShipAPI;
+import com.fs.starfarer.api.fleet.FleetMemberAPI;
 import com.fs.starfarer.api.input.InputEventAPI;
+import com.fs.starfarer.api.mission.FleetSide;
 import java.awt.Color;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -36,6 +39,10 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
     private static final float RADAR_RADIUS;
     private static float RADAR_SIGHT_RANGE;
     private static float RADAR_SCALING;
+    // Location and size of progress bar on screen
+    private static final Vector2f PROGRESS_BAR_LOCATION;
+    private static final float PROGRESS_BAR_WIDTH;
+    private static final float PROGRESS_BAR_HEIGHT;
     // Radar OpenGL buffers/display lists
     private static int RADAR_BOX_DISPLAY_LIST_ID = -123;
     // Radar display settings
@@ -44,6 +51,7 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
     private static boolean SHOW_MISSILES = true;
     private static boolean SHOW_OBJECTIVES = true;
     private static boolean SHOW_SHIELDS = true;
+    private static boolean SHOW_BATTLE_PROGRESS = true; // TODO: add setting
     // Radar color settings
     private static float RADAR_OPACITY, RADAR_ALPHA, CONTACT_ALPHA;
     private static float RADAR_FADE, RADAR_MIDFADE;
@@ -57,7 +65,7 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
     // Radar toggle button constant
     private static int RADAR_TOGGLE_KEY;
     // Whether the radar is active
-    private boolean enabled = true;
+    private static boolean radarEnabled = true;
     private boolean needsRecalc = true;
     private ShipAPI player;
     private boolean isHulk = false;
@@ -68,6 +76,12 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         RADAR_RADIUS = Display.getHeight() / 10f;
         RADAR_CENTER = new Vector2f(Display.getWidth() - (RADAR_RADIUS * 1.2f),
                 RADAR_RADIUS * 1.2f);
+
+        PROGRESS_BAR_LOCATION = new Vector2f(
+                RADAR_CENTER.x + (RADAR_RADIUS * 1.1f),
+                RADAR_CENTER.y - (RADAR_RADIUS * 1.1f));
+        PROGRESS_BAR_WIDTH = RADAR_RADIUS * .09f;
+        PROGRESS_BAR_HEIGHT = RADAR_RADIUS * 2f;
     }
 
     static void reloadSettings() throws IOException, JSONException
@@ -478,6 +492,57 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         }
     }
 
+    private void renderBattleProgress()
+    {
+        if (SHOW_BATTLE_PROGRESS)
+        {
+            int fpPlayer = 0, fpEnemy = 0;
+
+            // Total up player fleet point value
+            CombatFleetManagerAPI fm = engine.getFleetManager(FleetSide.PLAYER);
+            List<FleetMemberAPI> ships = fm.getDeployedCopy();
+            ships.addAll(fm.getReservesCopy());
+            for (FleetMemberAPI ship : ships)
+            {
+                fpPlayer += ship.getFleetPointCost();
+            }
+
+            // Total up enemy fleet point value
+            fm = engine.getFleetManager(FleetSide.ENEMY);
+            ships = fm.getDeployedCopy();
+            ships.addAll(fm.getReservesCopy());
+            for (FleetMemberAPI ship : ships)
+            {
+                fpEnemy += ship.getFleetPointCost();
+            }
+
+            float relativeStrength = fpPlayer / (float) (fpPlayer + fpEnemy);
+
+            glBegin(GL_QUADS);
+            // Player strength
+            glColor(FRIENDLY_COLOR, RADAR_ALPHA);
+            glVertex2f(PROGRESS_BAR_LOCATION.x, PROGRESS_BAR_LOCATION.y);
+            glVertex2f(PROGRESS_BAR_LOCATION.x + PROGRESS_BAR_WIDTH,
+                    PROGRESS_BAR_LOCATION.y);
+            glVertex2f(PROGRESS_BAR_LOCATION.x + PROGRESS_BAR_WIDTH,
+                    PROGRESS_BAR_LOCATION.y + (PROGRESS_BAR_HEIGHT * relativeStrength));
+            glVertex2f(PROGRESS_BAR_LOCATION.x, PROGRESS_BAR_LOCATION.y
+                    + (PROGRESS_BAR_HEIGHT * relativeStrength));
+
+            // Enemy strength
+            glColor(ENEMY_COLOR, RADAR_ALPHA);
+            glVertex2f(PROGRESS_BAR_LOCATION.x, PROGRESS_BAR_LOCATION.y
+                    + (PROGRESS_BAR_HEIGHT * relativeStrength));
+            glVertex2f(PROGRESS_BAR_LOCATION.x + PROGRESS_BAR_WIDTH,
+                    PROGRESS_BAR_LOCATION.y + (PROGRESS_BAR_HEIGHT * relativeStrength));
+            glVertex2f(PROGRESS_BAR_LOCATION.x + PROGRESS_BAR_WIDTH,
+                    PROGRESS_BAR_LOCATION.y + PROGRESS_BAR_HEIGHT);
+            glVertex2f(PROGRESS_BAR_LOCATION.x, PROGRESS_BAR_LOCATION.y
+                    + PROGRESS_BAR_HEIGHT);
+            glEnd();
+        }
+    }
+
     @Override
     public void advance(float amount, List<InputEventAPI> events)
     {
@@ -498,13 +563,13 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
 
             if (event.isKeyDownEvent() && event.getEventValue() == RADAR_TOGGLE_KEY)
             {
-                enabled = !enabled;
+                radarEnabled = !radarEnabled;
                 event.consume();
                 break;
             }
         }
 
-        if (!enabled)
+        if (!radarEnabled)
         {
             return;
         }
@@ -516,6 +581,7 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
 
         // Draw the radar
         renderBox();
+        renderBattleProgress();
 
         // Check if player alive/dead status has changed
         if (player.isHulk() ^ isHulk)
