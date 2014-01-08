@@ -295,32 +295,9 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
             List<CombatEntityAPI> contacts = filterVisible(engine.getShips());
             if (!contacts.isEmpty())
             {
-                ShipAPI contact;
-                Vector2f radarLoc;
-
-                // Draw shields
-                if (SHOW_SHIELDS)
-                {
-                    ShieldAPI shield;
-                    for (CombatEntityAPI entity : contacts)
-                    {
-                        contact = (ShipAPI) entity;
-                        shield = contact.getShield();
-                        if (shield != null && shield.isOn())
-                        {
-                            glColor4f(0f, 1f, 1f, CONTACT_ALPHA);
-                            radarLoc = getPointOnRadar(contact.getLocation());
-                            DrawUtils.drawArc(radarLoc.x, radarLoc.y,
-                                    1.75f * (contact.getHullSize().ordinal() + 1),
-                                    shield.getFacing() - (shield.getActiveArc() / 2f),
-                                    shield.getActiveArc(),
-                                    (int) (shield.getActiveArc() / 18f) + 1);
-                        }
-                    }
-                }
-
                 // Draw contacts
-                ShipAPI target = null;
+                ShipAPI contact, target = null;
+                Vector2f radarLoc;
                 float alphaMod;
                 glLineWidth(1f);
                 glBegin(GL_TRIANGLES);
@@ -358,6 +335,27 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
                             contact.getFacing());
                 }
                 glEnd();
+
+                // Draw shields
+                if (SHOW_SHIELDS)
+                {
+                    ShieldAPI shield;
+                    for (CombatEntityAPI entity : contacts)
+                    {
+                        contact = (ShipAPI) entity;
+                        shield = contact.getShield();
+                        if (shield != null && shield.isOn())
+                        {
+                            glColor4f(0f, 1f, 1f, CONTACT_ALPHA);
+                            radarLoc = getPointOnRadar(contact.getLocation());
+                            DrawUtils.drawArc(radarLoc.x, radarLoc.y,
+                                    1.75f * (contact.getHullSize().ordinal() + 1),
+                                    shield.getFacing() - (shield.getActiveArc() / 2f),
+                                    shield.getActiveArc(),
+                                    (int) (shield.getActiveArc() / 18f) + 1);
+                        }
+                    }
+                }
 
                 // Draw marker around current ship target
                 if (target != null)
