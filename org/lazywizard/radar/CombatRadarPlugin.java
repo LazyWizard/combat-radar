@@ -28,9 +28,9 @@ import static org.lwjgl.opengl.GL11.*;
 import org.lwjgl.util.vector.Vector2f;
 
 // TODO: Switch to pre-calculated rotations for ships
+// TODO: Use a narrower triangle for ships to better show facing
 // TODO: Use better names for config options in the settings file
 // TODO: Change toggle to switch between 3 zoom levels + off
-// TODO: Move each render type to its own file, use extensible plugin system
 public class CombatRadarPlugin implements EveryFrameCombatPlugin
 {
     private static final String SETTINGS_FILE = "data/config/combat_radar.json";
@@ -55,13 +55,13 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
     // Radar color settings
     private static float RADAR_OPACITY, RADAR_ALPHA, CONTACT_ALPHA;
     private static float RADAR_FADE, RADAR_MIDFADE;
-    private static GLColor RADAR_BG_COLOR;
-    private static GLColor RADAR_FG_COLOR;
-    private static GLColor RADAR_FG_DEAD_COLOR;
-    private static GLColor FRIENDLY_COLOR;
-    private static GLColor ENEMY_COLOR;
-    private static GLColor HULK_COLOR;
-    private static GLColor ASTEROID_COLOR;
+    private static Color RADAR_BG_COLOR;
+    private static Color RADAR_FG_COLOR;
+    private static Color RADAR_FG_DEAD_COLOR;
+    private static Color FRIENDLY_COLOR;
+    private static Color ENEMY_COLOR;
+    private static Color HULK_COLOR;
+    private static Color ASTEROID_COLOR;
     // Radar toggle button constant
     private static int RADAR_TOGGLE_KEY;
     // Whether the radar is active
@@ -113,24 +113,21 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
                 "Radar range set to " + RADAR_SIGHT_RANGE + " su");
 
         // Base radar color
-        Color tmp = toColor(settings.getJSONArray("radarBackgroundColor"));
-        RADAR_BG_COLOR = new GLColor(tmp);
-        tmp = Global.getSettings().getColor("textFriendColor");
-        RADAR_FG_COLOR = new GLColor(tmp);
-        tmp = Global.getSettings().getColor("textNeutralColor");
-        RADAR_FG_DEAD_COLOR = new GLColor(tmp);
+        RADAR_BG_COLOR = toColor(settings.getJSONArray("radarBackgroundColor"));
+        RADAR_FG_COLOR = Global.getSettings().getColor("textFriendColor");
+        RADAR_FG_DEAD_COLOR = Global.getSettings().getColor("textNeutralColor");
 
         // Radar contact colors
         final boolean vanillaColors = settings.getBoolean("useVanillaColors");
         CONTACT_ALPHA = (float) settings.getDouble("contactAlpha");
-        FRIENDLY_COLOR = new GLColor(vanillaColors ? Global.getSettings().getColor("iconFriendColor")
-                : toColor(settings.getJSONArray("friendlyColor")));
-        ENEMY_COLOR = new GLColor(vanillaColors ? Global.getSettings().getColor("iconEnemyColor")
-                : toColor(settings.getJSONArray("enemyColor")));
-        HULK_COLOR = new GLColor(vanillaColors ? Global.getSettings().getColor("iconNeutralShipColor")
-                : toColor(settings.getJSONArray("hulkColor")));
-        ASTEROID_COLOR = new GLColor(vanillaColors ? Color.LIGHT_GRAY
-                : toColor(settings.getJSONArray("asteroidColor")));
+        FRIENDLY_COLOR = vanillaColors ? Global.getSettings().getColor("iconFriendColor")
+                : toColor(settings.getJSONArray("friendlyColor"));
+        ENEMY_COLOR = vanillaColors ? Global.getSettings().getColor("iconEnemyColor")
+                : toColor(settings.getJSONArray("enemyColor"));
+        HULK_COLOR = vanillaColors ? Global.getSettings().getColor("iconNeutralShipColor")
+                : toColor(settings.getJSONArray("hulkColor"));
+        ASTEROID_COLOR = vanillaColors ? Color.LIGHT_GRAY
+                : toColor(settings.getJSONArray("asteroidColor"));
     }
 
     private static Color toColor(JSONArray array) throws JSONException
@@ -139,9 +136,10 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
                 (array.length() == 4 ? array.getInt(3) : 255));
     }
 
-    private static void glColor(GLColor color, float alphaMult)
+    private static void glColor(Color color, float alphaMult)
     {
-        glColor4f(color.red, color.green, color.blue, color.alpha * alphaMult);
+        glColor4ub((byte) color.getRed(), (byte) color.getGreen(),
+                (byte) color.getBlue(), (byte) (color.getAlpha() * alphaMult));
     }
 
     private List<CombatEntityAPI> filterVisible(List<? extends CombatEntityAPI> contacts)
@@ -202,7 +200,7 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
             glColor(RADAR_BG_COLOR, RADAR_OPACITY);
             DrawUtils.drawCircle(RADAR_CENTER.x, RADAR_CENTER.y, RADAR_RADIUS, 72, true);
 
-            GLColor color = (isHulk ? RADAR_FG_DEAD_COLOR : RADAR_FG_COLOR);
+            Color color = (isHulk ? RADAR_FG_DEAD_COLOR : RADAR_FG_COLOR);
 
             // Outer circle
             glColor(color, RADAR_ALPHA * RADAR_FADE);
@@ -297,80 +295,13 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
             List<CombatEntityAPI> contacts = filterVisible(engine.getShips());
             if (!contacts.isEmpty())
             {
-                // Draw contacts
                 ShipAPI contact;
-                ShieldAPI shield;
                 Vector2f radarLoc;
-                boolean isPhased;
-                glLineWidth(1f);
-                glBegin(GL_TRIANGLES);
-                for (CombatEntityAPI entity : contacts)
-                {
-                    contact = (ShipAPI) entity;
-                    isPhased = (contact.getPhaseCloak() != null
-                            && contact.getPhaseCloak().isOn());
 
-                    // Allies
-                    if (contact.getOwner() == player.getOwner())
-                    {
-                        glColor(FRIENDLY_COLOR, CONTACT_ALPHA * (isPhased ? .5f : 1f));
-                    }
-                    // Enemies
-                    else if (contact.getOwner() + player.getOwner() == 1)
-                    {
-                        glColor(ENEMY_COLOR, CONTACT_ALPHA * (isPhased ? .5f : 1f));
-                    }
-                    // Hulks
-                    else
-                    {
-                        glColor(HULK_COLOR, CONTACT_ALPHA);
-                    }
-
-                    radarLoc = getPointOnRadar(contact.getLocation());
-                    drawContact(radarLoc,
-                            1.5f * (contact.getHullSize().ordinal() + 1),
-                            contact.getFacing());
-
-                    // Draw marker around current ship target
-                    if (player.getShipTarget() == contact)
-                    {
-                        glEnd();
-                        // TODO: Add a color setting for this
-                        float size = 1.8f * (contact.getHullSize().ordinal() + 1);
-                        float margin = size * .5f;
-                        glColor4f(1f, 1f, 1f, CONTACT_ALPHA);
-                        glBegin(GL_LINES);
-                        // Upper left corner
-                        glVertex2f(radarLoc.x - size, radarLoc.y + size);
-                        glVertex2f(radarLoc.x - margin, radarLoc.y + size);
-                        glVertex2f(radarLoc.x - size, radarLoc.y + size);
-                        glVertex2f(radarLoc.x - size, radarLoc.y + margin);
-
-                        // Upper right corner
-                        glVertex2f(radarLoc.x + size, radarLoc.y + size);
-                        glVertex2f(radarLoc.x + margin, radarLoc.y + size);
-                        glVertex2f(radarLoc.x + size, radarLoc.y + size);
-                        glVertex2f(radarLoc.x + size, radarLoc.y + margin);
-
-                        // Lower left corner
-                        glVertex2f(radarLoc.x - size, radarLoc.y - size);
-                        glVertex2f(radarLoc.x - margin, radarLoc.y - size);
-                        glVertex2f(radarLoc.x - size, radarLoc.y - size);
-                        glVertex2f(radarLoc.x - size, radarLoc.y - margin);
-
-                        // Lower right corner
-                        glVertex2f(radarLoc.x + size, radarLoc.y - size);
-                        glVertex2f(radarLoc.x + margin, radarLoc.y - size);
-                        glVertex2f(radarLoc.x + size, radarLoc.y - size);
-                        glVertex2f(radarLoc.x + size, radarLoc.y - margin);
-                        glEnd();
-                        glBegin(GL_TRIANGLES);
-                    }
-                }
-                glEnd();
-
+                // Draw shields
                 if (SHOW_SHIELDS)
                 {
+                    ShieldAPI shield;
                     for (CombatEntityAPI entity : contacts)
                     {
                         contact = (ShipAPI) entity;
@@ -386,6 +317,81 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
                                     (int) (shield.getActiveArc() / 18f) + 1);
                         }
                     }
+                }
+
+                // Draw contacts
+                ShipAPI target = null;
+                float alphaMod;
+                glLineWidth(1f);
+                glBegin(GL_TRIANGLES);
+                for (CombatEntityAPI entity : contacts)
+                {
+                    contact = (ShipAPI) entity;
+                    alphaMod = (contact.getPhaseCloak() != null
+                            && contact.getPhaseCloak().isOn()) ? .5f : 1f;
+
+                    // Check for current ship target
+                    if (player.getShipTarget() == contact)
+                    {
+                        target = contact;
+                    }
+
+                    // Allies
+                    if (contact.getOwner() == player.getOwner())
+                    {
+                        glColor(FRIENDLY_COLOR, CONTACT_ALPHA * alphaMod);
+                    }
+                    // Enemies
+                    else if (contact.getOwner() + player.getOwner() == 1)
+                    {
+                        glColor(ENEMY_COLOR, CONTACT_ALPHA * alphaMod);
+                    }
+                    // Hulks
+                    else
+                    {
+                        glColor(HULK_COLOR, CONTACT_ALPHA);
+                    }
+
+                    radarLoc = getPointOnRadar(contact.getLocation());
+                    drawContact(radarLoc,
+                            1.5f * (contact.getHullSize().ordinal() + 1),
+                            contact.getFacing());
+                }
+                glEnd();
+
+                // Draw marker around current ship target
+                if (target != null)
+                {
+                    // TODO: Add a color setting for this
+                    float size = 1.8f * (target.getHullSize().ordinal() + 1);
+                    radarLoc = getPointOnRadar(target.getLocation());
+                    float margin = size * .5f;
+                    glColor4f(1f, 1f, 1f, CONTACT_ALPHA);
+                    glBegin(GL_LINES);
+                    // Upper left corner
+                    glVertex2f(radarLoc.x - size, radarLoc.y + size);
+                    glVertex2f(radarLoc.x - margin, radarLoc.y + size);
+                    glVertex2f(radarLoc.x - size, radarLoc.y + size);
+                    glVertex2f(radarLoc.x - size, radarLoc.y + margin);
+
+                    // Upper right corner
+                    glVertex2f(radarLoc.x + size, radarLoc.y + size);
+                    glVertex2f(radarLoc.x + margin, radarLoc.y + size);
+                    glVertex2f(radarLoc.x + size, radarLoc.y + size);
+                    glVertex2f(radarLoc.x + size, radarLoc.y + margin);
+
+                    // Lower left corner
+                    glVertex2f(radarLoc.x - size, radarLoc.y - size);
+                    glVertex2f(radarLoc.x - margin, radarLoc.y - size);
+                    glVertex2f(radarLoc.x - size, radarLoc.y - size);
+                    glVertex2f(radarLoc.x - size, radarLoc.y - margin);
+
+                    // Lower right corner
+                    glVertex2f(radarLoc.x + size, radarLoc.y - size);
+                    glVertex2f(radarLoc.x + margin, radarLoc.y - size);
+                    glVertex2f(radarLoc.x + size, radarLoc.y - size);
+                    glVertex2f(radarLoc.x + size, radarLoc.y - margin);
+                    glEnd();
                 }
             }
         }
@@ -517,6 +523,11 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
                 fpEnemy += ship.getFleetPointCost();
             }
 
+            if (fpPlayer + fpEnemy <= 0)
+            {
+                return;
+            }
+
             float relativeStrength = fpPlayer / (float) (fpPlayer + fpEnemy);
 
             glBegin(GL_QUADS);
@@ -604,26 +615,5 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
     public void init(CombatEngineAPI engine)
     {
         this.engine = engine;
-    }
-
-    private static class GLColor
-    {
-        private final float red, green, blue, alpha;
-
-        private GLColor(Color color)
-        {
-            red = color.getRed() / 255f;
-            green = color.getGreen() / 255f;
-            blue = color.getBlue() / 255f;
-            alpha = color.getAlpha() / 255f;
-        }
-
-        private GLColor(Color color, float alphaOverride)
-        {
-            red = color.getRed() / 255f;
-            green = color.getGreen() / 255f;
-            blue = color.getBlue() / 255f;
-            alpha = alphaOverride;
-        }
     }
 }
