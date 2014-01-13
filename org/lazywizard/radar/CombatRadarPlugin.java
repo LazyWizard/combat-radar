@@ -60,7 +60,9 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
     private static Color RADAR_FG_DEAD_COLOR;
     private static Color FRIENDLY_COLOR;
     private static Color ENEMY_COLOR;
+    private static Color NEUTRAL_COLOR;
     private static Color HULK_COLOR;
+    private static Color SHIELD_COLOR;
     private static Color ASTEROID_COLOR;
     // Radar toggle button constant
     private static int RADAR_TOGGLE_KEY;
@@ -124,8 +126,12 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
                 : toColor(settings.getJSONArray("friendlyColor"));
         ENEMY_COLOR = vanillaColors ? Global.getSettings().getColor("iconEnemyColor")
                 : toColor(settings.getJSONArray("enemyColor"));
-        HULK_COLOR = vanillaColors ? Global.getSettings().getColor("iconNeutralShipColor")
+        NEUTRAL_COLOR = vanillaColors ? Global.getSettings().getColor("iconNeutralShipColor")
+                : toColor(settings.getJSONArray("neutralColor"));
+        HULK_COLOR = vanillaColors ? Color.LIGHT_GRAY
                 : toColor(settings.getJSONArray("hulkColor"));
+        SHIELD_COLOR = vanillaColors ? Color.CYAN
+                : toColor(settings.getJSONArray("shieldColor"));
         ASTEROID_COLOR = vanillaColors ? Color.LIGHT_GRAY
                 : toColor(settings.getJSONArray("asteroidColor"));
     }
@@ -328,10 +334,10 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
                     {
                         glColor(ENEMY_COLOR, CONTACT_ALPHA * alphaMod);
                     }
-                    // Something went wrong, make it VERY visible
+                    // Neutral (doesn't show up in vanilla)
                     else
                     {
-                        glColor4f(1f, 1f, 0f, CONTACT_ALPHA);
+                        glColor(NEUTRAL_COLOR, CONTACT_ALPHA * alphaMod);
                     }
 
                     radarLoc = getPointOnRadar(contact.getLocation());
@@ -345,14 +351,13 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
                 if (SHOW_SHIELDS)
                 {
                     ShieldAPI shield;
+                    glColor(SHIELD_COLOR, CONTACT_ALPHA);
                     for (CombatEntityAPI entity : contacts)
                     {
                         contact = (ShipAPI) entity;
                         shield = contact.getShield();
                         if (shield != null && shield.isOn())
                         {
-                            // TODO: Add shield color setting
-                            glColor4f(0f, 1f, 1f, CONTACT_ALPHA);
                             radarLoc = getPointOnRadar(contact.getLocation());
                             DrawUtils.drawArc(radarLoc.x, radarLoc.y,
                                     1.75f * (contact.getHullSize().ordinal() + 1),
