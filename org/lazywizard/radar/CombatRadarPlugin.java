@@ -313,8 +313,13 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
                         target = contact;
                     }
 
+                    // Hulks
+                    if (contact.isHulk())
+                    {
+                        glColor(HULK_COLOR, CONTACT_ALPHA);
+                    }
                     // Allies
-                    if (contact.getOwner() == player.getOwner())
+                    else if (contact.getOwner() == player.getOwner())
                     {
                         glColor(FRIENDLY_COLOR, CONTACT_ALPHA * alphaMod);
                     }
@@ -323,10 +328,10 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
                     {
                         glColor(ENEMY_COLOR, CONTACT_ALPHA * alphaMod);
                     }
-                    // Hulks
+                    // Something went wrong, make it VERY visible
                     else
                     {
-                        glColor(HULK_COLOR, CONTACT_ALPHA);
+                        glColor4f(1f, 1f, 0f, CONTACT_ALPHA);
                     }
 
                     radarLoc = getPointOnRadar(contact.getLocation());
@@ -346,6 +351,7 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
                         shield = contact.getShield();
                         if (shield != null && shield.isOn())
                         {
+                            // TODO: Add shield color setting
                             glColor4f(0f, 1f, 1f, CONTACT_ALPHA);
                             radarLoc = getPointOnRadar(contact.getLocation());
                             DrawUtils.drawArc(radarLoc.x, radarLoc.y,
@@ -497,6 +503,7 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         }
     }
 
+    // TODO: Animate the bar (gradually move to new fleet balance)
     private void renderBattleProgress()
     {
         if (SHOW_BATTLE_PROGRESS)
