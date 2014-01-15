@@ -75,6 +75,8 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
 
     static
     {
+        // If resizing during game becomes possible, this will
+        // have to be refactored into its own method
         RADAR_RADIUS = Display.getHeight() / 10f;
         RADAR_CENTER = new Vector2f(Display.getWidth() - (RADAR_RADIUS * 1.2f),
                 RADAR_RADIUS * 1.2f);
@@ -86,7 +88,7 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         PROGRESS_BAR_HEIGHT = RADAR_RADIUS * 2f;
     }
 
-    static void reloadSettings() throws IOException, JSONException
+    public static void reloadSettings() throws IOException, JSONException
     {
         JSONObject settings = Global.getSettings().loadJSON(SETTINGS_FILE);
 
