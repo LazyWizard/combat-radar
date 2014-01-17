@@ -570,6 +570,12 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
     @Override
     public void advance(float amount, List<InputEventAPI> events)
     {
+        // Temp fix for .6.2a bug
+        if (engine != Global.getCombatEngine())
+        {
+            return;
+        }
+
         // This also acts as a main menu check
         player = engine.getPlayerShip();
         if (player == null || !engine.isEntityInPlay(player))
