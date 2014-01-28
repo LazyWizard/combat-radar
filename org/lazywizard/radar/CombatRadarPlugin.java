@@ -46,6 +46,7 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
     // Radar OpenGL buffers/display lists
     private static int RADAR_BOX_DISPLAY_LIST_ID = -123;
     // Radar display settings
+    private static boolean SHOW_BORDER = true;
     private static boolean SHOW_SHIPS = true;
     private static boolean SHOW_ASTEROIDS = true;
     private static boolean SHOW_MISSILES = true;
@@ -103,6 +104,7 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         RADAR_ALPHA = (float) settings.getDouble("radarForegroundAlpha");
         RADAR_FADE = (float) settings.getDouble("radarEdgeFadeAmount");
         RADAR_MIDFADE = (RADAR_ALPHA + RADAR_FADE) / 2f;
+        SHOW_BORDER = settings.getBoolean("showBorderLines");
         SHOW_SHIPS = settings.getBoolean("showShips");
         SHOW_ASTEROIDS = settings.getBoolean("showAsteroids");
         SHOW_MISSILES = settings.getBoolean("showMissiles");
@@ -249,18 +251,22 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
             glEnd();
 
             // Border lines
-            glLineWidth(1.5f);
-            glBegin(GL_LINE_STRIP);
-            glColor(color, RADAR_ALPHA * RADAR_FADE);
-            glVertex2f(RADAR_CENTER.x + (RADAR_RADIUS * 1.1f),
-                    RADAR_CENTER.y + (RADAR_RADIUS * 1.1f));
-            glColor(color, RADAR_ALPHA);
-            glVertex2f(RADAR_CENTER.x - (RADAR_RADIUS * 1.1f),
-                    RADAR_CENTER.y + (RADAR_RADIUS * 1.1f));
-            glColor(color, RADAR_ALPHA * RADAR_FADE);
-            glVertex2f(RADAR_CENTER.x - (RADAR_RADIUS * 1.1f),
-                    RADAR_CENTER.y - (RADAR_RADIUS * 1.1f));
-            glEnd();
+            if (SHOW_BORDER)
+            {
+                glLineWidth(1.5f);
+                glBegin(GL_LINE_STRIP);
+                glColor(color, RADAR_ALPHA * RADAR_FADE);
+                glVertex2f(RADAR_CENTER.x + (RADAR_RADIUS * 1.1f),
+                        RADAR_CENTER.y + (RADAR_RADIUS * 1.1f));
+                glColor(color, RADAR_ALPHA);
+                glVertex2f(RADAR_CENTER.x - (RADAR_RADIUS * 1.1f),
+                        RADAR_CENTER.y + (RADAR_RADIUS * 1.1f));
+                glColor(color, RADAR_ALPHA * RADAR_FADE);
+                glVertex2f(RADAR_CENTER.x - (RADAR_RADIUS * 1.1f),
+                        RADAR_CENTER.y - (RADAR_RADIUS * 1.1f));
+                glEnd();
+            }
+
             glEndList();
             needsRecalc = false;
         }
@@ -517,22 +523,24 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         {
             int fpPlayer = 0, fpEnemy = 0;
 
-            // Total up player fleet point value
+            // Total up player fleet strength
             CombatFleetManagerAPI fm = engine.getFleetManager(FleetSide.PLAYER);
             List<FleetMemberAPI> ships = fm.getDeployedCopy();
+            //if (!engine.isSimulationBattle())
             ships.addAll(fm.getReservesCopy());
             for (FleetMemberAPI ship : ships)
             {
-                fpPlayer += ship.getFleetPointCost();
+                fpPlayer += ship.getMemberStrength(); //.getFleetPointCost();
             }
 
-            // Total up enemy fleet point value
+            // Total up enemy fleet strength
             fm = engine.getFleetManager(FleetSide.ENEMY);
             ships = fm.getDeployedCopy();
+            //if (!engine.isSimulationBattle())
             ships.addAll(fm.getReservesCopy());
             for (FleetMemberAPI ship : ships)
             {
-                fpEnemy += ship.getFleetPointCost();
+                fpEnemy += ship.getMemberStrength(); //.getFleetPointCost();
             }
 
             if (fpPlayer + fpEnemy <= 0)
