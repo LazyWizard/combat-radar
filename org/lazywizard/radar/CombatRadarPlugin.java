@@ -157,13 +157,8 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         List<CombatEntityAPI> visible = new ArrayList<CombatEntityAPI>();
         for (CombatEntityAPI contact : contacts)
         {
-            if (MathUtils.getDistanceSquared(contact.getLocation(), player.getLocation())
-                    > (RADAR_SIGHT_RANGE * RADAR_SIGHT_RANGE))
-            {
-                continue;
-            }
-
-            visible.add(contact);
+            if (MathUtils.isWithinRange(contact, player, RADAR_SIGHT_RANGE))
+                visible.add(contact);
         }
 
         return visible;
