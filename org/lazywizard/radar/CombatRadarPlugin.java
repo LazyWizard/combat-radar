@@ -366,7 +366,7 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
                                     1.75f * (contact.getHullSize().ordinal() + 1),
                                     shield.getFacing() - (shield.getActiveArc() / 2f),
                                     shield.getActiveArc(),
-                                    (int) (shield.getActiveArc() / 18f) + 1);
+                                    (int) (shield.getActiveArc() / 18f) + 1, false);
                         }
                     }
                 }
