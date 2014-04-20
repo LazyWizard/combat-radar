@@ -649,6 +649,7 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         // Set OpenGL flags
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glLoadIdentity();
         glOrtho(0, Display.getWidth(), 0, Display.getHeight(), 1, -1);
 
         // Draw the radar
