@@ -646,11 +646,21 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
             return;
         }
 
+        // Retina display fix
+        int width = (int) (Display.getWidth() * Display.getPixelScaleFactor()),
+                height = (int) (Display.getHeight() * Display.getPixelScaleFactor());
+
         // Set OpenGL flags
+        glMatrixMode(GL_PROJECTION);
+        glPushMatrix();
+        glLoadIdentity();
+        glViewport(0, 0, width, height);
+        glOrtho(0, width, 0, height, 1, -1);
+        glMatrixMode(GL_MODELVIEW);
+        glPushMatrix();
+        glLoadIdentity();
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glLoadIdentity();
-        glOrtho(0, Display.getWidth(), 0, Display.getHeight(), 1, -1);
 
         // Draw the radar
         renderBox();
@@ -670,6 +680,11 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
             renderMissiles();
             renderObjectives();
         }
+
+        glDisable(GL_BLEND);
+        glPopMatrix();
+        glMatrixMode(GL_PROJECTION);
+        glPopMatrix();
     }
 
     @Override
