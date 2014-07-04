@@ -1,4 +1,4 @@
-package org.lazywizard.radar.combat;
+package org.lazywizard.radar.combat.renderers;
 
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.CombatEntityAPI;
@@ -12,13 +12,14 @@ import org.lazywizard.lazylib.JSONUtils;
 import org.lazywizard.lazylib.MathUtils;
 import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
 import org.lazywizard.lazylib.opengl.DrawUtils;
-import org.lazywizard.radar.BaseCombatRenderer;
+import org.lazywizard.radar.combat.CombatRadar;
+import org.lazywizard.radar.combat.CombatRenderer;
 import static org.lwjgl.opengl.GL11.*;
 import org.lwjgl.util.vector.Vector2f;
 
 // TODO: Switch to pre-calculated rotations for ships
 // TODO: Use a narrower triangle for ships to better show facing
-public class ShipRenderer implements BaseCombatRenderer
+public class ShipRenderer implements CombatRenderer
 {
     private static boolean SHOW_SHIPS;
     private static boolean SHOW_SHIELDS;

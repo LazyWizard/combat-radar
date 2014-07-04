@@ -1,4 +1,4 @@
-package org.lazywizard.radar.combat;
+package org.lazywizard.radar.combat.renderers;
 
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.CombatEntityAPI;
@@ -9,11 +9,12 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.lazywizard.lazylib.JSONUtils;
 import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
-import org.lazywizard.radar.BaseCombatRenderer;
+import org.lazywizard.radar.combat.CombatRadar;
+import org.lazywizard.radar.combat.CombatRenderer;
 import static org.lwjgl.opengl.GL11.*;
 import org.lwjgl.util.vector.Vector2f;
 
-public class AsteroidRenderer implements BaseCombatRenderer
+public class AsteroidRenderer implements CombatRenderer
 {
     private static boolean SHOW_ASTEROIDS;
     private static Color ASTEROID_COLOR;
