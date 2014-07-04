@@ -44,10 +44,6 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
     private static float RADAR_SIGHT_RANGE;
     private static float RADAR_SCALING;
     private static final List<BaseRenderer> RENDERERS;
-    // Location and size of progress bar on screen
-    private static final Vector2f PROGRESS_BAR_LOCATION;
-    private static final float PROGRESS_BAR_WIDTH;
-    private static final float PROGRESS_BAR_HEIGHT;
     // Performance settings
     private static boolean RESPECT_FOG_OF_WAR = true;
     // Radar display settings
@@ -77,12 +73,6 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         RADAR_RADIUS = Display.getHeight() / 10f;
         RADAR_CENTER = new Vector2f(Display.getWidth() - (RADAR_RADIUS * 1.2f),
                 RADAR_RADIUS * 1.2f);
-
-        PROGRESS_BAR_LOCATION = new Vector2f(
-                RADAR_CENTER.x + (RADAR_RADIUS * 1.1f),
-                RADAR_CENTER.y - (RADAR_RADIUS * 1.1f));
-        PROGRESS_BAR_WIDTH = RADAR_RADIUS * .09f;
-        PROGRESS_BAR_HEIGHT = RADAR_RADIUS * 2f;
 
         // TODO: load renderers from a CSV, allow third-party renderers
         RENDERERS = new ArrayList<>();
@@ -282,65 +272,6 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
                     glEnd();
                 }
             }
-        }
-    }
-
-    // TODO: Animate the bar (gradually move to new fleet balance)
-    private void renderBattleProgress()
-    {
-        if (SHOW_BATTLE_PROGRESS)
-        {
-            int fpPlayer = 0, fpEnemy = 0;
-
-            // Total up player fleet strength
-            CombatFleetManagerAPI fm = engine.getFleetManager(FleetSide.PLAYER);
-            List<FleetMemberAPI> ships = fm.getDeployedCopy();
-            //if (!engine.isSimulationBattle())
-            ships.addAll(fm.getReservesCopy());
-            for (FleetMemberAPI ship : ships)
-            {
-                fpPlayer += ship.getMemberStrength(); //.getFleetPointCost();
-            }
-
-            // Total up enemy fleet strength
-            fm = engine.getFleetManager(FleetSide.ENEMY);
-            ships = fm.getDeployedCopy();
-            //if (!engine.isSimulationBattle())
-            ships.addAll(fm.getReservesCopy());
-            for (FleetMemberAPI ship : ships)
-            {
-                fpEnemy += ship.getMemberStrength(); //.getFleetPointCost();
-            }
-
-            if (fpPlayer + fpEnemy <= 0)
-            {
-                return;
-            }
-
-            float relativeStrength = fpPlayer / (float) (fpPlayer + fpEnemy);
-
-            glBegin(GL_QUADS);
-            // Player strength
-            glColor(FRIENDLY_COLOR, RADAR_ALPHA);
-            glVertex2f(PROGRESS_BAR_LOCATION.x, PROGRESS_BAR_LOCATION.y);
-            glVertex2f(PROGRESS_BAR_LOCATION.x + PROGRESS_BAR_WIDTH,
-                    PROGRESS_BAR_LOCATION.y);
-            glVertex2f(PROGRESS_BAR_LOCATION.x + PROGRESS_BAR_WIDTH,
-                    PROGRESS_BAR_LOCATION.y + (PROGRESS_BAR_HEIGHT * relativeStrength));
-            glVertex2f(PROGRESS_BAR_LOCATION.x, PROGRESS_BAR_LOCATION.y
-                    + (PROGRESS_BAR_HEIGHT * relativeStrength));
-
-            // Enemy strength
-            glColor(ENEMY_COLOR, RADAR_ALPHA);
-            glVertex2f(PROGRESS_BAR_LOCATION.x, PROGRESS_BAR_LOCATION.y
-                    + (PROGRESS_BAR_HEIGHT * relativeStrength));
-            glVertex2f(PROGRESS_BAR_LOCATION.x + PROGRESS_BAR_WIDTH,
-                    PROGRESS_BAR_LOCATION.y + (PROGRESS_BAR_HEIGHT * relativeStrength));
-            glVertex2f(PROGRESS_BAR_LOCATION.x + PROGRESS_BAR_WIDTH,
-                    PROGRESS_BAR_LOCATION.y + PROGRESS_BAR_HEIGHT);
-            glVertex2f(PROGRESS_BAR_LOCATION.x, PROGRESS_BAR_LOCATION.y
-                    + PROGRESS_BAR_HEIGHT);
-            glEnd();
         }
     }
 
