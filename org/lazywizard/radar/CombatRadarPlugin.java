@@ -25,6 +25,7 @@ import org.lazywizard.lazylib.FastTrig;
 import org.lazywizard.lazylib.MathUtils;
 import org.lazywizard.lazylib.combat.CombatUtils;
 import org.lazywizard.lazylib.opengl.DrawUtils;
+import org.lazywizard.radar.renderers.*;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.Display;
 import static org.lwjgl.opengl.GL11.*;
@@ -42,16 +43,14 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
     private static final float RADAR_RADIUS;
     private static float RADAR_SIGHT_RANGE;
     private static float RADAR_SCALING;
+    private static final List<BaseRenderer> RENDERERS;
     // Location and size of progress bar on screen
     private static final Vector2f PROGRESS_BAR_LOCATION;
     private static final float PROGRESS_BAR_WIDTH;
     private static final float PROGRESS_BAR_HEIGHT;
-    // Radar OpenGL buffers/display lists
-    private static int RADAR_BOX_DISPLAY_LIST_ID = -123;
     // Performance settings
     private static boolean RESPECT_FOG_OF_WAR = true;
     // Radar display settings
-    private static boolean SHOW_BORDER = true;
     private static boolean SHOW_SHIPS = true;
     private static boolean SHOW_ASTEROIDS = true;
     private static boolean SHOW_MISSILES = true;
@@ -60,11 +59,8 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
     private static boolean SHOW_SHIELDS = true;
     private static boolean SHOW_BATTLE_PROGRESS = true;
     // Radar color settings
-    private static float RADAR_OPACITY, RADAR_ALPHA, CONTACT_ALPHA;
-    private static float RADAR_FADE, RADAR_MIDFADE;
-    private static Color RADAR_BG_COLOR;
-    private static Color RADAR_FG_COLOR;
-    private static Color RADAR_FG_DEAD_COLOR;
+    private static float RADAR_ALPHA, CONTACT_ALPHA;
+    private static float RADAR_FADE;
     private static Color FRIENDLY_COLOR;
     private static Color ENEMY_COLOR;
     private static Color NEUTRAL_COLOR;
@@ -75,9 +71,7 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
     private static int RADAR_TOGGLE_KEY;
     // Whether the radar is active
     private static boolean radarEnabled = true;
-    private boolean needsRecalc = true;
     private ShipAPI player;
-    private boolean isHulk = false;
     private CombatEngineAPI engine;
 
     static
@@ -93,11 +87,25 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
                 RADAR_CENTER.y - (RADAR_RADIUS * 1.1f));
         PROGRESS_BAR_WIDTH = RADAR_RADIUS * .09f;
         PROGRESS_BAR_HEIGHT = RADAR_RADIUS * 2f;
+
+        RENDERERS = new ArrayList<>();
+        RENDERERS.add(new BoxRenderer());
+        RENDERERS.add(new BattleProgressRenderer());
+        RENDERERS.add(new ShipRenderer());
+        RENDERERS.add(new ShieldRenderer());
+        RENDERERS.add(new AsteroidRenderer());
+        RENDERERS.add(new MissileRenderer());
+        RENDERERS.add(new ObjectiveRenderer());
     }
 
     public static void reloadSettings() throws IOException, JSONException
     {
         JSONObject settings = Global.getSettings().loadJSON(SETTINGS_FILE);
+
+        for (BaseRenderer renderer : RENDERERS)
+        {
+            renderer.reloadSettings(settings);
+        }
 
         // Toggle key
         RADAR_TOGGLE_KEY = settings.getInt("toggleKey");
@@ -109,11 +117,8 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         RESPECT_FOG_OF_WAR = settings.getBoolean("onlyShowVisibleContacts");
 
         // Radar options
-        RADAR_OPACITY = (float) settings.getDouble("radarBackgroundAlpha");
         RADAR_ALPHA = (float) settings.getDouble("radarForegroundAlpha");
         RADAR_FADE = (float) settings.getDouble("radarEdgeFadeAmount");
-        RADAR_MIDFADE = (RADAR_ALPHA + RADAR_FADE) / 2f;
-        SHOW_BORDER = settings.getBoolean("showBorderLines");
         SHOW_SHIPS = settings.getBoolean("showShips");
         SHOW_ASTEROIDS = settings.getBoolean("showAsteroids");
         SHOW_MISSILES = settings.getBoolean("showMissiles");
@@ -127,11 +132,6 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         RADAR_SCALING = RADAR_RADIUS / RADAR_SIGHT_RANGE;
         Global.getLogger(CombatRadarPlugin.class).log(Level.INFO,
                 "Radar range set to " + RADAR_SIGHT_RANGE + " su");
-
-        // Base radar color
-        RADAR_BG_COLOR = toColor(settings.getJSONArray("radarBackgroundColor"));
-        RADAR_FG_COLOR = Global.getSettings().getColor("textFriendColor");
-        RADAR_FG_DEAD_COLOR = Global.getSettings().getColor("textNeutralColor");
 
         // Radar contact colors
         final boolean vanillaColors = settings.getBoolean("useVanillaColors");
@@ -193,96 +193,6 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         // Translate point to inside the radar box
         Vector2f.add(TMP_VECTOR, RADAR_CENTER, TMP_VECTOR);
         return TMP_VECTOR;
-    }
-
-    private void renderBox()
-    {
-        // Cache OpenGL commands for faster execution
-        if (!needsRecalc)
-        {
-            glCallList(RADAR_BOX_DISPLAY_LIST_ID);
-        }
-        else
-        {
-            // Delete old display list, if existant
-            if (RADAR_BOX_DISPLAY_LIST_ID >= 0)
-            {
-                Global.getLogger(CombatRadarPlugin.class).log(Level.DEBUG,
-                        "Deleting old list with ID " + RADAR_BOX_DISPLAY_LIST_ID);
-                glDeleteLists(RADAR_BOX_DISPLAY_LIST_ID, 1);
-            }
-
-            // Generate new display list
-            RADAR_BOX_DISPLAY_LIST_ID = glGenLists(1);
-            Global.getLogger(CombatRadarPlugin.class).log(Level.DEBUG,
-                    "Creating new list with ID " + RADAR_BOX_DISPLAY_LIST_ID);
-            glNewList(RADAR_BOX_DISPLAY_LIST_ID, GL_COMPILE);
-            glLineWidth(1f);
-
-            // Slight darkening of radar background
-            glColor(RADAR_BG_COLOR, RADAR_OPACITY);
-            DrawUtils.drawCircle(RADAR_CENTER.x, RADAR_CENTER.y, RADAR_RADIUS, 72, true);
-
-            Color color = (isHulk ? RADAR_FG_DEAD_COLOR : RADAR_FG_COLOR);
-
-            // Outer circle
-            glColor(color, RADAR_ALPHA * RADAR_FADE);
-            DrawUtils.drawCircle(RADAR_CENTER.x, RADAR_CENTER.y, RADAR_RADIUS, 72, false);
-
-            // Middle circle
-            glColor(color, RADAR_ALPHA * RADAR_MIDFADE);
-            DrawUtils.drawCircle(RADAR_CENTER.x, RADAR_CENTER.y, RADAR_RADIUS * .66f, 54, false);
-
-            // Inner circle
-            glColor(color, RADAR_ALPHA);
-            DrawUtils.drawCircle(RADAR_CENTER.x, RADAR_CENTER.y, RADAR_RADIUS * .33f, 36, false);
-
-            glBegin(GL_LINES);
-            // Left line
-            glColor(color, RADAR_ALPHA);
-            glVertex2f(RADAR_CENTER.x, RADAR_CENTER.y);
-            glColor(color, RADAR_ALPHA * RADAR_FADE);
-            glVertex2f(RADAR_CENTER.x - RADAR_RADIUS, RADAR_CENTER.y);
-
-            // Right line
-            glColor(color, RADAR_ALPHA);
-            glVertex2f(RADAR_CENTER.x, RADAR_CENTER.y);
-            glColor(color, RADAR_ALPHA * RADAR_FADE);
-            glVertex2f(RADAR_CENTER.x + RADAR_RADIUS, RADAR_CENTER.y);
-
-            // Upper line
-            glColor(color, RADAR_ALPHA);
-            glVertex2f(RADAR_CENTER.x, RADAR_CENTER.y);
-            glColor(color, RADAR_ALPHA * RADAR_FADE);
-            glVertex2f(RADAR_CENTER.x, RADAR_CENTER.y + RADAR_RADIUS);
-
-            // Lower line
-            glColor(color, RADAR_ALPHA);
-            glVertex2f(RADAR_CENTER.x, RADAR_CENTER.y);
-            glColor(color, RADAR_ALPHA * RADAR_FADE);
-            glVertex2f(RADAR_CENTER.x, RADAR_CENTER.y - RADAR_RADIUS);
-            glEnd();
-
-            // Border lines
-            if (SHOW_BORDER)
-            {
-                glLineWidth(1.5f);
-                glBegin(GL_LINE_STRIP);
-                glColor(color, RADAR_ALPHA * RADAR_FADE);
-                glVertex2f(RADAR_CENTER.x + (RADAR_RADIUS * 1.1f),
-                        RADAR_CENTER.y + (RADAR_RADIUS * 1.1f));
-                glColor(color, RADAR_ALPHA);
-                glVertex2f(RADAR_CENTER.x - (RADAR_RADIUS * 1.1f),
-                        RADAR_CENTER.y + (RADAR_RADIUS * 1.1f));
-                glColor(color, RADAR_ALPHA * RADAR_FADE);
-                glVertex2f(RADAR_CENTER.x - (RADAR_RADIUS * 1.1f),
-                        RADAR_CENTER.y - (RADAR_RADIUS * 1.1f));
-                glEnd();
-            }
-
-            glEndList();
-            needsRecalc = false;
-        }
     }
 
     private void drawContact(Vector2f center, float size, float angle)
@@ -662,7 +572,12 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-        // Draw the radar
+        for (BaseRenderer renderer : RENDERERS)
+        {
+            renderer.render(amount);
+        }
+
+        /*// Draw the radar
         renderBox();
         renderBattleProgress();
 
@@ -679,7 +594,7 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
             renderAsteroids();
             renderMissiles();
             renderObjectives();
-        }
+        }*/
 
         glDisable(GL_BLEND);
         glPopMatrix();
@@ -691,5 +606,44 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
     public void init(CombatEngineAPI engine)
     {
         this.engine = engine;
+
+        RadarInfo info = new CombatRadarInfo();
+        for (BaseRenderer renderer : RENDERERS)
+        {
+            renderer.init(info);
+        }
+    }
+
+    private class CombatRadarInfo implements RadarInfo
+    {
+        @Override
+        public Vector2f getRenderCenter()
+        {
+            return RADAR_CENTER;
+        }
+
+        @Override
+        public float getRenderRadius()
+        {
+            return RADAR_RADIUS;
+        }
+
+        @Override
+        public float getCenterAlpha()
+        {
+            return RADAR_ALPHA;
+        }
+
+        @Override
+        public float getEdgeAlpha()
+        {
+            return RADAR_FADE;
+        }
+
+        @Override
+        public ShipAPI getPlayer()
+        {
+            return player;
+        }
     }
 }
