@@ -5,7 +5,7 @@ import org.json.JSONObject;
 
 public interface BaseRenderer
 {
-    public void reloadSettings(JSONObject settings) throws JSONException;
+    public void reloadSettings(JSONObject settings, boolean useVanillaColors) throws JSONException;
 
     public void init(RadarInfo radar);
 

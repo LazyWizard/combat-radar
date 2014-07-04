@@ -27,7 +27,7 @@ public class BoxRenderer implements BaseRenderer
     private RadarInfo radar;
 
     @Override
-    public void reloadSettings(JSONObject settings) throws JSONException
+    public void reloadSettings(JSONObject settings, boolean useVanillaColors) throws JSONException
     {
         Global.getLogger(BoxRenderer.class).log(Level.DEBUG,
                 "Should reload settings now.");
@@ -46,6 +46,7 @@ public class BoxRenderer implements BaseRenderer
     public void init(RadarInfo radar)
     {
         this.radar = radar;
+        wasHulkLastFrame = !radar.getPlayer().isHulk();
     }
 
     @Override
