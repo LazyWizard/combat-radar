@@ -10,6 +10,7 @@ public interface RadarInfo
 {
     public Vector2f getRenderCenter();
     public float getRenderRadius();
+    public float getScale();
 
     public float getCenterAlpha();
     public float getEdgeAlpha();
