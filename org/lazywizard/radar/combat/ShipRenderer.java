@@ -1,4 +1,4 @@
-package org.lazywizard.radar.renderers;
+package org.lazywizard.radar.combat;
 
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.CombatEntityAPI;
@@ -12,18 +12,18 @@ import org.lazywizard.lazylib.JSONUtils;
 import org.lazywizard.lazylib.MathUtils;
 import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
 import org.lazywizard.lazylib.opengl.DrawUtils;
-import org.lazywizard.radar.BaseRenderer;
+import org.lazywizard.radar.BaseCombatRenderer;
 import static org.lwjgl.opengl.GL11.*;
 import org.lwjgl.util.vector.Vector2f;
 
 // TODO: Switch to pre-calculated rotations for ships
 // TODO: Use a narrower triangle for ships to better show facing
-public class ShipRenderer implements BaseRenderer
+public class ShipRenderer implements BaseCombatRenderer
 {
     private static boolean SHOW_SHIPS;
     private static boolean SHOW_SHIELDS;
     private static Color SHIELD_COLOR;
-    private RadarInfo radar;
+    private CombatRadar radar;
 
     @Override
     public void reloadSettings(JSONObject settings, boolean useVanillaColors) throws JSONException
@@ -35,7 +35,7 @@ public class ShipRenderer implements BaseRenderer
     }
 
     @Override
-    public void init(RadarInfo radar)
+    public void init(CombatRadar radar)
     {
         this.radar = radar;
     }

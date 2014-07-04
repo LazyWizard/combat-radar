@@ -1,4 +1,4 @@
-package org.lazywizard.radar.renderers;
+package org.lazywizard.radar.combat;
 
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.ShipAPI;
@@ -9,11 +9,11 @@ import org.json.JSONObject;
 import org.lazywizard.lazylib.JSONUtils;
 import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
 import org.lazywizard.lazylib.opengl.DrawUtils;
-import org.lazywizard.radar.BaseRenderer;
+import org.lazywizard.radar.BaseCombatRenderer;
 import static org.lwjgl.opengl.GL11.*;
 import org.lwjgl.util.vector.Vector2f;
 
-public class BoxRenderer implements BaseRenderer
+public class BoxRenderer implements BaseCombatRenderer
 {
     private static Color RADAR_BG_COLOR, RADAR_FG_COLOR, RADAR_FG_DEAD_COLOR;
     private static float RADAR_OPACITY, RADAR_FADE;
@@ -21,7 +21,7 @@ public class BoxRenderer implements BaseRenderer
     // Radar OpenGL buffers/display lists
     private static int RADAR_BOX_DISPLAY_LIST_ID = -123;
     private boolean wasHulkLastFrame = false;
-    private RadarInfo radar;
+    private CombatRadar radar;
 
     @Override
     public void reloadSettings(JSONObject settings, boolean useVanillaColors) throws JSONException
@@ -41,7 +41,7 @@ public class BoxRenderer implements BaseRenderer
     }
 
     @Override
-    public void init(RadarInfo radar)
+    public void init(CombatRadar radar)
     {
         this.radar = radar;
         wasHulkLastFrame = !radar.getPlayer().isHulk();

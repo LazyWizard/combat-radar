@@ -1,4 +1,4 @@
-package org.lazywizard.radar.renderers;
+package org.lazywizard.radar.combat;
 
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.CombatFleetManagerAPI;
@@ -9,14 +9,14 @@ import java.util.List;
 import org.json.JSONException;
 import org.json.JSONObject;
 import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
-import org.lazywizard.radar.BaseRenderer;
+import org.lazywizard.radar.BaseCombatRenderer;
 import static org.lwjgl.opengl.GL11.*;
 import org.lwjgl.util.vector.Vector2f;
 
-public class BattleProgressRenderer implements BaseRenderer
+public class BattleProgressRenderer implements BaseCombatRenderer
 {
     private static boolean SHOW_BATTLE_PROGRESS;
-    private RadarInfo radar;
+    private CombatRadar radar;
     private Vector2f barLocation;
     private float barWidth;
     private float barHeight;
@@ -28,7 +28,7 @@ public class BattleProgressRenderer implements BaseRenderer
     }
 
     @Override
-    public void init(RadarInfo radar)
+    public void init(CombatRadar radar)
     {
         this.radar = radar;
 

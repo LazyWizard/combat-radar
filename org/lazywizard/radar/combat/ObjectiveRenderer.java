@@ -1,4 +1,4 @@
-package org.lazywizard.radar.renderers;
+package org.lazywizard.radar.combat;
 
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.CombatEntityAPI;
@@ -7,14 +7,14 @@ import java.util.List;
 import org.json.JSONException;
 import org.json.JSONObject;
 import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
-import org.lazywizard.radar.BaseRenderer;
+import org.lazywizard.radar.BaseCombatRenderer;
 import static org.lwjgl.opengl.GL11.*;
 import org.lwjgl.util.vector.Vector2f;
 
-public class ObjectiveRenderer implements BaseRenderer
+public class ObjectiveRenderer implements BaseCombatRenderer
 {
     private static boolean SHOW_OBJECTIVES;
-    private RadarInfo radar;
+    private CombatRadar radar;
 
     @Override
     public void reloadSettings(JSONObject settings, boolean useVanillaColors) throws JSONException
@@ -23,7 +23,7 @@ public class ObjectiveRenderer implements BaseRenderer
     }
 
     @Override
-    public void init(RadarInfo radar)
+    public void init(CombatRadar radar)
     {
         this.radar = radar;
     }

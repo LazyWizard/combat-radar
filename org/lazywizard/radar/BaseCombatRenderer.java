@@ -8,9 +8,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.lwjgl.util.vector.Vector2f;
 
-public interface BaseRenderer
+public interface BaseCombatRenderer
 {
-    public interface RadarInfo
+    public interface CombatRadar
     {
         public Vector2f getRenderCenter();
         public float getRenderRadius();
@@ -32,7 +32,7 @@ public interface BaseRenderer
 
     public void reloadSettings(JSONObject settings, boolean useVanillaColors) throws JSONException;
 
-    public void init(RadarInfo radar);
+    public void init(CombatRadar radar);
 
     public void render(ShipAPI player, float amount);
 }
