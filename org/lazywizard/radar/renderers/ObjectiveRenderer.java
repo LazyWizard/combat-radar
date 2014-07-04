@@ -8,7 +8,7 @@ import org.lazywizard.radar.RadarInfo;
 public class ObjectiveRenderer implements BaseRenderer
 {
     @Override
-    public void reloadSettings(JSONObject settings) throws JSONException
+    public void reloadSettings(JSONObject settings, boolean useVanillaColors) throws JSONException
     {
     }
 

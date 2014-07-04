@@ -52,7 +52,6 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
     private static boolean RESPECT_FOG_OF_WAR = true;
     // Radar display settings
     private static boolean SHOW_SHIPS = true;
-    private static boolean SHOW_ASTEROIDS = true;
     private static boolean SHOW_MISSILES = true;
     private static boolean SHOW_MISSILE_LOCK_ICON = false; // TODO
     private static boolean SHOW_OBJECTIVES = true;
@@ -66,12 +65,12 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
     private static Color NEUTRAL_COLOR;
     private static Color HULK_COLOR;
     private static Color SHIELD_COLOR;
-    private static Color ASTEROID_COLOR;
     // Radar toggle button constant
     private static int RADAR_TOGGLE_KEY;
     // Whether the radar is active
     private static boolean radarEnabled = true;
     private ShipAPI player;
+    private boolean hasInitiated = false;
     private CombatEngineAPI engine;
 
     static
@@ -88,6 +87,7 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         PROGRESS_BAR_WIDTH = RADAR_RADIUS * .09f;
         PROGRESS_BAR_HEIGHT = RADAR_RADIUS * 2f;
 
+        // TODO: load renderers from a CSV, allow third-party renderers
         RENDERERS = new ArrayList<>();
         RENDERERS.add(new BoxRenderer());
         RENDERERS.add(new BattleProgressRenderer());
@@ -101,10 +101,10 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
     public static void reloadSettings() throws IOException, JSONException
     {
         JSONObject settings = Global.getSettings().loadJSON(SETTINGS_FILE);
-
+        final boolean useVanillaColors = settings.getBoolean("useVanillaColors");
         for (BaseRenderer renderer : RENDERERS)
         {
-            renderer.reloadSettings(settings);
+            renderer.reloadSettings(settings, useVanillaColors);
         }
 
         // Toggle key
@@ -120,7 +120,6 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         RADAR_ALPHA = (float) settings.getDouble("radarForegroundAlpha");
         RADAR_FADE = (float) settings.getDouble("radarEdgeFadeAmount");
         SHOW_SHIPS = settings.getBoolean("showShips");
-        SHOW_ASTEROIDS = settings.getBoolean("showAsteroids");
         SHOW_MISSILES = settings.getBoolean("showMissiles");
         SHOW_MISSILE_LOCK_ICON = settings.getBoolean("showMissileLockIcon");
         SHOW_OBJECTIVES = settings.getBoolean("showObjectives");
@@ -134,20 +133,17 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
                 "Radar range set to " + RADAR_SIGHT_RANGE + " su");
 
         // Radar contact colors
-        final boolean vanillaColors = settings.getBoolean("useVanillaColors");
         CONTACT_ALPHA = (float) settings.getDouble("contactAlpha");
-        FRIENDLY_COLOR = vanillaColors ? Global.getSettings().getColor("iconFriendColor")
+        FRIENDLY_COLOR = useVanillaColors ? Global.getSettings().getColor("iconFriendColor")
                 : toColor(settings.getJSONArray("friendlyColor"));
-        ENEMY_COLOR = vanillaColors ? Global.getSettings().getColor("iconEnemyColor")
+        ENEMY_COLOR = useVanillaColors ? Global.getSettings().getColor("iconEnemyColor")
                 : toColor(settings.getJSONArray("enemyColor"));
-        NEUTRAL_COLOR = vanillaColors ? Global.getSettings().getColor("iconNeutralShipColor")
+        NEUTRAL_COLOR = useVanillaColors ? Global.getSettings().getColor("iconNeutralShipColor")
                 : toColor(settings.getJSONArray("neutralColor"));
-        HULK_COLOR = vanillaColors ? Color.LIGHT_GRAY
+        HULK_COLOR = useVanillaColors ? Color.LIGHT_GRAY
                 : toColor(settings.getJSONArray("hulkColor"));
-        SHIELD_COLOR = vanillaColors ? Color.CYAN
+        SHIELD_COLOR = useVanillaColors ? Color.CYAN
                 : toColor(settings.getJSONArray("shieldColor"));
-        ASTEROID_COLOR = vanillaColors ? Color.LIGHT_GRAY
-                : toColor(settings.getJSONArray("asteroidColor"));
     }
 
     private static Color toColor(JSONArray array) throws JSONException
@@ -337,27 +333,6 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         }
     }
 
-    private void renderAsteroids()
-    {
-        if (SHOW_ASTEROIDS)
-        {
-            List<CombatEntityAPI> asteroids = filterVisible(engine.getAsteroids());
-            if (!asteroids.isEmpty())
-            {
-                Vector2f radarLoc;
-                glColor(ASTEROID_COLOR, CONTACT_ALPHA);
-                glPointSize(2f);
-                glBegin(GL_POINTS);
-                for (CombatEntityAPI asteroid : asteroids)
-                {
-                    radarLoc = getPointOnRadar(asteroid.getLocation());
-                    glVertex2f(radarLoc.x, radarLoc.y);
-                }
-                glEnd();
-            }
-        }
-    }
-
     private void renderMissiles()
     {
         if (SHOW_MISSILES)
@@ -535,6 +510,17 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
             return;
         }
 
+        if (!hasInitiated)
+        {
+            hasInitiated = true;
+
+            RadarInfo info = new CombatRadarInfo();
+            for (BaseRenderer renderer : RENDERERS)
+            {
+                renderer.init(info);
+            }
+        }
+
         // Radar toggle
         for (InputEventAPI event : events)
         {
@@ -578,24 +564,23 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         }
 
         /*// Draw the radar
-        renderBox();
-        renderBattleProgress();
+         renderBox();
+         renderBattleProgress();
 
-        // Check if player alive/dead status has changed
-        if (player.isHulk() ^ isHulk)
-        {
-            needsRecalc = true;
-            isHulk = player.isHulk();
-        }
+         // Check if player alive/dead status has changed
+         if (player.isHulk() ^ isHulk)
+         {
+         needsRecalc = true;
+         isHulk = player.isHulk();
+         }
 
-        if (!isHulk)
-        {
-            renderContacts();
-            renderAsteroids();
-            renderMissiles();
-            renderObjectives();
-        }*/
-
+         if (!isHulk)
+         {
+         renderContacts();
+         renderAsteroids();
+         renderMissiles();
+         renderObjectives();
+         }*/
         glDisable(GL_BLEND);
         glPopMatrix();
         glMatrixMode(GL_PROJECTION);
@@ -606,12 +591,7 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
     public void init(CombatEngineAPI engine)
     {
         this.engine = engine;
-
-        RadarInfo info = new CombatRadarInfo();
-        for (BaseRenderer renderer : RENDERERS)
-        {
-            renderer.init(info);
-        }
+        hasInitiated = false;
     }
 
     private class CombatRadarInfo implements RadarInfo
@@ -641,9 +621,45 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         }
 
         @Override
+        public float getContactAlpha()
+        {
+            return CONTACT_ALPHA;
+        }
+
+        @Override
+        public Color getFriendlyContactColor()
+        {
+            return FRIENDLY_COLOR;
+        }
+
+        @Override
+        public Color getEnemyContactColor()
+        {
+            return ENEMY_COLOR;
+        }
+
+        @Override
+        public Color getNeutralContactColor()
+        {
+            return NEUTRAL_COLOR;
+        }
+
+        @Override
         public ShipAPI getPlayer()
         {
             return player;
+        }
+
+        @Override
+        public Vector2f getPointOnRadar(Vector2f worldCoords)
+        {
+            return CombatRadarPlugin.this.getPointOnRadar(worldCoords);
+        }
+
+        @Override
+        public List<? extends CombatEntityAPI> filterVisible(List<? extends CombatEntityAPI> entities)
+        {
+            return CombatRadarPlugin.this.filterVisible(entities);
         }
     }
 }
