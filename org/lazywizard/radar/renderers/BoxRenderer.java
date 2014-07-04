@@ -10,7 +10,6 @@ import org.lazywizard.lazylib.JSONUtils;
 import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
 import org.lazywizard.lazylib.opengl.DrawUtils;
 import org.lazywizard.radar.BaseRenderer;
-import org.lazywizard.radar.RadarInfo;
 import static org.lwjgl.opengl.GL11.*;
 import org.lwjgl.util.vector.Vector2f;
 
@@ -18,7 +17,7 @@ public class BoxRenderer implements BaseRenderer
 {
     // TODO: Make these loaded through reloadSettings!
     private static Color RADAR_BG_COLOR;
-    private static float RADAR_OPACITY;
+    private static float RADAR_OPACITY, RADAR_FADE;
     private static Color RADAR_FG_COLOR, RADAR_FG_DEAD_COLOR;
     private static boolean SHOW_BORDER;
     // Radar OpenGL buffers/display lists
@@ -37,6 +36,7 @@ public class BoxRenderer implements BaseRenderer
         RADAR_FG_DEAD_COLOR = Global.getSettings().getColor("textNeutralColor");
         // Background settings
         RADAR_BG_COLOR = JSONUtils.toColor(settings.getJSONArray("radarBackgroundColor"));
+        RADAR_FADE = (float) settings.getDouble("radarEdgeFadeAmount");
         RADAR_OPACITY = (float) settings.getDouble("radarBackgroundAlpha");
         // Render settings
         SHOW_BORDER = settings.getBoolean("showBorderLines");
@@ -71,9 +71,8 @@ public class BoxRenderer implements BaseRenderer
 
             Vector2f radarCenter = radar.getRenderCenter();
             float radarRadius = radar.getRenderRadius();
-            float radarAlpha = radar.getCenterAlpha(),
-                    radarFade = radar.getEdgeAlpha(),
-                    radarMidFade = (radarAlpha + radarFade) / 2f;
+            float radarAlpha = radar.getRadarAlpha(),
+                    radarMidFade = (radarAlpha + RADAR_FADE) / 2f;
 
             // Generate new display list
             RADAR_BOX_DISPLAY_LIST_ID = glGenLists(1);
@@ -89,7 +88,7 @@ public class BoxRenderer implements BaseRenderer
             Color color = (player.isHulk() ? RADAR_FG_DEAD_COLOR : RADAR_FG_COLOR);
 
             // Outer circle
-            glColor(color, radarAlpha * radarFade, false);
+            glColor(color, radarAlpha * RADAR_FADE, false);
             DrawUtils.drawCircle(radarCenter.x, radarCenter.y, radarRadius, 72, false);
 
             // Middle circle
@@ -104,25 +103,25 @@ public class BoxRenderer implements BaseRenderer
             // Left line
             glColor(color, radarAlpha, false);
             glVertex2f(radarCenter.x, radarCenter.y);
-            glColor(color, radarAlpha * radarFade, false);
+            glColor(color, radarAlpha * RADAR_FADE, false);
             glVertex2f(radarCenter.x - radarRadius, radarCenter.y);
 
             // Right line
             glColor(color, radarAlpha, false);
             glVertex2f(radarCenter.x, radarCenter.y);
-            glColor(color, radarAlpha * radarFade, false);
+            glColor(color, radarAlpha * RADAR_FADE, false);
             glVertex2f(radarCenter.x + radarRadius, radarCenter.y);
 
             // Upper line
             glColor(color, radarAlpha, false);
             glVertex2f(radarCenter.x, radarCenter.y);
-            glColor(color, radarAlpha * radarFade, false);
+            glColor(color, radarAlpha * RADAR_FADE, false);
             glVertex2f(radarCenter.x, radarCenter.y + radarRadius);
 
             // Lower line
             glColor(color, radarAlpha, false);
             glVertex2f(radarCenter.x, radarCenter.y);
-            glColor(color, radarAlpha * radarFade, false);
+            glColor(color, radarAlpha * RADAR_FADE, false);
             glVertex2f(radarCenter.x, radarCenter.y - radarRadius);
             glEnd();
 
@@ -131,13 +130,13 @@ public class BoxRenderer implements BaseRenderer
             {
                 glLineWidth(1.5f);
                 glBegin(GL_LINE_STRIP);
-                glColor(color, radarAlpha * radarFade, false);
+                glColor(color, radarAlpha * RADAR_FADE, false);
                 glVertex2f(radarCenter.x + (radarRadius * 1.1f),
                         radarCenter.y + (radarRadius * 1.1f));
                 glColor(color, radarAlpha, false);
                 glVertex2f(radarCenter.x - (radarRadius * 1.1f),
                         radarCenter.y + (radarRadius * 1.1f));
-                glColor(color, radarAlpha * radarFade, false);
+                glColor(color, radarAlpha * RADAR_FADE, false);
                 glVertex2f(radarCenter.x - (radarRadius * 1.1f),
                         radarCenter.y - (radarRadius * 1.1f));
                 glEnd();

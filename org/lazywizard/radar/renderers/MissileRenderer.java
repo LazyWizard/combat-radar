@@ -6,7 +6,6 @@ import com.fs.starfarer.api.combat.GuidedMissileAI;
 import com.fs.starfarer.api.combat.MissileAIPlugin;
 import com.fs.starfarer.api.combat.MissileAPI;
 import com.fs.starfarer.api.combat.ShipAPI;
-import com.fs.starfarer.api.graphics.SpriteAPI;
 import java.awt.Color;
 import java.util.List;
 import org.json.JSONException;
@@ -14,7 +13,6 @@ import org.json.JSONObject;
 import org.lazywizard.lazylib.JSONUtils;
 import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
 import org.lazywizard.radar.BaseRenderer;
-import org.lazywizard.radar.RadarInfo;
 import static org.lwjgl.opengl.GL11.*;
 import org.lwjgl.util.vector.Vector2f;
 
