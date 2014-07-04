@@ -106,19 +106,6 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
                 : toColor(settings.getJSONArray("neutralColor"));
     }
 
-    private static final Vector2f TMP_VECTOR = new Vector2f();
-
-    private Vector2f getPointOnRadar(Vector2f worldLoc)
-    {
-        // Get position relative to {0,0}
-        Vector2f.sub(worldLoc, player.getLocation(), TMP_VECTOR);
-        // Scale point to fit within the radar properly
-        TMP_VECTOR.scale(RADAR_SCALING);
-        // Translate point to inside the radar box
-        Vector2f.add(TMP_VECTOR, RADAR_CENTER, TMP_VECTOR);
-        return TMP_VECTOR;
-    }
-
     @Override
     public void advance(float amount, List<InputEventAPI> events)
     {
@@ -266,9 +253,16 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         }
 
         @Override
-        public Vector2f getPointOnRadar(Vector2f worldCoords)
+        public Vector2f getPointOnRadar(Vector2f worldLoc)
         {
-            return CombatRadarPlugin.this.getPointOnRadar(worldCoords);
+            Vector2f loc = new Vector2f();
+            // Get position relative to {0,0}
+            Vector2f.sub(worldLoc, player.getLocation(), loc);
+            // Scale point to fit within the radar properly
+            loc.scale(RADAR_SCALING);
+            // Translate point to inside the radar box
+            Vector2f.add(loc, RADAR_CENTER, loc);
+            return loc;
         }
 
         @Override

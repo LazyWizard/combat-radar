@@ -22,6 +22,6 @@ public interface RadarInfo
 
     public ShipAPI getPlayer();
 
-    public Vector2f getPointOnRadar(Vector2f worldCoords);
-    public List<? extends CombatEntityAPI> filterVisible(List<? extends CombatEntityAPI> entities);
+    public Vector2f getPointOnRadar(Vector2f worldLoc);
+    public List<? extends CombatEntityAPI> filterVisible(List<? extends CombatEntityAPI> contacts);
 }
