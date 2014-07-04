@@ -1,5 +1,6 @@
 package org.lazywizard.radar;
 
+import org.lazywizard.radar.combat.CombatRenderer;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.CombatEngineAPI;
 import com.fs.starfarer.api.combat.CombatEntityAPI;
@@ -16,13 +17,13 @@ import org.json.JSONObject;
 import static org.lazywizard.lazylib.JSONUtils.toColor;
 import org.lazywizard.lazylib.MathUtils;
 import org.lazywizard.lazylib.combat.CombatUtils;
-import org.lazywizard.radar.BaseCombatRenderer.CombatRadar;
-import org.lazywizard.radar.combat.AsteroidRenderer;
-import org.lazywizard.radar.combat.BattleProgressRenderer;
-import org.lazywizard.radar.combat.BoxRenderer;
-import org.lazywizard.radar.combat.MissileRenderer;
-import org.lazywizard.radar.combat.ObjectiveRenderer;
-import org.lazywizard.radar.combat.ShipRenderer;
+import org.lazywizard.radar.combat.CombatRadar;
+import org.lazywizard.radar.combat.renderers.AsteroidRenderer;
+import org.lazywizard.radar.combat.renderers.BattleProgressRenderer;
+import org.lazywizard.radar.combat.renderers.BoxRenderer;
+import org.lazywizard.radar.combat.renderers.MissileRenderer;
+import org.lazywizard.radar.combat.renderers.ObjectiveRenderer;
+import org.lazywizard.radar.combat.renderers.ShipRenderer;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.Display;
 import static org.lwjgl.opengl.GL11.*;
@@ -39,7 +40,7 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
     private static final float RADAR_RADIUS;
     private static float MAX_SIGHT_RANGE;
     private static float RADAR_SIGHT_RANGE, RADAR_SCALING;
-    private static final List<BaseCombatRenderer> RENDERERS;
+    private static final List<CombatRenderer> RENDERERS;
     // Performance settings
     private static boolean RESPECT_FOG_OF_WAR = true;
     // Radar color settings
@@ -107,7 +108,7 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
 
         // Load settings for individual renderer components
         // TODO: Load 'proper' settings file for each plugin
-        for (BaseCombatRenderer renderer : RENDERERS)
+        for (CombatRenderer renderer : RENDERERS)
         {
             renderer.reloadSettings(settings, useVanillaColors);
         }
@@ -131,7 +132,7 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
             hasInitiated = true;
 
             CombatRadar info = new CombatRadarInfo();
-            for (BaseCombatRenderer renderer : RENDERERS)
+            for (CombatRenderer renderer : RENDERERS)
             {
                 renderer.init(info);
             }
@@ -181,7 +182,7 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         // Draw the radar elements individually
-        for (BaseCombatRenderer renderer : RENDERERS)
+        for (CombatRenderer renderer : RENDERERS)
         {
             renderer.render(player, amount);
         }

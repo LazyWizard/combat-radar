@@ -1,5 +1,6 @@
 package org.lazywizard.radar;
 
+import org.lazywizard.radar.campaign.CampaignRenderer;
 import com.fs.starfarer.api.EveryFrameScript;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import java.io.IOException;
@@ -7,8 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.lazywizard.radar.BaseCampaignRenderer.CampaignRadar;
-import org.lazywizard.radar.campaign.BoxRenderer;
+import org.lazywizard.radar.campaign.CampaignRadar;
+import org.lazywizard.radar.campaign.renderers.BoxRenderer;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.util.vector.Vector2f;
 
@@ -20,7 +21,7 @@ class CampaignRadarPlugin implements EveryFrameScript
     private static float MAX_SIGHT_RANGE;
     private static float RADAR_SIGHT_RANGE, RADAR_SCALING;
     private static float RADAR_ALPHA, CONTACT_ALPHA;
-    private static final List<BaseCampaignRenderer> RENDERERS;
+    private static final List<CampaignRenderer> RENDERERS;
     private static int ZOOM_LEVELS;
     // Whether the radar is active
     private static int currentZoom;
@@ -43,7 +44,7 @@ class CampaignRadarPlugin implements EveryFrameScript
     {
         // TODO
         JSONObject settings = null;
-        for (BaseCampaignRenderer renderer : RENDERERS)
+        for (CampaignRenderer renderer : RENDERERS)
         {
             renderer.reloadSettings(settings);
         }
@@ -68,7 +69,7 @@ class CampaignRadarPlugin implements EveryFrameScript
             hasInitiated = true;
 
             CampaignRadar info = new CampaignRadarInfo();
-            for (BaseCampaignRenderer renderer : RENDERERS)
+            for (CampaignRenderer renderer : RENDERERS)
             {
                 renderer.init(info);
             }
