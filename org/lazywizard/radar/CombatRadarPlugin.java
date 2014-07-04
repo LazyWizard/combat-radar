@@ -4,9 +4,6 @@ import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.CombatEngineAPI;
 import com.fs.starfarer.api.combat.CombatEntityAPI;
 import com.fs.starfarer.api.combat.EveryFrameCombatPlugin;
-import com.fs.starfarer.api.combat.GuidedMissileAI;
-import com.fs.starfarer.api.combat.MissileAIPlugin;
-import com.fs.starfarer.api.combat.MissileAPI;
 import com.fs.starfarer.api.combat.ShipAPI;
 import com.fs.starfarer.api.input.InputEventAPI;
 import java.awt.Color;
@@ -14,9 +11,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.log4j.Level;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import static org.lazywizard.lazylib.JSONUtils.toColor;
 import org.lazywizard.lazylib.MathUtils;
 import org.lazywizard.lazylib.combat.CombatUtils;
 import org.lazywizard.radar.renderers.*;
@@ -40,9 +37,6 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
     private static final List<BaseRenderer> RENDERERS;
     // Performance settings
     private static boolean RESPECT_FOG_OF_WAR = true;
-    // Radar display settings
-    private static boolean SHOW_MISSILES = true;
-    private static boolean SHOW_MISSILE_LOCK_ICON = false; // TODO
     // Radar color settings
     private static float RADAR_ALPHA, CONTACT_ALPHA;
     private static float RADAR_FADE;
@@ -96,8 +90,6 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         // Radar options
         RADAR_ALPHA = (float) settings.getDouble("radarForegroundAlpha");
         RADAR_FADE = (float) settings.getDouble("radarEdgeFadeAmount");
-        SHOW_MISSILES = settings.getBoolean("showMissiles");
-        SHOW_MISSILE_LOCK_ICON = settings.getBoolean("showMissileLockIcon");
 
         // Radar range
         RADAR_SIGHT_RANGE = (float) settings.getDouble("radarRange");
@@ -115,38 +107,6 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
                 : toColor(settings.getJSONArray("neutralColor"));
     }
 
-    private static Color toColor(JSONArray array) throws JSONException
-    {
-        return new Color(array.getInt(0), array.getInt(1), array.getInt(2),
-                (array.length() == 4 ? array.getInt(3) : 255));
-    }
-
-    private static void glColor(Color color, float alphaMult)
-    {
-        glColor4ub((byte) color.getRed(), (byte) color.getGreen(),
-                (byte) color.getBlue(), (byte) (color.getAlpha() * alphaMult));
-    }
-
-    private List<CombatEntityAPI> filterVisible(List<? extends CombatEntityAPI> contacts)
-    {
-        List<CombatEntityAPI> visible = new ArrayList<>();
-        for (CombatEntityAPI contact : contacts)
-        {
-            if (MathUtils.isWithinRange(contact, player, RADAR_SIGHT_RANGE))
-            {
-                if (RESPECT_FOG_OF_WAR
-                        && !CombatUtils.isVisibleToSide(contact, player.getOwner()))
-                {
-                    continue;
-                }
-
-                visible.add(contact);
-            }
-        }
-
-        return visible;
-    }
-
     private static final Vector2f TMP_VECTOR = new Vector2f();
 
     private Vector2f getPointOnRadar(Vector2f worldLoc)
@@ -158,66 +118,6 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         // Translate point to inside the radar box
         Vector2f.add(TMP_VECTOR, RADAR_CENTER, TMP_VECTOR);
         return TMP_VECTOR;
-    }
-
-    private void renderMissiles()
-    {
-        if (SHOW_MISSILES)
-        {
-            List<CombatEntityAPI> missiles = filterVisible(engine.getMissiles());
-            if (!missiles.isEmpty())
-            {
-                boolean playerLock = false;
-
-                glPointSize(2f);
-                glBegin(GL_POINTS);
-                for (CombatEntityAPI entity : missiles)
-                {
-                    MissileAPI missile = (MissileAPI) entity;
-                    // TODO: Add a setting for missile damage alpha mod
-                    float alphaMod = Math.min(1f, Math.max(0.3f,
-                            missile.getDamageAmount() / 750f));
-                    alphaMod *= (missile.isFading() ? .5f : 1f);
-
-                    // Burnt-out missiles count as hostile
-                    if (missile.isFizzling())
-                    {
-                        glColor(ENEMY_COLOR, CONTACT_ALPHA * alphaMod);
-                    }
-
-                    // Enemy missiles
-                    else if (missile.getOwner() + player.getOwner() == 1)
-                    {
-                        // Color missiles locked onto us differently
-                        MissileAIPlugin ai = missile.getMissileAI();
-                        if (ai != null && ai instanceof GuidedMissileAI
-                                && player == ((GuidedMissileAI) ai).getTarget())
-                        {
-                            playerLock = true;
-                            glColor(Color.ORANGE, CONTACT_ALPHA * alphaMod);
-                        }
-                        else
-                        {
-                            glColor(ENEMY_COLOR, CONTACT_ALPHA * alphaMod);
-                        }
-                    }
-
-                    // Allied missiles
-                    else
-                    {
-                        glColor(FRIENDLY_COLOR, CONTACT_ALPHA * alphaMod);
-                    }
-
-                    Vector2f radarLoc = getPointOnRadar(missile.getLocation());
-                    glVertex2f(radarLoc.x, radarLoc.y);
-                }
-                glEnd();
-
-                if (SHOW_MISSILE_LOCK_ICON)
-                {
-                }
-            }
-        }
     }
 
     @Override
@@ -284,29 +184,13 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+        // Draw the radar elements individually
         for (BaseRenderer renderer : RENDERERS)
         {
             renderer.render(amount);
         }
 
-        /*// Draw the radar
-         renderBox();
-         renderBattleProgress();
-
-         // Check if player alive/dead status has changed
-         if (player.isHulk() ^ isHulk)
-         {
-         needsRecalc = true;
-         isHulk = player.isHulk();
-         }
-
-         if (!isHulk)
-         {
-         renderContacts();
-         renderAsteroids();
-         renderMissiles();
-         renderObjectives();
-         }*/
+        // Finalize drawing
         glDisable(GL_BLEND);
         glPopMatrix();
         glMatrixMode(GL_PROJECTION);
@@ -389,9 +273,24 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         }
 
         @Override
-        public List<? extends CombatEntityAPI> filterVisible(List<? extends CombatEntityAPI> entities)
+        public List<? extends CombatEntityAPI> filterVisible(List<? extends CombatEntityAPI> contacts)
         {
-            return CombatRadarPlugin.this.filterVisible(entities);
+            List<CombatEntityAPI> visible = new ArrayList<>();
+            for (CombatEntityAPI contact : contacts)
+            {
+                if (MathUtils.isWithinRange(contact, player, RADAR_SIGHT_RANGE))
+                {
+                    if (RESPECT_FOG_OF_WAR
+                            && !CombatUtils.isVisibleToSide(contact, player.getOwner()))
+                    {
+                        continue;
+                    }
+
+                    visible.add(contact);
+                }
+            }
+
+            return visible;
         }
     }
 }
