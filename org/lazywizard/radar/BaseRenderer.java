@@ -15,6 +15,7 @@ public interface BaseRenderer
         public Vector2f getRenderCenter();
         public float getRenderRadius();
         public float getScale();
+        public float getZoomLevel();
 
         public float getRadarAlpha();
         public float getContactAlpha();

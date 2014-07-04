@@ -37,8 +37,8 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
     // Location and size of radar on screen
     private static final Vector2f RADAR_CENTER;
     private static final float RADAR_RADIUS;
-    private static float RADAR_SIGHT_RANGE;
-    private static float RADAR_SCALING;
+    private static float MAX_SIGHT_RANGE;
+    private static float RADAR_SIGHT_RANGE, RADAR_SCALING;
     private static final List<BaseRenderer> RENDERERS;
     // Performance settings
     private static boolean RESPECT_FOG_OF_WAR = true;
@@ -49,8 +49,9 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
     private static Color NEUTRAL_COLOR;
     // Radar toggle button constant
     private static int RADAR_TOGGLE_KEY;
+    private static int ZOOM_LEVELS;
     // Whether the radar is active
-    private static boolean radarEnabled = true;
+    private static int currentZoom;
     private ShipAPI player;
     private boolean hasInitiated = false;
     private CombatEngineAPI engine;
@@ -91,10 +92,9 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         RADAR_ALPHA = (float) settings.getDouble("radarForegroundAlpha");
 
         // Radar range
-        RADAR_SIGHT_RANGE = (float) settings.getDouble("radarRange");
-        RADAR_SCALING = RADAR_RADIUS / RADAR_SIGHT_RANGE;
-        Global.getLogger(CombatRadarPlugin.class).log(Level.INFO,
-                "Radar range set to " + RADAR_SIGHT_RANGE + " su");
+        MAX_SIGHT_RANGE = (float) settings.getDouble("maxRadarRange");
+        ZOOM_LEVELS = settings.getInt("zoomLevels");
+        setZoomLevel(ZOOM_LEVELS);
 
         // Radar contact colors
         CONTACT_ALPHA = (float) settings.getDouble("contactAlpha");
@@ -113,22 +113,19 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         }
     }
 
-    @Override
-    public void advance(float amount, List<InputEventAPI> events)
+    private static void setZoomLevel(int zoom)
     {
-        // Temp fix for .6.2a bug
-        if (engine != Global.getCombatEngine())
-        {
-            return;
-        }
+        float zoomLevel = (zoom / (float) ZOOM_LEVELS);
+        RADAR_SIGHT_RANGE = MAX_SIGHT_RANGE * zoomLevel;
+        RADAR_SCALING = RADAR_RADIUS / RADAR_SIGHT_RANGE;
+        currentZoom = zoom;
 
-        // This also acts as a main menu check
-        player = engine.getPlayerShip();
-        if (player == null || !engine.isEntityInPlay(player))
-        {
-            return;
-        }
+        Global.getLogger(CombatRadarPlugin.class).log(Level.DEBUG,
+                "Zoom level set to " + zoom + "(" + zoomLevel + ")");
+    }
 
+    private void checkInit()
+    {
         if (!hasInitiated)
         {
             hasInitiated = true;
@@ -139,7 +136,10 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
                 renderer.init(info);
             }
         }
+    }
 
+    private void checkInput(List<InputEventAPI> events)
+    {
         // Radar toggle
         for (InputEventAPI event : events)
         {
@@ -150,17 +150,20 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
 
             if (event.isKeyDownEvent() && event.getEventValue() == RADAR_TOGGLE_KEY)
             {
-                radarEnabled = !radarEnabled;
+                if (--currentZoom < 0)
+                {
+                    currentZoom = ZOOM_LEVELS;
+                }
+
+                setZoomLevel(currentZoom);
                 event.consume();
                 break;
             }
         }
+    }
 
-        if (!radarEnabled)
-        {
-            return;
-        }
-
+    private void render(float amount)
+    {
         // Retina display fix
         int width = (int) (Display.getWidth() * Display.getPixelScaleFactor()),
                 height = (int) (Display.getHeight() * Display.getPixelScaleFactor());
@@ -191,6 +194,34 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
     }
 
     @Override
+    public void advance(float amount, List<InputEventAPI> events)
+    {
+        // Temp fix for .6.2a bug
+        if (engine != Global.getCombatEngine())
+        {
+            return;
+        }
+
+        // This also acts as a main menu check
+        player = engine.getPlayerShip();
+        if (player == null || !engine.isEntityInPlay(player))
+        {
+            return;
+        }
+
+        checkInit();
+        checkInput(events);
+
+        // Zoom 0 = radar disabled
+        if (currentZoom == 0)
+        {
+            return;
+        }
+
+        render(amount);
+    }
+
+    @Override
     public void init(CombatEngineAPI engine)
     {
         this.engine = engine;
@@ -215,6 +246,12 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         public float getScale()
         {
             return RADAR_SCALING;
+        }
+
+        @Override
+        public float getZoomLevel()
+        {
+            return ZOOM_LEVELS / (float) currentZoom;
         }
 
         @Override
