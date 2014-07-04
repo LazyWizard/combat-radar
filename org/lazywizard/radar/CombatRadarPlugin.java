@@ -3,16 +3,12 @@ package org.lazywizard.radar;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.CombatEngineAPI;
 import com.fs.starfarer.api.combat.CombatEntityAPI;
-import com.fs.starfarer.api.combat.CombatFleetManagerAPI;
 import com.fs.starfarer.api.combat.EveryFrameCombatPlugin;
 import com.fs.starfarer.api.combat.GuidedMissileAI;
 import com.fs.starfarer.api.combat.MissileAIPlugin;
 import com.fs.starfarer.api.combat.MissileAPI;
-import com.fs.starfarer.api.combat.ShieldAPI;
 import com.fs.starfarer.api.combat.ShipAPI;
-import com.fs.starfarer.api.fleet.FleetMemberAPI;
 import com.fs.starfarer.api.input.InputEventAPI;
-import com.fs.starfarer.api.mission.FleetSide;
 import java.awt.Color;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -21,10 +17,8 @@ import org.apache.log4j.Level;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.lazywizard.lazylib.FastTrig;
 import org.lazywizard.lazylib.MathUtils;
 import org.lazywizard.lazylib.combat.CombatUtils;
-import org.lazywizard.lazylib.opengl.DrawUtils;
 import org.lazywizard.radar.renderers.*;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.Display;
@@ -49,15 +43,12 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
     // Radar display settings
     private static boolean SHOW_MISSILES = true;
     private static boolean SHOW_MISSILE_LOCK_ICON = false; // TODO
-    private static boolean SHOW_OBJECTIVES = true;
-    private static boolean SHOW_BATTLE_PROGRESS = true;
     // Radar color settings
     private static float RADAR_ALPHA, CONTACT_ALPHA;
     private static float RADAR_FADE;
     private static Color FRIENDLY_COLOR;
     private static Color ENEMY_COLOR;
     private static Color NEUTRAL_COLOR;
-    private static Color HULK_COLOR;
     // Radar toggle button constant
     private static int RADAR_TOGGLE_KEY;
     // Whether the radar is active
@@ -107,8 +98,6 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         RADAR_FADE = (float) settings.getDouble("radarEdgeFadeAmount");
         SHOW_MISSILES = settings.getBoolean("showMissiles");
         SHOW_MISSILE_LOCK_ICON = settings.getBoolean("showMissileLockIcon");
-        SHOW_OBJECTIVES = settings.getBoolean("showObjectives");
-        SHOW_BATTLE_PROGRESS = settings.getBoolean("showBattleProgress");
 
         // Radar range
         RADAR_SIGHT_RANGE = (float) settings.getDouble("radarRange");
@@ -124,8 +113,6 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
                 : toColor(settings.getJSONArray("enemyColor"));
         NEUTRAL_COLOR = useVanillaColors ? Global.getSettings().getColor("iconNeutralShipColor")
                 : toColor(settings.getJSONArray("neutralColor"));
-        HULK_COLOR = useVanillaColors ? Color.LIGHT_GRAY
-                : toColor(settings.getJSONArray("hulkColor"));
     }
 
     private static Color toColor(JSONArray array) throws JSONException
@@ -228,48 +215,6 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
 
                 if (SHOW_MISSILE_LOCK_ICON)
                 {
-                }
-            }
-        }
-    }
-
-    private void renderObjectives()
-    {
-        if (SHOW_OBJECTIVES)
-        {
-            List<CombatEntityAPI> objectives = filterVisible(engine.getObjectives());
-            if (!objectives.isEmpty())
-            {
-                // TODO: Add customizable colors to settings
-                Vector2f radarLoc;
-                float size = 250f * RADAR_SCALING;
-                glLineWidth(size / 5f);
-                for (CombatEntityAPI objective : objectives)
-                {
-                    // Owned by player
-                    if (objective.getOwner() == player.getOwner())
-                    {
-                        glColor(FRIENDLY_COLOR, CONTACT_ALPHA);
-                    }
-                    // Owned by opposition
-                    else if (objective.getOwner() + player.getOwner() == 1)
-                    {
-                        glColor(ENEMY_COLOR, CONTACT_ALPHA);
-                    }
-                    // Not owned yet
-                    else
-                    {
-                        glColor(HULK_COLOR, CONTACT_ALPHA);
-                    }
-
-                    radarLoc = getPointOnRadar(objective.getLocation());
-
-                    glBegin(GL_LINE_LOOP);
-                    glVertex2f(radarLoc.x, radarLoc.y + size);
-                    glVertex2f(radarLoc.x + size, radarLoc.y);
-                    glVertex2f(radarLoc.x, radarLoc.y - size);
-                    glVertex2f(radarLoc.x - size, radarLoc.y);
-                    glEnd();
                 }
             }
         }
@@ -387,6 +332,12 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         public float getRenderRadius()
         {
             return RADAR_RADIUS;
+        }
+
+        @Override
+        public float getScale()
+        {
+            return RADAR_SCALING;
         }
 
         @Override
