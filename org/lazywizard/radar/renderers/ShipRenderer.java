@@ -92,10 +92,11 @@ public class ShipRenderer implements BaseRenderer
                                 radar.getContactAlpha() * alphaMod, false);
                     }
 
+                    float size = 1.5f * (contact.getHullSize().ordinal() + 1)
+                            * radar.getZoomLevel();
                     for (Vector2f point : MathUtils.getPointsAlongCircumference(
                             radar.getPointOnRadar(contact.getLocation()),
-                            1.5f * (contact.getHullSize().ordinal() + 1),
-                            3, contact.getFacing()))
+                            size, 3, contact.getFacing()))
                     {
                         glVertex2f(point.x, point.y);
                     }
@@ -114,8 +115,9 @@ public class ShipRenderer implements BaseRenderer
                         if (shield != null && shield.isOn())
                         {
                             radarLoc = radar.getPointOnRadar(contact.getLocation());
-                            DrawUtils.drawArc(radarLoc.x, radarLoc.y,
-                                    1.75f * (contact.getHullSize().ordinal() + 1),
+                            float size = 1.75f * (contact.getHullSize().ordinal() + 1)
+                                    * radar.getZoomLevel();
+                            DrawUtils.drawArc(radarLoc.x, radarLoc.y, size,
                                     shield.getFacing() - (shield.getActiveArc() / 2f),
                                     shield.getActiveArc(),
                                     (int) (shield.getActiveArc() / 18f) + 1, false);
