@@ -30,9 +30,8 @@ public class ObjectiveRenderer implements BaseRenderer
     }
 
     @Override
-    public void render(float amount)
+    public void render(ShipAPI player, float amount)
     {
-        ShipAPI player = radar.getPlayer();
         if (SHOW_OBJECTIVES && !player.isHulk())
         {
             List<? extends CombatEntityAPI> objectives = radar.filterVisible(

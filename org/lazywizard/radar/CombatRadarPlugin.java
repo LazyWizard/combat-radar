@@ -22,10 +22,9 @@ import org.lwjgl.opengl.Display;
 import static org.lwjgl.opengl.GL11.*;
 import org.lwjgl.util.vector.Vector2f;
 
-// TODO: Switch to pre-calculated rotations for ships
-// TODO: Use a narrower triangle for ships to better show facing
 // TODO: Use better names for config options in the settings file
 // TODO: Change toggle to switch between 3 zoom levels + off
+// TODO: This file needs loads of cleanup after the switch to a plugin system
 public class CombatRadarPlugin implements EveryFrameCombatPlugin
 {
     private static final String SETTINGS_FILE = "data/config/combat_radar.json";
@@ -187,7 +186,7 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         // Draw the radar elements individually
         for (BaseRenderer renderer : RENDERERS)
         {
-            renderer.render(amount);
+            renderer.render(player, amount);
         }
 
         // Finalize drawing
