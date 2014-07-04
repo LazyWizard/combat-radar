@@ -15,10 +15,8 @@ import org.lwjgl.util.vector.Vector2f;
 
 public class BoxRenderer implements BaseRenderer
 {
-    // TODO: Make these loaded through reloadSettings!
-    private static Color RADAR_BG_COLOR;
+    private static Color RADAR_BG_COLOR, RADAR_FG_COLOR, RADAR_FG_DEAD_COLOR;
     private static float RADAR_OPACITY, RADAR_FADE;
-    private static Color RADAR_FG_COLOR, RADAR_FG_DEAD_COLOR;
     private static boolean SHOW_BORDER;
     // Radar OpenGL buffers/display lists
     private static int RADAR_BOX_DISPLAY_LIST_ID = -123;
@@ -52,9 +50,9 @@ public class BoxRenderer implements BaseRenderer
     @Override
     public void render(ShipAPI player, float amount)
     {
+        // Cache OpenGL commands for faster execution
         if (player.isHulk() == wasHulkLastFrame)
         {
-            // Cache OpenGL commands for faster execution
             glCallList(RADAR_BOX_DISPLAY_LIST_ID);
         }
         else
