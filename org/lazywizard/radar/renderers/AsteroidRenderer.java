@@ -2,6 +2,7 @@ package org.lazywizard.radar.renderers;
 
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.CombatEntityAPI;
+import com.fs.starfarer.api.combat.ShipAPI;
 import java.awt.Color;
 import java.util.List;
 import org.json.JSONException;
@@ -34,9 +35,9 @@ public class AsteroidRenderer implements BaseRenderer
     }
 
     @Override
-    public void render(float amount)
+    public void render(ShipAPI player, float amount)
     {
-        if (SHOW_ASTEROIDS && !radar.getPlayer().isHulk())
+        if (SHOW_ASTEROIDS && !player.isHulk())
         {
             List<? extends CombatEntityAPI> asteroids = radar.filterVisible(
                     Global.getCombatEngine().getAsteroids());

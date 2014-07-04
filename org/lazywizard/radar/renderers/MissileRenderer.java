@@ -6,6 +6,7 @@ import com.fs.starfarer.api.combat.GuidedMissileAI;
 import com.fs.starfarer.api.combat.MissileAIPlugin;
 import com.fs.starfarer.api.combat.MissileAPI;
 import com.fs.starfarer.api.combat.ShipAPI;
+import com.fs.starfarer.api.graphics.SpriteAPI;
 import java.awt.Color;
 import java.util.List;
 import org.json.JSONException;
@@ -39,9 +40,8 @@ public class MissileRenderer implements BaseRenderer
     }
 
     @Override
-    public void render(float amount)
+    public void render(ShipAPI player, float amount)
     {
-        ShipAPI player = radar.getPlayer();
         if (SHOW_MISSILES && !player.isHulk())
         {
             List<? extends CombatEntityAPI> missiles = radar.filterVisible(
@@ -98,7 +98,7 @@ public class MissileRenderer implements BaseRenderer
                 }
                 glEnd();
 
-                if (SHOW_MISSILE_LOCK_ICON)
+                if (SHOW_MISSILE_LOCK_ICON && playerLock)
                 {
                     // TODO
                 }

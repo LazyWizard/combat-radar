@@ -17,6 +17,8 @@ import org.lazywizard.radar.RadarInfo;
 import static org.lwjgl.opengl.GL11.*;
 import org.lwjgl.util.vector.Vector2f;
 
+// TODO: Switch to pre-calculated rotations for ships
+// TODO: Use a narrower triangle for ships to better show facing
 public class ShipRenderer implements BaseRenderer
 {
     private static boolean SHOW_SHIPS;
@@ -40,9 +42,8 @@ public class ShipRenderer implements BaseRenderer
     }
 
     @Override
-    public void render(float amount)
+    public void render(ShipAPI player, float amount)
     {
-        ShipAPI player = radar.getPlayer();
         if (SHOW_SHIPS && !player.isHulk())
         {
             List<? extends CombatEntityAPI> contacts = radar.filterVisible(

@@ -50,9 +50,8 @@ public class BoxRenderer implements BaseRenderer
     }
 
     @Override
-    public void render(float amount)
+    public void render(ShipAPI player, float amount)
     {
-        ShipAPI player = radar.getPlayer();
         if (player.isHulk() == wasHulkLastFrame)
         {
             // Cache OpenGL commands for faster execution
