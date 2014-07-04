@@ -10,7 +10,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
 import org.lazywizard.radar.BaseRenderer;
-import org.lazywizard.radar.RadarInfo;
 import static org.lwjgl.opengl.GL11.*;
 import org.lwjgl.util.vector.Vector2f;
 
@@ -78,7 +77,7 @@ public class BattleProgressRenderer implements BaseRenderer
 
             glBegin(GL_QUADS);
             // Player strength
-            glColor(radar.getFriendlyContactColor(), radar.getCenterAlpha(), false);
+            glColor(radar.getFriendlyContactColor(), radar.getRadarAlpha(), false);
             glVertex2f(barLocation.x, barLocation.y);
             glVertex2f(barLocation.x + barWidth,
                     barLocation.y);
@@ -88,7 +87,7 @@ public class BattleProgressRenderer implements BaseRenderer
                     + (barHeight * relativeStrength));
 
             // Enemy strength
-            glColor(radar.getEnemyContactColor(), radar.getCenterAlpha(), false);
+            glColor(radar.getEnemyContactColor(), radar.getRadarAlpha(), false);
             glVertex2f(barLocation.x, barLocation.y
                     + (barHeight * relativeStrength));
             glVertex2f(barLocation.x + barWidth,

@@ -13,7 +13,6 @@ import org.lazywizard.lazylib.MathUtils;
 import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
 import org.lazywizard.lazylib.opengl.DrawUtils;
 import org.lazywizard.radar.BaseRenderer;
-import org.lazywizard.radar.RadarInfo;
 import static org.lwjgl.opengl.GL11.*;
 import org.lwjgl.util.vector.Vector2f;
 

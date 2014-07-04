@@ -16,7 +16,13 @@ import org.json.JSONObject;
 import static org.lazywizard.lazylib.JSONUtils.toColor;
 import org.lazywizard.lazylib.MathUtils;
 import org.lazywizard.lazylib.combat.CombatUtils;
-import org.lazywizard.radar.renderers.*;
+import org.lazywizard.radar.BaseRenderer.RadarInfo;
+import org.lazywizard.radar.renderers.AsteroidRenderer;
+import org.lazywizard.radar.renderers.BattleProgressRenderer;
+import org.lazywizard.radar.renderers.BoxRenderer;
+import org.lazywizard.radar.renderers.MissileRenderer;
+import org.lazywizard.radar.renderers.ObjectiveRenderer;
+import org.lazywizard.radar.renderers.ShipRenderer;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.Display;
 import static org.lwjgl.opengl.GL11.*;
@@ -38,7 +44,6 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
     private static boolean RESPECT_FOG_OF_WAR = true;
     // Radar color settings
     private static float RADAR_ALPHA, CONTACT_ALPHA;
-    private static float RADAR_FADE;
     private static Color FRIENDLY_COLOR;
     private static Color ENEMY_COLOR;
     private static Color NEUTRAL_COLOR;
@@ -70,12 +75,8 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
 
     public static void reloadSettings() throws IOException, JSONException
     {
-        JSONObject settings = Global.getSettings().loadJSON(SETTINGS_FILE);
+        final JSONObject settings = Global.getSettings().loadJSON(SETTINGS_FILE);
         final boolean useVanillaColors = settings.getBoolean("useVanillaColors");
-        for (BaseRenderer renderer : RENDERERS)
-        {
-            renderer.reloadSettings(settings, useVanillaColors);
-        }
 
         // Toggle key
         RADAR_TOGGLE_KEY = settings.getInt("toggleKey");
@@ -88,7 +89,6 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
 
         // Radar options
         RADAR_ALPHA = (float) settings.getDouble("radarForegroundAlpha");
-        RADAR_FADE = (float) settings.getDouble("radarEdgeFadeAmount");
 
         // Radar range
         RADAR_SIGHT_RANGE = (float) settings.getDouble("radarRange");
@@ -104,6 +104,13 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
                 : toColor(settings.getJSONArray("enemyColor"));
         NEUTRAL_COLOR = useVanillaColors ? Global.getSettings().getColor("iconNeutralShipColor")
                 : toColor(settings.getJSONArray("neutralColor"));
+
+        // Load settings for individual renderer components
+        // TODO: Load 'proper' settings file for each plugin
+        for (BaseRenderer renderer : RENDERERS)
+        {
+            renderer.reloadSettings(settings, useVanillaColors);
+        }
     }
 
     @Override
@@ -211,15 +218,9 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         }
 
         @Override
-        public float getCenterAlpha()
+        public float getRadarAlpha()
         {
             return RADAR_ALPHA;
-        }
-
-        @Override
-        public float getEdgeAlpha()
-        {
-            return RADAR_FADE;
         }
 
         @Override
@@ -273,8 +274,8 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
             {
                 if (MathUtils.isWithinRange(contact, player, RADAR_SIGHT_RANGE))
                 {
-                    if (RESPECT_FOG_OF_WAR
-                            && !CombatUtils.isVisibleToSide(contact, player.getOwner()))
+                    if (RESPECT_FOG_OF_WAR && !CombatUtils.isVisibleToSide(
+                            contact, player.getOwner()))
                     {
                         continue;
                     }
