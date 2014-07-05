@@ -6,6 +6,7 @@ import com.fs.starfarer.api.combat.GuidedMissileAI;
 import com.fs.starfarer.api.combat.MissileAIPlugin;
 import com.fs.starfarer.api.combat.MissileAPI;
 import com.fs.starfarer.api.combat.ShipAPI;
+import com.fs.starfarer.api.graphics.SpriteAPI;
 import java.awt.Color;
 import java.util.List;
 import org.json.JSONException;
@@ -21,7 +22,10 @@ public class MissileRenderer implements CombatRenderer
 {
     private static boolean SHOW_MISSILES;
     private static boolean SHOW_MISSILE_LOCK_ICON;
+    private static String MISSILE_ICON;
     private static Color MISSILE_LOCKED_COLOR;
+    private SpriteAPI icon;
+    private Vector2f iconLocation;
     private CombatRadar radar;
 
     @Override
@@ -30,12 +34,22 @@ public class MissileRenderer implements CombatRenderer
         SHOW_MISSILES = settings.getBoolean("showMissiles");
         SHOW_MISSILE_LOCK_ICON = settings.getBoolean("showMissileLockIcon");
         MISSILE_LOCKED_COLOR = JSONUtils.toColor(settings.getJSONArray("lockedMissileColor"));
+        MISSILE_ICON = settings.optString("missileLockIcon", null);
     }
 
     @Override
     public void init(CombatRadar radar)
     {
         this.radar = radar;
+
+        if (SHOW_MISSILE_LOCK_ICON)
+        {
+            Vector2f radarCenter = radar.getRenderCenter();
+            float radarRadius = radar.getRenderRadius();
+            icon = Global.getSettings().getSprite("radar", MISSILE_ICON);
+            iconLocation = new Vector2f(radarCenter.x - (radarRadius * 0.9f),
+                radarCenter.y + (radarRadius * 0.9f));
+        }
     }
 
     @Override
@@ -99,7 +113,10 @@ public class MissileRenderer implements CombatRenderer
 
                 if (SHOW_MISSILE_LOCK_ICON && playerLock)
                 {
-                    // TODO
+                    glEnable(GL_TEXTURE_2D);
+                    icon.setAlphaMult(radar.getRadarAlpha());
+                    icon.renderAtCenter(iconLocation.x, iconLocation.y);
+                    glDisable(GL_TEXTURE_2D);
                 }
             }
         }
