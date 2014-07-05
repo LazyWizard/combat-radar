@@ -10,37 +10,36 @@ import com.fs.starfarer.api.input.InputEventAPI;
 import java.awt.Color;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.apache.log4j.Level;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import static org.lazywizard.lazylib.JSONUtils.toColor;
 import org.lazywizard.lazylib.MathUtils;
 import org.lazywizard.lazylib.combat.CombatUtils;
 import org.lazywizard.radar.combat.CombatRadar;
-import org.lazywizard.radar.combat.renderers.AsteroidRenderer;
-import org.lazywizard.radar.combat.renderers.BattleProgressRenderer;
-import org.lazywizard.radar.combat.renderers.BoxRenderer;
-import org.lazywizard.radar.combat.renderers.MissileRenderer;
-import org.lazywizard.radar.combat.renderers.ObjectiveRenderer;
-import org.lazywizard.radar.combat.renderers.ShipRenderer;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.Display;
 import static org.lwjgl.opengl.GL11.*;
 import org.lwjgl.util.vector.Vector2f;
 
-// TODO: Use better names for config options in the settings file
-// TODO: Change toggle to switch between 3 zoom levels + off
 // TODO: This file needs loads of cleanup after the switch to a plugin system
+// TODO: Use better names for config options in the settings file
+// TODO: Revamp default settings file to have each renderer in own section
+// TODO: Move away from static variables (except for settings loaded from JSON)
 public class CombatRadarPlugin implements EveryFrameCombatPlugin
 {
-    private static final String SETTINGS_FILE = "data/config/combat_radar.json";
+    private static final String SETTINGS_FILE = "data/config/radar/combat_radar.json";
+    private static final String CSV_PATH = "data/config/radar/combat_radar_plugins.csv";
     // Location and size of radar on screen
     private static final Vector2f RADAR_CENTER;
     private static final float RADAR_RADIUS;
     private static float MAX_SIGHT_RANGE;
     private static float RADAR_SIGHT_RANGE, RADAR_SCALING;
-    private static final List<CombatRenderer> RENDERERS;
+    private static final List<Class<? extends CombatRenderer>> RENDERER_CLASSES = new ArrayList<>();
     // Performance settings
     private static boolean RESPECT_FOG_OF_WAR = true;
     // Radar color settings
@@ -54,7 +53,8 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
     // Whether the radar is active
     private static int currentZoom;
     private ShipAPI player;
-    private boolean hasInitiated = false;
+    private final List<CombatRenderer> renderers = new ArrayList<>();
+    private boolean initialized = false;
     private CombatEngineAPI engine;
 
     static
@@ -64,18 +64,9 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         RADAR_RADIUS = Display.getHeight() / 10f;
         RADAR_CENTER = new Vector2f(Display.getWidth() - (RADAR_RADIUS * 1.2f),
                 RADAR_RADIUS * 1.2f);
-
-        // TODO: load renderers from a CSV, allow third-party renderers
-        RENDERERS = new ArrayList<>();
-        RENDERERS.add(new BoxRenderer());
-        RENDERERS.add(new BattleProgressRenderer());
-        RENDERERS.add(new ShipRenderer());
-        RENDERERS.add(new AsteroidRenderer());
-        RENDERERS.add(new MissileRenderer());
-        RENDERERS.add(new ObjectiveRenderer());
     }
 
-    static void reloadSettings() throws IOException, JSONException
+    static void reloadSettings() throws IOException, JSONException, ClassNotFoundException
     {
         final JSONObject settings = Global.getSettings().loadJSON(SETTINGS_FILE);
         final boolean useVanillaColors = settings.getBoolean("useVanillaColors");
@@ -106,9 +97,66 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         NEUTRAL_COLOR = useVanillaColors ? Global.getSettings().getColor("iconNeutralShipColor")
                 : toColor(settings.getJSONArray("neutralColor"));
 
+        // Load renderers from CSV
+        final JSONArray csv = Global.getSettings().getMergedSpreadsheetDataForMod(
+                "renderer id", CSV_PATH, "lw_radar");
+        final ClassLoader loader = Global.getSettings().getScriptClassLoader();
+        RENDERER_CLASSES.clear();
+        Map<String, JSONObject> loadedFiles = new HashMap<>();
+        for (int x = 0; x < csv.length(); x++)
+        {
+            JSONObject row = csv.getJSONObject(x);
+            String className = row.getString("script");
+            String settingsFile = row.optString("settings file (optional)", null);
+
+            Class renderClass = loader.loadClass(className);
+
+            // Ensure this is actually a valid renderer
+            if (!CombatRenderer.class.isAssignableFrom(renderClass))
+            {
+                throw new RuntimeException(renderClass.getCanonicalName()
+                        + " does not implement interface "
+                        + CombatRenderer.class.getCanonicalName());
+            }
+
+            // Register the renderer with the radar
+            // TODO: Sort this list later using the "render order" column
+            RENDERER_CLASSES.add(renderClass);
+
+            // If a settings file was pointed to, tell the renderer to load it
+            if (settingsFile != null)
+            {
+                // Keep track of already loaded files since some renderers use
+                // the same settings file; this helps lower the file I/O impact
+                JSONObject renderSettings;
+                if (loadedFiles.containsKey(settingsFile))
+                {
+                    renderSettings = loadedFiles.get(settingsFile);
+                }
+                else
+                {
+                    renderSettings = Global.getSettings().loadJSON(settingsFile);
+                    loadedFiles.put(settingsFile, renderSettings);
+                }
+
+                // Tell renderer to reload settings using the provided file
+                try
+                {
+                    CombatRenderer tmp = ((CombatRenderer) renderClass.newInstance());
+                    tmp.reloadSettings(renderSettings, useVanillaColors);
+                }
+                catch (InstantiationException | IllegalAccessException ex)
+                {
+                    throw new RuntimeException(ex);
+                }
+            }
+        }
+
         // Load settings for individual renderer components
         // TODO: Load 'proper' settings file for each plugin
-        for (CombatRenderer renderer : RENDERERS)
+        List<CombatRenderer> tmpRenderers = new ArrayList<>();
+        // TODO: populate tmpRenderers with a copy of each renderer
+        for (CombatRenderer renderer : tmpRenderers)
         {
             renderer.reloadSettings(settings, useVanillaColors);
         }
@@ -127,14 +175,24 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
 
     private void checkInit()
     {
-        if (!hasInitiated)
+        if (!initialized)
         {
-            hasInitiated = true;
+            initialized = true;
 
+            renderers.clear();
             CombatRadar info = new CombatRadarInfo();
-            for (CombatRenderer renderer : RENDERERS)
+            for (Class<? extends CombatRenderer> rendererClass : RENDERER_CLASSES)
             {
-                renderer.init(info);
+                try
+                {
+                    CombatRenderer renderer = rendererClass.newInstance();
+                    renderers.add(renderer);
+                    renderer.init(info);
+                }
+                catch (InstantiationException | IllegalAccessException ex)
+                {
+                    throw new RuntimeException(ex);
+                }
             }
         }
     }
@@ -182,7 +240,7 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         // Draw the radar elements individually
-        for (CombatRenderer renderer : RENDERERS)
+        for (CombatRenderer renderer : renderers)
         {
             renderer.render(player, amount);
         }
@@ -214,19 +272,17 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         checkInput(events);
 
         // Zoom 0 = radar disabled
-        if (currentZoom == 0)
+        if (currentZoom != 0)
         {
-            return;
+            render(amount);
         }
-
-        render(amount);
     }
 
     @Override
     public void init(CombatEngineAPI engine)
     {
         this.engine = engine;
-        hasInitiated = false;
+        initialized = false;
     }
 
     private class CombatRadarInfo implements CombatRadar
