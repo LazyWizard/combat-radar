@@ -10,14 +10,14 @@ public interface CombatRadar
 {
     public void resetView();
 
+    // THESE METHODS' RETURN VALUES STAY THE SAME
+
     /**
      *
      * @return The center of the radar circle, in screen coordinates.
      */
     public Vector2f getRenderCenter();
     public float getRenderRadius();
-    public float getPixelsPerSU();
-    public float getZoomLevel();
 
     public float getRadarAlpha();
     public float getContactAlpha();
@@ -25,6 +25,12 @@ public interface CombatRadar
     public Color getFriendlyContactColor();
     public Color getEnemyContactColor();
     public Color getNeutralContactColor();
+
+    // THESE METHODS' RETURN VALUES CAN CHANGE OVER TIME!
+
+    // Used for scaling radar elements
+    public float getCurrentPixelsPerSU();
+    public float getCurrentZoomLevel();
 
     public ShipAPI getPlayer();
 

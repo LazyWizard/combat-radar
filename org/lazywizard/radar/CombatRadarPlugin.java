@@ -45,7 +45,7 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
     // Radar color settings
     private static float RADAR_ALPHA, CONTACT_ALPHA;
     private static Color FRIENDLY_COLOR, ENEMY_COLOR, NEUTRAL_COLOR;
-    // Radar toggle button constant
+    // Radar toggle button LWJGL constant
     private static int RADAR_TOGGLE_KEY;
     // Location and size of radar on screen
     private final List<CombatRenderer> renderers = new ArrayList<>();
@@ -306,13 +306,13 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         }
 
         @Override
-        public float getPixelsPerSU()
+        public float getCurrentPixelsPerSU()
         {
             return radarScaling;
         }
 
         @Override
-        public float getZoomLevel()
+        public float getCurrentZoomLevel()
         {
             return NUM_ZOOM_LEVELS / (float) currentZoom;
         }
