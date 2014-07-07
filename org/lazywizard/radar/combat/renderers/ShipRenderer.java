@@ -130,7 +130,8 @@ public class ShipRenderer implements CombatRenderer
                 if (target != null)
                 {
                     // TODO: Add a color setting for this
-                    float size = 1.8f * (target.getHullSize().ordinal() + 1);
+                    float size = 1.8f * (target.getHullSize().ordinal() + 1)
+                            * radar.getZoomLevel();
                     radarLoc = radar.getPointOnRadar(target.getLocation());
                     float margin = size * .5f;
                     glColor4f(1f, 1f, 1f, radar.getContactAlpha());
