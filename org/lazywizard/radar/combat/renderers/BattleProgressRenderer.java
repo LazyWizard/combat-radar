@@ -5,6 +5,7 @@ import com.fs.starfarer.api.combat.CombatFleetManagerAPI;
 import com.fs.starfarer.api.combat.ShipAPI;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
 import com.fs.starfarer.api.mission.FleetSide;
+import java.awt.Color;
 import java.util.List;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -14,13 +15,17 @@ import org.lazywizard.radar.combat.CombatRenderer;
 import static org.lwjgl.opengl.GL11.*;
 import org.lwjgl.util.vector.Vector2f;
 
+// TODO: Change this to a horizontal bar underneath the radar
+// TODO: Add vertical line to show where relative strength was at battle start
+// TODO: Animate changes to the bar
 public class BattleProgressRenderer implements CombatRenderer
 {
     private static boolean SHOW_BATTLE_PROGRESS;
     private CombatRadar radar;
     private Vector2f barLocation;
-    private float barWidth;
+    private float relativeStrengthAtBattleStart;
     private float barHeight;
+    private float barWidth;
 
     @Override
     public void reloadSettings(JSONObject settings, boolean useVanillaColors) throws JSONException
@@ -35,10 +40,41 @@ public class BattleProgressRenderer implements CombatRenderer
 
         Vector2f radarCenter = radar.getRenderCenter();
         float radarRadius = radar.getRenderRadius();
-        barLocation = new Vector2f(radarCenter.x + (radarRadius * 1.1f),
+        barLocation = new Vector2f(radarCenter.x - radarRadius,
                 radarCenter.y - (radarRadius * 1.1f));
-        barWidth = radarRadius * .09f;
-        barHeight = radarRadius * 2f;
+        barWidth = radarRadius * 2f;
+        barHeight = radarRadius * .09f;
+
+        relativeStrengthAtBattleStart = getRelativeStrength();
+    }
+
+    private static float getRelativeStrength()
+    {
+        float playerStrength = 0f, enemyStrength = 0f;
+
+        // Total up player fleet strength
+        CombatFleetManagerAPI fm = Global.getCombatEngine().getFleetManager(FleetSide.PLAYER);
+        List<FleetMemberAPI> ships = fm.getDeployedCopy();
+        //if (!engine.isSimulationBattle())
+        ships.addAll(fm.getReservesCopy());
+        for (FleetMemberAPI ship : ships)
+        {
+            playerStrength += ship.getMemberStrength(); //.getFleetPointCost();
+        }
+
+        // Total up enemy fleet strength
+        fm = Global.getCombatEngine().getFleetManager(FleetSide.ENEMY);
+        ships = fm.getDeployedCopy();
+        //if (!engine.isSimulationBattle())
+        ships.addAll(fm.getReservesCopy());
+        for (FleetMemberAPI ship : ships)
+        {
+            enemyStrength += ship.getMemberStrength(); //.getFleetPointCost();
+        }
+
+        // No ships on either side = assume a draw
+        float totalStrength = playerStrength + enemyStrength;
+        return (totalStrength <= 0f ? 0.5f : (playerStrength / totalStrength));
     }
 
     @Override
@@ -47,56 +83,37 @@ public class BattleProgressRenderer implements CombatRenderer
     {
         if (SHOW_BATTLE_PROGRESS)
         {
-            int fpPlayer = 0, fpEnemy = 0;
-
-            // Total up player fleet strength
-            CombatFleetManagerAPI fm = Global.getCombatEngine().getFleetManager(FleetSide.PLAYER);
-            List<FleetMemberAPI> ships = fm.getDeployedCopy();
-            //if (!engine.isSimulationBattle())
-            ships.addAll(fm.getReservesCopy());
-            for (FleetMemberAPI ship : ships)
-            {
-                fpPlayer += ship.getMemberStrength(); //.getFleetPointCost();
-            }
-
-            // Total up enemy fleet strength
-            fm = Global.getCombatEngine().getFleetManager(FleetSide.ENEMY);
-            ships = fm.getDeployedCopy();
-            //if (!engine.isSimulationBattle())
-            ships.addAll(fm.getReservesCopy());
-            for (FleetMemberAPI ship : ships)
-            {
-                fpEnemy += ship.getMemberStrength(); //.getFleetPointCost();
-            }
-
-            if (fpPlayer + fpEnemy <= 0)
-            {
-                return;
-            }
-
-            float relativeStrength = fpPlayer / (float) (fpPlayer + fpEnemy);
+            float relativeStrength = getRelativeStrength();
 
             glBegin(GL_QUADS);
             // Player strength
             glColor(radar.getFriendlyContactColor(), radar.getRadarAlpha(), false);
             glVertex2f(barLocation.x, barLocation.y);
-            glVertex2f(barLocation.x + barWidth,
+            glVertex2f(barLocation.x,
+                    barLocation.y + barHeight);
+            glVertex2f(barLocation.x + (barWidth * relativeStrength),
+                    barLocation.y + barHeight);
+            glVertex2f(barLocation.x + (barWidth * relativeStrength),
                     barLocation.y);
-            glVertex2f(barLocation.x + barWidth,
-                    barLocation.y + (barHeight * relativeStrength));
-            glVertex2f(barLocation.x, barLocation.y
-                    + (barHeight * relativeStrength));
 
             // Enemy strength
             glColor(radar.getEnemyContactColor(), radar.getRadarAlpha(), false);
-            glVertex2f(barLocation.x, barLocation.y
-                    + (barHeight * relativeStrength));
-            glVertex2f(barLocation.x + barWidth,
-                    barLocation.y + (barHeight * relativeStrength));
+            glVertex2f(barLocation.x + (barWidth * relativeStrength),
+                    barLocation.y);
+            glVertex2f(barLocation.x + (barWidth * relativeStrength),
+                    barLocation.y + barHeight);
             glVertex2f(barLocation.x + barWidth,
                     barLocation.y + barHeight);
-            glVertex2f(barLocation.x, barLocation.y
-                    + barHeight);
+            glVertex2f(barLocation.x + barWidth,
+                    barLocation.y);
+            glEnd();
+
+            glBegin(GL_LINES);
+            glColor(Color.WHITE, radar.getRadarAlpha(), false);
+            glVertex2f(barLocation.x + (barWidth * relativeStrengthAtBattleStart),
+                    barLocation.y + (barHeight * 1.5f));
+            glVertex2f(barLocation.x + (barWidth * relativeStrengthAtBattleStart),
+                    barLocation.y - (barHeight * 0.5f));
             glEnd();
         }
     }
