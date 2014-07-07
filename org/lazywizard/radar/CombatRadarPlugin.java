@@ -59,7 +59,6 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
     static void reloadSettings() throws IOException, JSONException
     {
         final JSONObject settings = Global.getSettings().loadJSON(SETTINGS_FILE);
-        final boolean useVanillaColors = settings.getBoolean("useVanillaColors");
 
         // Toggle key
         RADAR_TOGGLE_KEY = settings.getInt("toggleKey");
@@ -78,6 +77,7 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         NUM_ZOOM_LEVELS = settings.getInt("zoomLevels");
 
         // Radar contact colors
+        final boolean useVanillaColors = settings.getBoolean("useVanillaColors");
         CONTACT_ALPHA = (float) settings.getDouble("contactAlpha");
         FRIENDLY_COLOR = useVanillaColors ? Global.getSettings().getColor("iconFriendColor")
                 : JSONUtils.toColor(settings.getJSONArray("friendlyColor"));
@@ -86,10 +86,10 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         NEUTRAL_COLOR = useVanillaColors ? Global.getSettings().getColor("iconNeutralShipColor")
                 : JSONUtils.toColor(settings.getJSONArray("neutralColor"));
 
-        reloadRenderers(useVanillaColors);
+        reloadRenderers();
     }
 
-    private static void reloadRenderers(boolean useVanillaColors) throws IOException, JSONException
+    private static void reloadRenderers() throws IOException, JSONException
     {
         // Load renderers from CSV
         final JSONArray csv = Global.getSettings().getMergedSpreadsheetDataForMod(
@@ -146,7 +146,7 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
                 try
                 {
                     CombatRenderer tmp = ((CombatRenderer) renderClass.newInstance());
-                    tmp.reloadSettings(renderSettings, useVanillaColors);
+                    tmp.reloadSettings(renderSettings);
                 }
                 catch (InstantiationException | IllegalAccessException ex)
                 {

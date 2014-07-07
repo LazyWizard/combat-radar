@@ -28,7 +28,7 @@ public class BattleProgressRenderer implements CombatRenderer
     private float barWidth;
 
     @Override
-    public void reloadSettings(JSONObject settings, boolean useVanillaColors) throws JSONException
+    public void reloadSettings(JSONObject settings) throws JSONException
     {
         SHOW_BATTLE_PROGRESS = settings.getBoolean("showBattleProgress");
     }

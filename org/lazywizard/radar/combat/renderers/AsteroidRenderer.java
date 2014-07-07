@@ -21,11 +21,10 @@ public class AsteroidRenderer implements CombatRenderer
     private CombatRadar radar;
 
     @Override
-    public void reloadSettings(JSONObject settings, boolean useVanillaColors) throws JSONException
+    public void reloadSettings(JSONObject settings) throws JSONException
     {
         SHOW_ASTEROIDS = settings.getBoolean("showAsteroids");
-        ASTEROID_COLOR = useVanillaColors ? Color.LIGHT_GRAY
-                : JSONUtils.toColor(settings.getJSONArray("asteroidColor"));
+        ASTEROID_COLOR = JSONUtils.toColor(settings.getJSONArray("asteroidColor"));
     }
 
     @Override
