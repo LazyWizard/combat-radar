@@ -9,12 +9,13 @@ import org.json.JSONObject;
 import org.lazywizard.lazylib.JSONUtils;
 import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
 import org.lazywizard.lazylib.opengl.DrawUtils;
-import org.lazywizard.radar.campaign.CampaignRadar;
-import org.lazywizard.radar.campaign.CampaignRenderer;
+//import org.lazywizard.radar.campaign.CampaignRadar;
+//import org.lazywizard.radar.campaign.CampaignRenderer;
 import static org.lwjgl.opengl.GL11.*;
 import org.lwjgl.util.vector.Vector2f;
 
-public class BoxRenderer implements CampaignRenderer
+public class BoxRenderer{}
+/* implements CampaignRenderer
 {
     private static Color RADAR_BG_COLOR, RADAR_FG_COLOR;
     private static float RADAR_OPACITY, RADAR_FADE;
@@ -143,3 +144,4 @@ public class BoxRenderer implements CampaignRenderer
         }
     }
 }
+*/
