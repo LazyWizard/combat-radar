@@ -62,6 +62,7 @@ public class MissileRenderer implements CombatRenderer
             if (!missiles.isEmpty())
             {
                 boolean playerLock = false;
+                float highestThreatAlpha = 0f;
 
                 glPointSize(2f);
                 glBegin(GL_POINTS);
@@ -89,6 +90,7 @@ public class MissileRenderer implements CombatRenderer
                                 && player == ((GuidedMissileAI) ai).getTarget())
                         {
                             playerLock = true;
+                            highestThreatAlpha = alphaMod;
                             glColor(MISSILE_LOCKED_COLOR,
                                     radar.getContactAlpha() * alphaMod, false);
                         }
@@ -114,7 +116,8 @@ public class MissileRenderer implements CombatRenderer
                 if (SHOW_MISSILE_LOCK_ICON && playerLock)
                 {
                     glEnable(GL_TEXTURE_2D);
-                    icon.setAlphaMult(radar.getRadarAlpha());
+                    icon.setAlphaMult(radar.getRadarAlpha() * highestThreatAlpha);
+                    icon.setColor(MISSILE_LOCKED_COLOR);
                     icon.renderAtCenter(iconLocation.x, iconLocation.y);
                     glDisable(GL_TEXTURE_2D);
                 }
