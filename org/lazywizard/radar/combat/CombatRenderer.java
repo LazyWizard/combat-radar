@@ -19,10 +19,11 @@ public interface CombatRenderer
      * static variables such as colors here.
      * <p>
      * <b>IMPORTANT:</b> this method is called on a temporary object during
-     * loading. Any variables you set in here should be static.
+     * loading. Any variables you set in here must be static or they won't be
+     * retained!
      * <p>
-     * @param settings The contents of the settings file linked to in
-     *                 the radar plugin CSV.
+     * @param settings The contents of the settings file linked to in the radar
+     *                 plugin CSV.
      * <p>
      * @throws JSONException
      * @since 1.0

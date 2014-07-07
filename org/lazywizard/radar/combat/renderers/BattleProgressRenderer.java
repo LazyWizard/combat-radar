@@ -15,8 +15,6 @@ import org.lazywizard.radar.combat.CombatRenderer;
 import static org.lwjgl.opengl.GL11.*;
 import org.lwjgl.util.vector.Vector2f;
 
-// TODO: Change this to a horizontal bar underneath the radar
-// TODO: Add vertical line to show where relative strength was at battle start
 // TODO: Animate changes to the bar
 public class BattleProgressRenderer implements CombatRenderer
 {
@@ -83,24 +81,26 @@ public class BattleProgressRenderer implements CombatRenderer
     {
         if (SHOW_BATTLE_PROGRESS)
         {
-            float relativeStrength = getRelativeStrength();
+            float relativeStrengthPos = barWidth * getRelativeStrength(),
+                    battleStartPos = barWidth * relativeStrengthAtBattleStart;
 
             glBegin(GL_QUADS);
             // Player strength
             glColor(radar.getFriendlyContactColor(), radar.getRadarAlpha(), false);
-            glVertex2f(barLocation.x, barLocation.y);
+            glVertex2f(barLocation.x,
+                    barLocation.y);
             glVertex2f(barLocation.x,
                     barLocation.y + barHeight);
-            glVertex2f(barLocation.x + (barWidth * relativeStrength),
+            glVertex2f(barLocation.x + relativeStrengthPos,
                     barLocation.y + barHeight);
-            glVertex2f(barLocation.x + (barWidth * relativeStrength),
+            glVertex2f(barLocation.x + relativeStrengthPos,
                     barLocation.y);
 
             // Enemy strength
             glColor(radar.getEnemyContactColor(), radar.getRadarAlpha(), false);
-            glVertex2f(barLocation.x + (barWidth * relativeStrength),
+            glVertex2f(barLocation.x + relativeStrengthPos,
                     barLocation.y);
-            glVertex2f(barLocation.x + (barWidth * relativeStrength),
+            glVertex2f(barLocation.x + relativeStrengthPos,
                     barLocation.y + barHeight);
             glVertex2f(barLocation.x + barWidth,
                     barLocation.y + barHeight);
@@ -108,11 +108,12 @@ public class BattleProgressRenderer implements CombatRenderer
                     barLocation.y);
             glEnd();
 
-            glBegin(GL_LINES);
+            glLineWidth(1f);
             glColor(Color.WHITE, radar.getRadarAlpha(), false);
-            glVertex2f(barLocation.x + (barWidth * relativeStrengthAtBattleStart),
+            glBegin(GL_LINES);
+            glVertex2f(barLocation.x + battleStartPos,
                     barLocation.y + (barHeight * 1.5f));
-            glVertex2f(barLocation.x + (barWidth * relativeStrengthAtBattleStart),
+            glVertex2f(barLocation.x + battleStartPos,
                     barLocation.y - (barHeight * 0.5f));
             glEnd();
         }

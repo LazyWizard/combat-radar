@@ -93,7 +93,7 @@ public class ShipRenderer implements CombatRenderer
                     }
 
                     float size = 1.5f * (contact.getHullSize().ordinal() + 1)
-                            * radar.getZoomLevel();
+                            * radar.getCurrentZoomLevel();
                     for (Vector2f point : MathUtils.getPointsAlongCircumference(
                             radar.getPointOnRadar(contact.getLocation()),
                             size, 3, contact.getFacing()))
@@ -116,7 +116,7 @@ public class ShipRenderer implements CombatRenderer
                         {
                             radarLoc = radar.getPointOnRadar(contact.getLocation());
                             float size = 1.75f * (contact.getHullSize().ordinal() + 1)
-                                    * radar.getZoomLevel();
+                                    * radar.getCurrentZoomLevel();
                             DrawUtils.drawArc(radarLoc.x, radarLoc.y, size,
                                     shield.getFacing() - (shield.getActiveArc() / 2f),
                                     shield.getActiveArc(),
@@ -130,7 +130,7 @@ public class ShipRenderer implements CombatRenderer
                 {
                     // TODO: Add a color setting for this
                     float size = 1.8f * (target.getHullSize().ordinal() + 1)
-                            * radar.getZoomLevel();
+                            * radar.getCurrentZoomLevel();
                     radarLoc = radar.getPointOnRadar(target.getLocation());
                     float margin = size * .5f;
                     glColor4f(1f, 1f, 1f, radar.getContactAlpha());
