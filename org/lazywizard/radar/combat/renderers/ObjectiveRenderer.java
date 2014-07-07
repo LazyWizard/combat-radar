@@ -40,7 +40,7 @@ public class ObjectiveRenderer implements CombatRenderer
             {
                 // TODO: Add customizable colors to settings
                 Vector2f radarLoc;
-                float size = 250f * radar.getScale();
+                float size = 250f * radar.getPixelsPerSU();
                 glLineWidth(size / 5f);
                 for (CombatEntityAPI objective : objectives)
                 {

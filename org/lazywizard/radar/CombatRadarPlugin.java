@@ -287,6 +287,13 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
     private class CombatRadarInfo implements CombatRadar
     {
         @Override
+        @Deprecated // TEMPORARY
+        public void resetView()
+        {
+            // TODO: call glOrtho() and glViewport() here
+        }
+
+        @Override
         public Vector2f getRenderCenter()
         {
             return renderCenter;
@@ -299,7 +306,7 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         }
 
         @Override
-        public float getScale()
+        public float getPixelsPerSU()
         {
             return radarScaling;
         }

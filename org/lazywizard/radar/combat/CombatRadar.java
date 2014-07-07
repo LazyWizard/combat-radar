@@ -8,9 +8,15 @@ import org.lwjgl.util.vector.Vector2f;
 
 public interface CombatRadar
 {
+    public void resetView();
+
+    /**
+     *
+     * @return The center of the radar circle, in screen coordinates.
+     */
     public Vector2f getRenderCenter();
     public float getRenderRadius();
-    public float getScale();
+    public float getPixelsPerSU();
     public float getZoomLevel();
 
     public float getRadarAlpha();
