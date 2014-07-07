@@ -18,7 +18,7 @@ public class ObjectiveRenderer implements CombatRenderer
     private CombatRadar radar;
 
     @Override
-    public void reloadSettings(JSONObject settings, boolean useVanillaColors) throws JSONException
+    public void reloadSettings(JSONObject settings) throws JSONException
     {
         SHOW_OBJECTIVES = settings.getBoolean("showObjectives");
     }

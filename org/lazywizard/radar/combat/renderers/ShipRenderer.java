@@ -27,12 +27,11 @@ public class ShipRenderer implements CombatRenderer
     private CombatRadar radar;
 
     @Override
-    public void reloadSettings(JSONObject settings, boolean useVanillaColors) throws JSONException
+    public void reloadSettings(JSONObject settings) throws JSONException
     {
         SHOW_SHIPS = settings.getBoolean("showShips");
         SHOW_SHIELDS = settings.getBoolean("showShields");
-        SHIELD_COLOR = useVanillaColors ? Color.CYAN
-                : JSONUtils.toColor(settings.getJSONArray("shieldColor"));
+        SHIELD_COLOR = JSONUtils.toColor(settings.getJSONArray("shieldColor"));
     }
 
     @Override

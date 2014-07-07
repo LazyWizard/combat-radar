@@ -29,7 +29,7 @@ public class MissileRenderer implements CombatRenderer
     private CombatRadar radar;
 
     @Override
-    public void reloadSettings(JSONObject settings, boolean useVanillaColors) throws JSONException
+    public void reloadSettings(JSONObject settings) throws JSONException
     {
         SHOW_MISSILES = settings.getBoolean("showMissiles");
         SHOW_MISSILE_LOCK_ICON = settings.getBoolean("showMissileLockIcon");

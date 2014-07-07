@@ -25,7 +25,7 @@ public class BoxRenderer implements CombatRenderer
     private CombatRadar radar;
 
     @Override
-    public void reloadSettings(JSONObject settings, boolean useVanillaColors) throws JSONException
+    public void reloadSettings(JSONObject settings) throws JSONException
     {
         Global.getLogger(BoxRenderer.class).log(Level.DEBUG,
                 "Should reload settings now.");
