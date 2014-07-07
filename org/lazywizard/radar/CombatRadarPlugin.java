@@ -54,7 +54,6 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
     private int currentZoom;
     private ShipAPI player;
     private boolean initialized = false;
-    private CombatEngineAPI engine;
 
     static void reloadSettings() throws IOException, JSONException
     {
@@ -249,8 +248,10 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
     @Override
     public void advance(float amount, List<InputEventAPI> events)
     {
+        CombatEngineAPI engine = Global.getCombatEngine();
+
         // Temp fix for .6.2a bug
-        if (engine != Global.getCombatEngine())
+        if (engine == null)
         {
             return;
         }
@@ -275,7 +276,6 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
     @Override
     public void init(CombatEngineAPI engine)
     {
-        this.engine = engine;
         initialized = false;
 
         renderRadius = Display.getHeight() / 10f;
