@@ -15,7 +15,7 @@ import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
 import static org.lwjgl.opengl.GL11.*;
 
 // TODO: Add zoom level notifier
-public class BoxRenderer implements CombatRenderer
+public class RadarBGRenderer implements CombatRenderer
 {
     private static boolean SHOW_BORDER;
     private static Color RADAR_BG_COLOR, RADAR_FG_COLOR, RADAR_FG_DEAD_COLOR;
@@ -28,7 +28,7 @@ public class BoxRenderer implements CombatRenderer
     @Override
     public void reloadSettings(JSONObject settings) throws JSONException
     {
-        Global.getLogger(BoxRenderer.class).log(Level.DEBUG,
+        Global.getLogger(RadarBGRenderer.class).log(Level.DEBUG,
                 "Should reload settings now.");
 
         // Foreground settings
@@ -64,7 +64,7 @@ public class BoxRenderer implements CombatRenderer
             // Delete old display list, if existant
             if (RADAR_BOX_DISPLAY_LIST_ID >= 0)
             {
-                Global.getLogger(BoxRenderer.class).log(Level.DEBUG,
+                Global.getLogger(RadarBGRenderer.class).log(Level.DEBUG,
                         "Deleting old list with ID " + RADAR_BOX_DISPLAY_LIST_ID);
                 glDeleteLists(RADAR_BOX_DISPLAY_LIST_ID, 1);
             }
@@ -76,7 +76,7 @@ public class BoxRenderer implements CombatRenderer
 
             // Generate new display list
             RADAR_BOX_DISPLAY_LIST_ID = glGenLists(1);
-            Global.getLogger(BoxRenderer.class).log(Level.DEBUG,
+            Global.getLogger(RadarBGRenderer.class).log(Level.DEBUG,
                     "Creating new list with ID " + RADAR_BOX_DISPLAY_LIST_ID);
             glNewList(RADAR_BOX_DISPLAY_LIST_ID, GL_COMPILE);
             glLineWidth(1f);
