@@ -22,7 +22,7 @@ import static org.lwjgl.opengl.GL11.*;
 public class ShipRenderer implements CombatRenderer
 {
     private static boolean SHOW_SHIPS, SHOW_SHIELDS;
-    private static Color SHIELD_COLOR;
+    private static Color SHIELD_COLOR, MARKER_COLOR;
     private CombatRadar radar;
 
     @Override
@@ -33,6 +33,7 @@ public class ShipRenderer implements CombatRenderer
 
         settings = settings.getJSONObject("shipRenderer");
         SHIELD_COLOR = JSONUtils.toColor(settings.getJSONArray("shieldColor"));
+        MARKER_COLOR = JSONUtils.toColor(settings.getJSONArray("targetMarkerColor"));
     }
 
     @Override
@@ -129,12 +130,11 @@ public class ShipRenderer implements CombatRenderer
                 // Draw marker around current ship target
                 if (target != null)
                 {
-                    // TODO: Add a color setting for this
                     float size = 1.8f * (target.getHullSize().ordinal() + 1)
                             * radar.getCurrentZoomLevel();
                     radarLoc = radar.getPointOnRadar(target.getLocation());
                     float margin = size * .5f;
-                    glColor4f(1f, 1f, 1f, radar.getContactAlpha());
+                    glColor(MARKER_COLOR, radar.getContactAlpha(), false);
                     glBegin(GL_LINES);
                     // Upper left corner
                     glVertex2f(radarLoc.x - size, radarLoc.y + size);

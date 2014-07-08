@@ -17,12 +17,12 @@
     "showBorderLines":true,     # Default: true, performance impact very low
     "showShips":true,           # Default: true, performance impact moderate
     "showShields":true,         # Default: true, performance impact moderate
-    "showAsteroids":true,       # Default: true, performance impact very low
+    "showAsteroids":true,       # Default: true, performance impact low
     "showMissiles":true,        # Default: true, performance impact low
     "showMissileLockIcon":true, # Default: true, performance impact very low
     "showObjectives":true,      # Default: true, performance impact very low
-    "showBattleProgress":true,  # Default: true, performance impact very low
-    "showCombatReadiness":true, # Default: true, performance impact very low
+    "showBattleProgress":true,  # Default: true, performance impact low
+    "showCombatReadiness":true, # Default: true, performance impact low
     
     # How far the radar can see, in su
     # Be very careful, radar CPU cost grows exponentially with higher values
@@ -61,6 +61,7 @@
     "shipRenderer":
     {
         "shieldColor":[0,255,255,255],
+        "targetMarkerColor":[255,255,255,255],
     },
     
     "asteroidRenderer":
@@ -70,7 +71,7 @@
     
     "missileRenderer":
     {
-        # ID of the missile lock icon, found in data/config/graphics.json
+        # ID of the missile lock icon, found in data/config/settings.json
         # Must be in the "radar" subcategory of the "graphics" section
         "missileLockIcon":"missileLock",
         "lockedMissileColor":[255,200,0,255],
@@ -90,7 +91,7 @@
         # Color of the portion of the bar representing player's current CR
         "currentCRColor":[0,255,255,255],
         # Color of the portion representing CR lost during this battle
-        "lostCRColor":[0,0,255],
+        "lostCRColor":[0,0,255,255],
         # Color of the portion representing CR never obtained
         "emptyBarColor":[64,64,64,255],
     },

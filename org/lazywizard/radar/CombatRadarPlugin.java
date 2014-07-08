@@ -26,8 +26,6 @@ import org.lwjgl.opengl.Display;
 import org.lwjgl.util.vector.Vector2f;
 import static org.lwjgl.opengl.GL11.*;
 
-// TODO: This file needs loads of cleanup after the switch to a plugin system
-// TODO: Use better names for config options in the settings file
 public class CombatRadarPlugin implements EveryFrameCombatPlugin
 {
     // == STATIC VARIABLES ==
@@ -124,6 +122,7 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
 
             // Register the renderer with the radar
             // TODO: Sort this list later using the "render order" column
+            // TODO: Write rendere 'wrapper' to hold misc rendering info
             RENDERER_CLASSES.add(renderClass);
 
             // If a settings file was pointed to, tell the renderer to load it
