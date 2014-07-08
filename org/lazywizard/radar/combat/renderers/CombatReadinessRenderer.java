@@ -6,7 +6,6 @@ import com.fs.starfarer.api.combat.ShipAPI;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.lazywizard.lazylib.MathUtils;
 import org.lazywizard.lazylib.combat.CombatUtils;
 import org.lazywizard.radar.combat.CombatRadar;
 import org.lazywizard.radar.combat.CombatRenderer;
@@ -54,23 +53,44 @@ public class CombatReadinessRenderer implements CombatRenderer
     @Override
     public void render(ShipAPI player, float amount)
     {
-        if (SHOW_COMBAT_READINESS)
+        if (SHOW_COMBAT_READINESS && !player.isHulk())
         {
             float currentCRPos = barHeight * Math.min(1f, player.getCurrentCR()),
-                    initialCRPos = barHeight * Math.min(1f, player.getCRAtDeployment());
+                    initialCRPos = Math.max(currentCRPos,
+                            barHeight * Math.min(1f, player.getCRAtDeployment()));
 
             // Current CR flashes when player is losing CR
-            float alphaMod = radar.getRadarAlpha();
             if (player.losesCRDuringCombat()
-                    && !MathUtils.equals(currentCRPos, initialCRPos))
+                    && currentCRPos < initialCRPos)
             {
                 flashProgress -= amount;
-                while (flashProgress <= 0f)
-                {
-                    flashProgress += 1f;
-                }
+            }
 
-                alphaMod *= (flashProgress / 2f) + .75f;
+            // Low CR increases flash frequency
+            if (player.getCurrentCR() < .4f)
+            {
+                flashProgress -= amount;
+            }
+
+            // Critical CR flashes even faster
+            if (player.getCurrentCR() < .2f)
+            {
+                flashProgress -= amount;
+            }
+
+            // Clamp flash progress positive
+            while (flashProgress <= 0f)
+            {
+                flashProgress += 1f;
+            }
+
+            float alphaMod = radar.getRadarAlpha();
+            alphaMod *= ((flashProgress / 2f)) + .75f;
+
+            // Dim the bar if player ship doesn't lose CR during battle
+            if (!player.losesCRDuringCombat())
+            {
+                alphaMod *= .6f;
             }
 
             glBegin(GL_QUADS);
