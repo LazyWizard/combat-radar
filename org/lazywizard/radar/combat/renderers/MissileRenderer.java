@@ -65,7 +65,7 @@ public class MissileRenderer implements CombatRenderer
                 boolean playerLock = false;
                 float highestThreatAlpha = 0f;
 
-                glPointSize(2f);
+                glPointSize(2f * radar.getCurrentZoomLevel());
                 glBegin(GL_POINTS);
                 for (CombatEntityAPI entity : missiles)
                 {

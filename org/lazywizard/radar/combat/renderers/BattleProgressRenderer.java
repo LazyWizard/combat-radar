@@ -15,6 +15,7 @@ import org.lwjgl.util.vector.Vector2f;
 import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
 import static org.lwjgl.opengl.GL11.*;
 
+// TODO: Draw part of bar that's yet to be filled slightly darker
 public class BattleProgressRenderer implements CombatRenderer
 {
     private static boolean SHOW_BATTLE_PROGRESS, ANIMATE_BAR;
