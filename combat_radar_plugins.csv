@@ -1,0 +1,8 @@
+renderer id,script,settings file (optional),render order
+RadarBoxRenderer,org.lazywizard.radar.combat.renderers.RadarBoxRenderer,data/config/radar/combat_radar.json,10
+BattleProgressRenderer,org.lazywizard.radar.combat.renderers.BattleProgressRenderer,data/config/radar/combat_radar.json,20
+CombatReadinessRenderer,org.lazywizard.radar.combat.renderers.CombatReadinessRenderer,data/config/radar/combat_radar.json,30
+ShipRenderer,org.lazywizard.radar.combat.renderers.ShipRenderer,data/config/radar/combat_radar.json,40
+AsteroidRenderer,org.lazywizard.radar.combat.renderers.AsteroidRenderer,data/config/radar/combat_radar.json,50
+MissileRenderer,org.lazywizard.radar.combat.renderers.MissileRenderer,data/config/radar/combat_radar.json,60
+ObjectiveRenderer,org.lazywizard.radar.combat.renderers.ObjectiveRenderer,data/config/radar/combat_radar.json,70
