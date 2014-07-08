@@ -22,8 +22,7 @@ public class BattleProgressRenderer implements CombatRenderer
     private CombatRadar radar;
     private Vector2f barLocation;
     private float relativeStrengthAtBattleStart;
-    private float barHeight;
-    private float barWidth;
+    private float barWidth, barHeight;
 
     @Override
     public void reloadSettings(JSONObject settings) throws JSONException
