@@ -14,6 +14,7 @@ import org.lazywizard.radar.combat.CombatRenderer;
 import static org.lwjgl.opengl.GL11.*;
 import org.lwjgl.util.vector.Vector2f;
 
+// TODO: Add zoom level notifier
 public class BoxRenderer implements CombatRenderer
 {
     private static Color RADAR_BG_COLOR, RADAR_FG_COLOR, RADAR_FG_DEAD_COLOR;

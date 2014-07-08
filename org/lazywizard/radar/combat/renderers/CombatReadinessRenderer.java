@@ -2,9 +2,11 @@ package org.lazywizard.radar.combat.renderers;
 
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.ShipAPI;
+import com.fs.starfarer.api.fleet.FleetMemberAPI;
 import java.awt.Color;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.lazywizard.lazylib.MathUtils;
 import org.lazywizard.lazylib.combat.CombatUtils;
 import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
 import org.lazywizard.radar.combat.CombatRadar;
@@ -14,15 +16,15 @@ import org.lwjgl.util.vector.Vector2f;
 
 // Shows combat readineess max/current/at start of battle
 // Only registers between 0-100% CR (sorry Starsector+)
-// TODO: Bar subtly flashes if CR is currently draining
+// Bar subtly flashes if CR is currently draining
 public class CombatReadinessRenderer implements CombatRenderer
 {
     private static boolean SHOW_COMBAT_READINESS;
     private static Color CURRENT_CR_COLOR, LOST_CR_COLOR, NO_CR_COLOR, BORDER_COLOR;
     private CombatRadar radar;
     private Vector2f barLocation;
-    private float barWidth;
-    private float barHeight;
+    private float barWidth, barHeight;
+    private float flashProgress;
 
     @Override
     public void reloadSettings(JSONObject settings) throws JSONException
@@ -46,6 +48,7 @@ public class CombatReadinessRenderer implements CombatRenderer
                 radarCenter.y - radarRadius);
         barWidth = radarRadius * .09f;
         barHeight = radarRadius * 2f;
+        flashProgress = 0.5f;
     }
 
     @Override
@@ -56,9 +59,23 @@ public class CombatReadinessRenderer implements CombatRenderer
             float currentCRPos = barHeight * Math.min(1f, player.getCurrentCR()),
                     initialCRPos = barHeight * Math.min(1f, player.getCRAtDeployment());
 
+            // Current CR flashes when player is losing CR
+            float alphaMod = radar.getRadarAlpha();
+            if (player.losesCRDuringCombat()
+                    && !MathUtils.equals(currentCRPos, initialCRPos))
+            {
+                flashProgress -= amount;
+                while (flashProgress <= 0f)
+                {
+                    flashProgress += 1f;
+                }
+
+                alphaMod *= (flashProgress / 2f) + .75f;
+            }
+
             glBegin(GL_QUADS);
             // Current CR
-            glColor(CURRENT_CR_COLOR, radar.getRadarAlpha(), false);
+            glColor(CURRENT_CR_COLOR, alphaMod, false);
             glVertex2f(barLocation.x,
                     barLocation.y);
             glVertex2f(barLocation.x - barWidth,
