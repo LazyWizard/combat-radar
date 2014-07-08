@@ -1,9 +1,9 @@
 package org.lazywizard.radar.combat;
 
-import com.fs.starfarer.api.combat.CombatEntityAPI;
-import com.fs.starfarer.api.combat.ShipAPI;
 import java.awt.Color;
 import java.util.List;
+import com.fs.starfarer.api.combat.CombatEntityAPI;
+import com.fs.starfarer.api.combat.ShipAPI;
 import org.lwjgl.util.vector.Vector2f;
 
 public interface CombatRadar

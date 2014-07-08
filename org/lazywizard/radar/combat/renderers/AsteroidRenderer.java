@@ -1,18 +1,18 @@
 package org.lazywizard.radar.combat.renderers;
 
+import java.awt.Color;
+import java.util.List;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.CombatEntityAPI;
 import com.fs.starfarer.api.combat.ShipAPI;
-import java.awt.Color;
-import java.util.List;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.lazywizard.lazylib.JSONUtils;
-import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
 import org.lazywizard.radar.combat.CombatRadar;
 import org.lazywizard.radar.combat.CombatRenderer;
-import static org.lwjgl.opengl.GL11.*;
 import org.lwjgl.util.vector.Vector2f;
+import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
+import static org.lwjgl.opengl.GL11.*;
 
 public class AsteroidRenderer implements CombatRenderer
 {

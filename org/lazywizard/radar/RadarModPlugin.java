@@ -1,8 +1,7 @@
 package org.lazywizard.radar;
 
-import com.fs.starfarer.api.BaseModPlugin;
-import com.fs.starfarer.api.Global;
 import java.io.IOException;
+import com.fs.starfarer.api.BaseModPlugin;
 import org.json.JSONException;
 
 public class RadarModPlugin extends BaseModPlugin
