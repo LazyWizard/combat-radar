@@ -46,7 +46,7 @@ public class AsteroidRenderer implements CombatRenderer
             {
                 Vector2f radarLoc;
                 glColor(ASTEROID_COLOR, radar.getContactAlpha(), false);
-                glPointSize(2f);
+                glPointSize(2f * radar.getCurrentZoomLevel());
                 glBegin(GL_POINTS);
                 for (CombatEntityAPI asteroid : asteroids)
                 {

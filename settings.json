@@ -1,0 +1,11 @@
+{
+	"plugins":{
+		"CombatRadarPlugin":"org.lazywizard.radar.CombatRadarPlugin",
+	},
+    
+    "graphics":{
+		"radar":{
+			"missileLock":"graphics/lw_radar/missile-20-W.png",
+		},
+    }
+}
