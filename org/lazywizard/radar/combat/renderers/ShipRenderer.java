@@ -30,6 +30,8 @@ public class ShipRenderer implements CombatRenderer
     {
         SHOW_SHIPS = settings.getBoolean("showShips");
         SHOW_SHIELDS = settings.getBoolean("showShields");
+
+        settings = settings.getJSONObject("shipRenderer");
         SHIELD_COLOR = JSONUtils.toColor(settings.getJSONArray("shieldColor"));
     }
 

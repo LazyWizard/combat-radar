@@ -6,6 +6,7 @@ import com.fs.starfarer.api.combat.ShipAPI;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.lazywizard.lazylib.JSONUtils;
 import org.lazywizard.lazylib.combat.CombatUtils;
 import org.lazywizard.radar.combat.CombatRadar;
 import org.lazywizard.radar.combat.CombatRenderer;
@@ -19,7 +20,7 @@ import static org.lwjgl.opengl.GL11.*;
 public class CombatReadinessRenderer implements CombatRenderer
 {
     private static boolean SHOW_COMBAT_READINESS;
-    private static Color CURRENT_CR_COLOR, LOST_CR_COLOR, NO_CR_COLOR, BORDER_COLOR;
+    private static Color CURRENT_CR_COLOR, LOST_CR_COLOR, NO_CR_COLOR;
     private CombatRadar radar;
     private Vector2f barLocation;
     private float barWidth, barHeight;
@@ -29,11 +30,14 @@ public class CombatReadinessRenderer implements CombatRenderer
     public void reloadSettings(JSONObject settings) throws JSONException
     {
         SHOW_COMBAT_READINESS = settings.getBoolean("showCombatReadiness");
-        // TODO: load color settings from JSON
-        CURRENT_CR_COLOR = Color.CYAN;
-        LOST_CR_COLOR = Color.BLUE;
-        NO_CR_COLOR = Color.DARK_GRAY;
-        BORDER_COLOR = Color.LIGHT_GRAY;
+
+        settings = settings.getJSONObject("combatReadinessRenderer");
+        CURRENT_CR_COLOR = JSONUtils.toColor(
+                settings.getJSONArray("currentCRColor"));
+        LOST_CR_COLOR = JSONUtils.toColor(
+                settings.getJSONArray("lostCRColor"));
+        NO_CR_COLOR = JSONUtils.toColor(
+                settings.getJSONArray("emptyBarColor"));
     }
 
     @Override
@@ -146,20 +150,6 @@ public class CombatReadinessRenderer implements CombatRenderer
                     glEnd();
                 }
             }
-
-            // Draw outline around bar (outside is left open intentionally)
-            /*glLineWidth(1f);
-             glColor(BORDER_COLOR, radar.getRadarAlpha(), false);
-             glBegin(GL_LINE_STRIP);
-             glVertex2f(barLocation.x,
-             barLocation.y);
-             glVertex2f(barLocation.x - barWidth,
-             barLocation.y);
-             glVertex2f(barLocation.x - barWidth,
-             barLocation.y + barHeight);
-             glVertex2f(barLocation.x,
-             barLocation.y + barHeight);
-             glEnd();*/
         }
     }
 }

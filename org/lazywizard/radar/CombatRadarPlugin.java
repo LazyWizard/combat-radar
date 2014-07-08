@@ -28,7 +28,6 @@ import static org.lwjgl.opengl.GL11.*;
 
 // TODO: This file needs loads of cleanup after the switch to a plugin system
 // TODO: Use better names for config options in the settings file
-// TODO: Revamp default settings file to have each renderer in own section
 public class CombatRadarPlugin implements EveryFrameCombatPlugin
 {
     // == STATIC VARIABLES ==
@@ -71,7 +70,7 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         RESPECT_FOG_OF_WAR = settings.getBoolean("onlyShowVisibleContacts");
 
         // Radar options
-        RADAR_ALPHA = (float) settings.getDouble("radarForegroundAlpha");
+        RADAR_ALPHA = (float) settings.getDouble("radarUIAlpha");
 
         // Radar range
         MAX_SIGHT_RANGE = (float) settings.getDouble("maxRadarRange");

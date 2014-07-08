@@ -15,11 +15,11 @@ import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
 import static org.lwjgl.opengl.GL11.*;
 
 // TODO: Add zoom level notifier
-public class RadarBGRenderer implements CombatRenderer
+public class RadarBoxRenderer implements CombatRenderer
 {
-    private static boolean SHOW_BORDER;
+    private static boolean SHOW_BORDER_LINES;
     private static Color RADAR_BG_COLOR, RADAR_FG_COLOR, RADAR_FG_DEAD_COLOR;
-    private static float RADAR_OPACITY, RADAR_FADE;
+    private static float RADAR_OPACITY, RADAR_EDGE_ALPHA;
     // Radar OpenGL buffers/display lists
     private static int RADAR_BOX_DISPLAY_LIST_ID = -123;
     private boolean wasHulkLastFrame = false;
@@ -28,18 +28,17 @@ public class RadarBGRenderer implements CombatRenderer
     @Override
     public void reloadSettings(JSONObject settings) throws JSONException
     {
-        Global.getLogger(RadarBGRenderer.class).log(Level.DEBUG,
-                "Should reload settings now.");
+        SHOW_BORDER_LINES = settings.getBoolean("showBorderLines");
 
-        // Foreground settings
+        // Foreground settings (match vanilla HUD)
         RADAR_FG_COLOR = Global.getSettings().getColor("textFriendColor");
         RADAR_FG_DEAD_COLOR = Global.getSettings().getColor("textNeutralColor");
+
         // Background settings
+        settings = settings.getJSONObject("radarBoxRenderer");
         RADAR_BG_COLOR = JSONUtils.toColor(settings.getJSONArray("radarBackgroundColor"));
-        RADAR_FADE = (float) settings.getDouble("radarEdgeFadeAmount");
         RADAR_OPACITY = (float) settings.getDouble("radarBackgroundAlpha");
-        // Render settings
-        SHOW_BORDER = settings.getBoolean("showBorderLines");
+        RADAR_EDGE_ALPHA = (float) settings.getDouble("radarEdgeAlpha");
     }
 
     @Override
@@ -64,7 +63,7 @@ public class RadarBGRenderer implements CombatRenderer
             // Delete old display list, if existant
             if (RADAR_BOX_DISPLAY_LIST_ID >= 0)
             {
-                Global.getLogger(RadarBGRenderer.class).log(Level.DEBUG,
+                Global.getLogger(RadarBoxRenderer.class).log(Level.DEBUG,
                         "Deleting old list with ID " + RADAR_BOX_DISPLAY_LIST_ID);
                 glDeleteLists(RADAR_BOX_DISPLAY_LIST_ID, 1);
             }
@@ -72,11 +71,11 @@ public class RadarBGRenderer implements CombatRenderer
             Vector2f radarCenter = radar.getRenderCenter();
             float radarRadius = radar.getRenderRadius();
             float radarAlpha = radar.getRadarAlpha(),
-                    radarMidFade = (radarAlpha + RADAR_FADE) / 2f;
+                    radarMidFade = (radarAlpha + RADAR_EDGE_ALPHA) / 2f;
 
             // Generate new display list
             RADAR_BOX_DISPLAY_LIST_ID = glGenLists(1);
-            Global.getLogger(RadarBGRenderer.class).log(Level.DEBUG,
+            Global.getLogger(RadarBoxRenderer.class).log(Level.DEBUG,
                     "Creating new list with ID " + RADAR_BOX_DISPLAY_LIST_ID);
             glNewList(RADAR_BOX_DISPLAY_LIST_ID, GL_COMPILE);
             glLineWidth(1f);
@@ -88,7 +87,7 @@ public class RadarBGRenderer implements CombatRenderer
             Color color = (player.isHulk() ? RADAR_FG_DEAD_COLOR : RADAR_FG_COLOR);
 
             // Outer circle
-            glColor(color, radarAlpha * RADAR_FADE, false);
+            glColor(color, radarAlpha * RADAR_EDGE_ALPHA, false);
             DrawUtils.drawCircle(radarCenter.x, radarCenter.y, radarRadius, 72, false);
 
             // Middle circle
@@ -103,40 +102,40 @@ public class RadarBGRenderer implements CombatRenderer
             // Left line
             glColor(color, radarAlpha, false);
             glVertex2f(radarCenter.x, radarCenter.y);
-            glColor(color, radarAlpha * RADAR_FADE, false);
+            glColor(color, radarAlpha * RADAR_EDGE_ALPHA, false);
             glVertex2f(radarCenter.x - radarRadius, radarCenter.y);
 
             // Right line
             glColor(color, radarAlpha, false);
             glVertex2f(radarCenter.x, radarCenter.y);
-            glColor(color, radarAlpha * RADAR_FADE, false);
+            glColor(color, radarAlpha * RADAR_EDGE_ALPHA, false);
             glVertex2f(radarCenter.x + radarRadius, radarCenter.y);
 
             // Upper line
             glColor(color, radarAlpha, false);
             glVertex2f(radarCenter.x, radarCenter.y);
-            glColor(color, radarAlpha * RADAR_FADE, false);
+            glColor(color, radarAlpha * RADAR_EDGE_ALPHA, false);
             glVertex2f(radarCenter.x, radarCenter.y + radarRadius);
 
             // Lower line
             glColor(color, radarAlpha, false);
             glVertex2f(radarCenter.x, radarCenter.y);
-            glColor(color, radarAlpha * RADAR_FADE, false);
+            glColor(color, radarAlpha * RADAR_EDGE_ALPHA, false);
             glVertex2f(radarCenter.x, radarCenter.y - radarRadius);
             glEnd();
 
             // Border lines
-            if (SHOW_BORDER)
+            if (SHOW_BORDER_LINES)
             {
                 glLineWidth(1.5f);
                 glBegin(GL_LINE_STRIP);
-                glColor(color, radarAlpha * RADAR_FADE, false);
+                glColor(color, radarAlpha * RADAR_EDGE_ALPHA, false);
                 glVertex2f(radarCenter.x + (radarRadius * 1.1f),
                         radarCenter.y + (radarRadius * 1.1f));
                 glColor(color, radarAlpha, false);
                 glVertex2f(radarCenter.x - (radarRadius * 1.1f),
                         radarCenter.y + (radarRadius * 1.1f));
-                glColor(color, radarAlpha * RADAR_FADE, false);
+                glColor(color, radarAlpha * RADAR_EDGE_ALPHA, false);
                 glVertex2f(radarCenter.x - (radarRadius * 1.1f),
                         radarCenter.y - (radarRadius * 1.1f));
                 glEnd();

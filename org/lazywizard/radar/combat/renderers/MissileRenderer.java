@@ -32,6 +32,8 @@ public class MissileRenderer implements CombatRenderer
     {
         SHOW_MISSILES = settings.getBoolean("showMissiles");
         SHOW_MISSILE_LOCK_ICON = settings.getBoolean("showMissileLockIcon");
+
+        settings = settings.getJSONObject("missileRenderer");
         MISSILE_LOCKED_COLOR = JSONUtils.toColor(settings.getJSONArray("lockedMissileColor"));
         MISSILE_ICON = settings.optString("missileLockIcon", null);
     }
