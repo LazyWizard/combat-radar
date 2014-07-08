@@ -1,18 +1,17 @@
 package org.lazywizard.radar;
 
-import org.lazywizard.radar.combat.CombatRenderer;
-import com.fs.starfarer.api.Global;
-import com.fs.starfarer.api.combat.CombatEngineAPI;
-import com.fs.starfarer.api.combat.CombatEntityAPI;
-import com.fs.starfarer.api.combat.EveryFrameCombatPlugin;
-import com.fs.starfarer.api.combat.ShipAPI;
-import com.fs.starfarer.api.input.InputEventAPI;
 import java.awt.Color;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.combat.CombatEngineAPI;
+import com.fs.starfarer.api.combat.CombatEntityAPI;
+import com.fs.starfarer.api.combat.EveryFrameCombatPlugin;
+import com.fs.starfarer.api.combat.ShipAPI;
+import com.fs.starfarer.api.input.InputEventAPI;
 import org.apache.log4j.Level;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -21,17 +20,18 @@ import org.lazywizard.lazylib.JSONUtils;
 import org.lazywizard.lazylib.MathUtils;
 import org.lazywizard.lazylib.combat.CombatUtils;
 import org.lazywizard.radar.combat.CombatRadar;
+import org.lazywizard.radar.combat.CombatRenderer;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.Display;
-import static org.lwjgl.opengl.GL11.*;
 import org.lwjgl.util.vector.Vector2f;
+import static org.lwjgl.opengl.GL11.*;
 
 // TODO: This file needs loads of cleanup after the switch to a plugin system
 // TODO: Use better names for config options in the settings file
 // TODO: Revamp default settings file to have each renderer in own section
-// TODO: Move away from static variables (except for settings loaded from JSON)
 public class CombatRadarPlugin implements EveryFrameCombatPlugin
 {
+    // == STATIC VARIABLES ==
     // Path to master settings files, link to individual renderers + their settings
     private static final String SETTINGS_FILE = "data/config/radar/combat_radar.json";
     private static final String CSV_PATH = "data/config/radar/combat_radar_plugins.csv";
@@ -47,8 +47,10 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
     private static Color FRIENDLY_COLOR, ENEMY_COLOR, NEUTRAL_COLOR;
     // Radar toggle button LWJGL constant
     private static int RADAR_TOGGLE_KEY;
-    // Location and size of radar on screen
+
+    // == LOCAL VARIABLES ==
     private final List<CombatRenderer> renderers = new ArrayList<>();
+    private CombatRadarInfo radarInfo;
     private Vector2f renderCenter;
     private float renderRadius, sightRadius, radarScaling;
     private int currentZoom;
@@ -172,15 +174,15 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         {
             initialized = true;
 
-            renderers.clear();
-            CombatRadar info = new CombatRadarInfo();
+            renderers.clear(); // Needed due to a .6.2a bug
+            radarInfo = new CombatRadarInfo();
             for (Class<? extends CombatRenderer> rendererClass : RENDERER_CLASSES)
             {
                 try
                 {
                     CombatRenderer renderer = rendererClass.newInstance();
                     renderers.add(renderer);
-                    renderer.init(info);
+                    renderer.init(radarInfo);
                 }
                 catch (InstantiationException | IllegalAccessException ex)
                 {
@@ -192,7 +194,6 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
 
     private void checkInput(List<InputEventAPI> events)
     {
-        // Radar toggle
         for (InputEventAPI event : events)
         {
             if (event.isConsumed())
@@ -200,6 +201,7 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
                 continue;
             }
 
+            // Radar zoom+off toggle
             if (event.isKeyDownEvent() && event.getEventValue() == RADAR_TOGGLE_KEY)
             {
                 if (--currentZoom < 0)

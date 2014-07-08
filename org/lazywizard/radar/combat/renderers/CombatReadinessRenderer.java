@@ -1,18 +1,18 @@
 package org.lazywizard.radar.combat.renderers;
 
+import java.awt.Color;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.ShipAPI;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
-import java.awt.Color;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.lazywizard.lazylib.MathUtils;
 import org.lazywizard.lazylib.combat.CombatUtils;
-import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
 import org.lazywizard.radar.combat.CombatRadar;
 import org.lazywizard.radar.combat.CombatRenderer;
-import static org.lwjgl.opengl.GL11.*;
 import org.lwjgl.util.vector.Vector2f;
+import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
+import static org.lwjgl.opengl.GL11.*;
 
 // Shows combat readineess max/current/at start of battle
 // Only registers between 0-100% CR (sorry Starsector+)

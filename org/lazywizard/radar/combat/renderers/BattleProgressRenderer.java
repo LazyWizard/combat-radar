@@ -1,19 +1,19 @@
 package org.lazywizard.radar.combat.renderers;
 
+import java.awt.Color;
+import java.util.List;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.CombatFleetManagerAPI;
 import com.fs.starfarer.api.combat.ShipAPI;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
 import com.fs.starfarer.api.mission.FleetSide;
-import java.awt.Color;
-import java.util.List;
 import org.json.JSONException;
 import org.json.JSONObject;
-import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
 import org.lazywizard.radar.combat.CombatRadar;
 import org.lazywizard.radar.combat.CombatRenderer;
-import static org.lwjgl.opengl.GL11.*;
 import org.lwjgl.util.vector.Vector2f;
+import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
+import static org.lwjgl.opengl.GL11.*;
 
 // TODO: Animate changes to the bar
 public class BattleProgressRenderer implements CombatRenderer

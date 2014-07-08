@@ -1,25 +1,25 @@
 package org.lazywizard.radar.combat.renderers;
 
+import java.awt.Color;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.ShipAPI;
-import java.awt.Color;
 import org.apache.log4j.Level;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.lazywizard.lazylib.JSONUtils;
-import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
 import org.lazywizard.lazylib.opengl.DrawUtils;
 import org.lazywizard.radar.combat.CombatRadar;
 import org.lazywizard.radar.combat.CombatRenderer;
-import static org.lwjgl.opengl.GL11.*;
 import org.lwjgl.util.vector.Vector2f;
+import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
+import static org.lwjgl.opengl.GL11.*;
 
 // TODO: Add zoom level notifier
 public class BoxRenderer implements CombatRenderer
 {
+    private static boolean SHOW_BORDER;
     private static Color RADAR_BG_COLOR, RADAR_FG_COLOR, RADAR_FG_DEAD_COLOR;
     private static float RADAR_OPACITY, RADAR_FADE;
-    private static boolean SHOW_BORDER;
     // Radar OpenGL buffers/display lists
     private static int RADAR_BOX_DISPLAY_LIST_ID = -123;
     private boolean wasHulkLastFrame = false;

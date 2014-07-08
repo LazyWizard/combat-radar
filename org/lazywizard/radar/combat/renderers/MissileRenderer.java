@@ -1,5 +1,7 @@
 package org.lazywizard.radar.combat.renderers;
 
+import java.awt.Color;
+import java.util.List;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.CombatEntityAPI;
 import com.fs.starfarer.api.combat.GuidedMissileAI;
@@ -7,23 +9,20 @@ import com.fs.starfarer.api.combat.MissileAIPlugin;
 import com.fs.starfarer.api.combat.MissileAPI;
 import com.fs.starfarer.api.combat.ShipAPI;
 import com.fs.starfarer.api.graphics.SpriteAPI;
-import java.awt.Color;
-import java.util.List;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.lazywizard.lazylib.JSONUtils;
-import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
 import org.lazywizard.radar.combat.CombatRadar;
 import org.lazywizard.radar.combat.CombatRenderer;
-import static org.lwjgl.opengl.GL11.*;
 import org.lwjgl.util.vector.Vector2f;
+import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
+import static org.lwjgl.opengl.GL11.*;
 
 public class MissileRenderer implements CombatRenderer
 {
-    private static boolean SHOW_MISSILES;
-    private static boolean SHOW_MISSILE_LOCK_ICON;
-    private static String MISSILE_ICON;
+    private static boolean SHOW_MISSILES, SHOW_MISSILE_LOCK_ICON;
     private static Color MISSILE_LOCKED_COLOR;
+    private static String MISSILE_ICON;
     private SpriteAPI icon;
     private Vector2f iconLocation;
     private CombatRadar radar;

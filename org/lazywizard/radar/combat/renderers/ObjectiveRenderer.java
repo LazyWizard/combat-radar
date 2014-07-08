@@ -1,16 +1,16 @@
 package org.lazywizard.radar.combat.renderers;
 
+import java.util.List;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.CombatEntityAPI;
 import com.fs.starfarer.api.combat.ShipAPI;
-import java.util.List;
 import org.json.JSONException;
 import org.json.JSONObject;
-import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
 import org.lazywizard.radar.combat.CombatRadar;
 import org.lazywizard.radar.combat.CombatRenderer;
-import static org.lwjgl.opengl.GL11.*;
 import org.lwjgl.util.vector.Vector2f;
+import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
+import static org.lwjgl.opengl.GL11.*;
 
 public class ObjectiveRenderer implements CombatRenderer
 {
