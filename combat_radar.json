@@ -1,0 +1,93 @@
+{
+    ################################
+    #    GLOBAL RADAR SETTINGS     #
+    ################################
+
+    # What button to press to toggle the radar zoom level + off
+    # Key IDs are integers, and can be found in the LWJGL documentation here:
+    # http://www.lwjgl.org/javadoc/constant-values.html#org.lwjgl.input.Keyboard.KEY_0
+    "toggleKey":37, # Default: K (37)
+    
+    # Disabling this will help performance on slow rigs,
+    # but the radar won't respect fog of war anymore
+    "onlyShowVisibleContacts":true, # Default: true
+    
+    # Controls what shows up on the radar. Disabling some of these
+    # might improve performance on a particularly slow machine
+    "showBorderLines":true, # Default: true
+    "showShips":true, # Default: true
+    "showAsteroids":true, # Default: true
+    "showMissiles":true, # Default: true
+    "showMissileLockIcon":true, # Default: true
+    "showShields":true, # Default: true
+    "showObjectives":true, # Default: true
+    "showBattleProgress":true, # Default: true
+    "showCombatReadiness":true, # Default: true
+    
+    # How far the radar can see, in su
+    "maxRadarRange":2250.0, # Default: 2250.0
+    # Number of zoom levels
+    "zoomLevels":3, # Default: 3
+    
+    # Controls the alpha level of radar HUD elements (not radar contacts)
+    "radarUIAlpha":0.7, # Default: 0.7
+    # Controls the alpha level of radar contacts (but not the HUD)
+    "contactAlpha":0.85, # Default: 0.85
+        
+    # If true, will use the same friendly/enemy/neutral color settings as vanilla
+    "useVanillaColors":false, # Default: false
+    
+    # These colors are ignored if "useVanillaColors" is true
+    # Alpha channel is multiplied by contactAlpha setting
+    "friendlyColor":[0,255,0,255],
+    "enemyColor":[255,0,0,255],
+    "neutralColor":[75,75,75,255], # Only used for hulks right now
+    
+    
+    ################################
+    # INDIVIDUAL RENDERER SETTINGS #
+    ################################
+    
+    "radarBoxRenderer":
+    {
+        # Radar box colors
+        "radarBackgroundColor":[0,0,0,255],
+        "radarBackgroundAlpha":0.33, # Default: 0.33
+        # Controls how faded the edges of the radar box are
+        "radarEdgeAlpha":0.25, # Default: 0.25
+    },
+    
+    "shipRenderer":
+    {
+        "shieldColor":[0,255,255,255],
+    },
+    
+    "asteroidRenderer":
+    {
+        "asteroidColor":[192,192,192,255],
+    },
+    
+    "missileRenderer":
+    {
+        # ID of the missile lock icon, found in data/config/graphics.json
+        # Must be in the "radar" subcategory of the "graphics" section
+        "missileLockIcon":"missileLock",
+        "lockedMissileColor":[255,200,0,255],
+    },
+    
+    "battleProgressRenderer":
+    {
+        # Whether the bar should gradually move when a ship is destroyed
+        "animateProgressBar":true,
+        # How fast the bar should update, in percent per second
+        # This setting is ignored if "animateProgressBar" is false
+        "barAnimationSpeed":15.0;
+    },
+    
+    "combatReadinessRenderer":
+    {
+        "currentCRColor":[0,255,255,255],
+        "lostCRColor":[0,0,255],
+        "emptyBarColor":[64,64,64,255],
+    },
+}
