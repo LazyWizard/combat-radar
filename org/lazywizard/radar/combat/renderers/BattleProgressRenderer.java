@@ -15,19 +15,23 @@ import org.lwjgl.util.vector.Vector2f;
 import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
 import static org.lwjgl.opengl.GL11.*;
 
-// TODO: Animate changes to the bar
 public class BattleProgressRenderer implements CombatRenderer
 {
-    private static boolean SHOW_BATTLE_PROGRESS;
+    private static boolean SHOW_BATTLE_PROGRESS, ANIMATE_BAR;
+    private static float ANIMATION_SPEED;
     private CombatRadar radar;
     private Vector2f barLocation;
-    private float relativeStrengthAtBattleStart;
+    private float relativeStrengthAtBattleStart, displayedRelativeStrength;
     private float barWidth, barHeight;
 
     @Override
     public void reloadSettings(JSONObject settings) throws JSONException
     {
         SHOW_BATTLE_PROGRESS = settings.getBoolean("showBattleProgress");
+
+        settings = settings.getJSONObject("battleProgressRenderer");
+        ANIMATE_BAR = settings.getBoolean("animateProgressBar");
+        ANIMATION_SPEED = (float) settings.getDouble("barAnimationSpeed") / 100f;
     }
 
     @Override
@@ -43,6 +47,7 @@ public class BattleProgressRenderer implements CombatRenderer
         barHeight = radarRadius * .09f;
 
         relativeStrengthAtBattleStart = getRelativeStrength();
+        displayedRelativeStrength = relativeStrengthAtBattleStart;
     }
 
     private static float getRelativeStrength()
@@ -75,12 +80,35 @@ public class BattleProgressRenderer implements CombatRenderer
     }
 
     @Override
-    // TODO: Animate the bar (gradually move to new fleet balance)
     public void render(ShipAPI player, float amount)
     {
         if (SHOW_BATTLE_PROGRESS)
         {
-            float relativeStrengthPos = barWidth * getRelativeStrength(),
+            float relativeStrength = getRelativeStrength();
+
+            // If animated, gradually move to the current fleet balance
+            if (ANIMATE_BAR)
+            {
+                // Balance moved towards player, grow bar
+                if (displayedRelativeStrength < relativeStrength)
+                {
+                    displayedRelativeStrength = Math.min(relativeStrength,
+                            displayedRelativeStrength + (ANIMATION_SPEED * amount));
+                }
+                // Balance moved towards enemy, shrink bar
+                else if (displayedRelativeStrength > relativeStrength)
+                {
+                    displayedRelativeStrength = Math.max(relativeStrength,
+                            displayedRelativeStrength - (ANIMATION_SPEED * amount));
+                }
+            }
+            // If not animated, instantly move to new fleet balance
+            else
+            {
+                displayedRelativeStrength = relativeStrength;
+            }
+
+            float relativeStrengthPos = barWidth * displayedRelativeStrength,
                     battleStartPos = barWidth * relativeStrengthAtBattleStart;
 
             glBegin(GL_QUADS);
