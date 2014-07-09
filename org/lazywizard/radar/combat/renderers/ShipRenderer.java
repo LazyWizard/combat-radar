@@ -109,13 +109,14 @@ public class ShipRenderer implements CombatRenderer
             glVertex2f(point.x, point.y);
         }
 
-        glColor(Color.MAGENTA, .25f, false);
+        // Debug: Old ship pips, for comparison purposes
+        /*glColor(Color.MAGENTA, .5f, false);
         for (Vector2f point : MathUtils.getPointsAlongCircumference(
                 radar.getPointOnRadar(contact.getLocation()),
                 size, 3, contact.getFacing()))
         {
             glVertex2f(point.x, point.y);
-        }
+        }*/
     }
 
     private void drawShield(ShipAPI contact)
