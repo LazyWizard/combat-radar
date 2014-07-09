@@ -132,6 +132,18 @@ public class CombatReadinessRenderer implements CombatRenderer
                     + barHeight);
             glEnd();
 
+            // Draw CR thresholds
+            glColor(Color.WHITE, .5f, false);
+            glLineWidth(1f);
+            glBegin(GL_LINES);
+            for (int x = 1; x <= 4; x++)
+            {
+                float lineHeight = barLocation.y + ((barHeight / 5f) * x);
+                glVertex2f(barLocation.x, lineHeight);
+                glVertex2f(barLocation.x - barWidth, lineHeight);
+            }
+            glEnd();
+
             // Draw max CR possible as horizontal line
             if (Global.getCombatEngine().isInCampaign())
             {
@@ -140,7 +152,7 @@ public class CombatReadinessRenderer implements CombatRenderer
                 {
                     float maxCRPos = barHeight * Math.min(1f,
                             tmp.getRepairTracker().getMaxCR());
-                    glLineWidth(1f);
+                    glLineWidth(1.5f);
                     glColor(Color.WHITE, radar.getRadarAlpha(), false);
                     glBegin(GL_LINES);
                     glVertex2f(barLocation.x - (barWidth * 1.5f),
