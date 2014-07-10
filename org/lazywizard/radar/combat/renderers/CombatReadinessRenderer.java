@@ -48,10 +48,10 @@ public class CombatReadinessRenderer implements CombatRenderer
         Vector2f radarCenter = radar.getRenderCenter();
         float radarRadius = radar.getRenderRadius();
 
-        barLocation = new Vector2f(radarCenter.x + (radarRadius * 1.1f),
-                radarCenter.y - radarRadius);
         barWidth = radarRadius * .09f;
         barHeight = radarRadius * 2f;
+        barLocation = new Vector2f(radarCenter.x + (radarRadius * 1.1f) - barWidth,
+                radarCenter.y - radarRadius);
 
         flashProgress = 0.5f;
     }
@@ -134,7 +134,7 @@ public class CombatReadinessRenderer implements CombatRenderer
                     + barHeight);
             glEnd();
 
-            // Draw CR thresholds
+            // Draw CR threshold notches
             glColor(Color.WHITE, .5f, false);
             glLineWidth(1f);
             glBegin(GL_LINES);

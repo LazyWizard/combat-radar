@@ -7,11 +7,11 @@ import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.CombatEntityAPI;
 import com.fs.starfarer.api.combat.ShieldAPI;
 import com.fs.starfarer.api.combat.ShipAPI;
+import com.fs.starfarer.api.combat.ShipAPI.HullSize;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.lazywizard.lazylib.FastTrig;
 import org.lazywizard.lazylib.JSONUtils;
-import org.lazywizard.lazylib.MathUtils;
 import org.lazywizard.lazylib.opengl.DrawUtils;
 import org.lazywizard.radar.combat.CombatRadar;
 import org.lazywizard.radar.combat.CombatRenderer;
@@ -39,12 +39,6 @@ public class ShipRenderer implements CombatRenderer
         PHASE_ALPHA_MULT = (float) settings.getDouble("phasedShipAlphaMult");
     }
 
-    @Override
-    public void init(CombatRadar radar)
-    {
-        this.radar = radar;
-    }
-
     private static List<Vector2f> rotate(List<Vector2f> toRotate, float angle)
     {
         if (angle == 0f)
@@ -54,14 +48,57 @@ public class ShipRenderer implements CombatRenderer
 
         angle = (float) Math.toRadians(angle);
         float cos = (float) FastTrig.cos(angle), sin = (float) FastTrig.sin(angle);
-        List<Vector2f> rotated = new ArrayList<>(toRotate.size());
         for (Vector2f point : toRotate)
         {
-            rotated.add(new Vector2f((point.x * cos) - (point.y * sin),
-                    (point.x * sin) + (point.y * cos)));
+            point.set((point.x * cos) - (point.y * sin),
+                    (point.x * sin) + (point.y * cos));
         }
 
-        return rotated;
+        return toRotate;
+    }
+
+    private static List<Vector2f> translate(List<Vector2f> toTranslate, Vector2f translation)
+    {
+        for (Vector2f point : toTranslate)
+        {
+            point.set(point.x + translation.x, point.y + translation.y);
+        }
+
+        return toTranslate;
+    }
+
+    @Override
+    public void init(CombatRadar radar)
+    {
+        this.radar = radar;
+    }
+
+    // Must be a series of three points that make up shape's component triangles
+    private List<Vector2f> getShape(ShipAPI contact)
+    {
+        HullSize hullSize = contact.getHullSize();
+        float size = 1.5f * (hullSize.ordinal() + 1)
+                * radar.getCurrentZoomLevel();
+        List<Vector2f> shape = new ArrayList<>();
+
+        // Large ships have a slightly more complex shape
+        if (hullSize.ordinal() >= HullSize.DESTROYER.ordinal())
+        {
+            shape.add(new Vector2f(size, 0f));
+            shape.add(new Vector2f(-size / 1.5f, -(size / 1.75f)));
+            shape.add(new Vector2f(-size * .5f, 0f));
+
+            shape.add(new Vector2f(size, 0f));
+            shape.add(new Vector2f(-size / 1.5f, size / 1.75f));
+            shape.add(new Vector2f(-size * .5f, 0f));
+        }
+        else
+        {
+            shape.add(new Vector2f(size, 0f));
+            shape.add(new Vector2f(-size / 1.5f, -(size / 1.75f)));
+            shape.add(new Vector2f(-size / 1.5f, size / 1.75f));
+        }
+        return shape;
     }
 
     private void drawShip(ShipAPI contact, int playerSide)
@@ -94,29 +131,23 @@ public class ShipRenderer implements CombatRenderer
                     radar.getContactAlpha() * alphaMod, false);
         }
 
-        float size = 1.5f * (contact.getHullSize().ordinal() + 1)
-                * radar.getCurrentZoomLevel();
-        List<Vector2f> shape = new ArrayList<>();
-        shape.add(new Vector2f(size, 0f));
-        shape.add(new Vector2f(-size / 1.5f, -(size / 1.75f)));
-        shape.add(new Vector2f(-size / 1.5f, size / 1.75f));
-        shape = rotate(shape, contact.getFacing());
         Vector2f radarLoc = radar.getPointOnRadar(contact.getLocation());
+        List<Vector2f> shape = getShape(contact);
+        shape = rotate(shape, contact.getFacing());
+        shape = translate(shape, radarLoc);
         for (Vector2f point : shape)
         {
-            point.x += radarLoc.x;
-            point.y += radarLoc.y;
             glVertex2f(point.x, point.y);
         }
 
         // Debug: Old ship pips, for comparison purposes
         /*glColor(Color.MAGENTA, .5f, false);
-        for (Vector2f point : MathUtils.getPointsAlongCircumference(
-                radar.getPointOnRadar(contact.getLocation()),
-                size, 3, contact.getFacing()))
-        {
-            glVertex2f(point.x, point.y);
-        }*/
+         for (Vector2f point : MathUtils.getPointsAlongCircumference(
+         radar.getPointOnRadar(contact.getLocation()),
+         size, 3, contact.getFacing()))
+         {
+         glVertex2f(point.x, point.y);
+         }*/
     }
 
     private void drawShield(ShipAPI contact)

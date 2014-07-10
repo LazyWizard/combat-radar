@@ -46,10 +46,10 @@ public class BattleProgressRenderer implements CombatRenderer
         Vector2f radarCenter = radar.getRenderCenter();
         float radarRadius = radar.getRenderRadius();
 
-        barLocation = new Vector2f(radarCenter.x - radarRadius,
-                radarCenter.y - (radarRadius * 1.1f));
         barWidth = radarRadius * 2f;
         barHeight = radarRadius * .09f;
+        barLocation = new Vector2f(radarCenter.x - radarRadius,
+                radarCenter.y - (radarRadius * 1.1f));
 
         relativeStrengthAtBattleStart = getRelativeStrength();
         displayedRelativeStrength = relativeStrengthAtBattleStart;
