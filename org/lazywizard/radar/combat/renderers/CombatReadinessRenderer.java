@@ -52,7 +52,7 @@ public class CombatReadinessRenderer implements CombatRenderer
                 radarCenter.y - radarRadius);
         barWidth = radarRadius * .09f;
         barHeight = radarRadius * 2f;
-        
+
         flashProgress = 0.5f;
     }
 
@@ -142,6 +142,8 @@ public class CombatReadinessRenderer implements CombatRenderer
             {
                 float lineHeight = barLocation.y + ((barHeight / 5f) * x);
                 glVertex2f(barLocation.x, lineHeight);
+                glVertex2f(barLocation.x - (barWidth * .33f), lineHeight);
+                glVertex2f(barLocation.x - (barWidth * .66f), lineHeight);
                 glVertex2f(barLocation.x - barWidth, lineHeight);
             }
             glEnd();
