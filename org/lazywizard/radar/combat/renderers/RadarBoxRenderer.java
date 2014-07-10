@@ -51,6 +51,10 @@ public class RadarBoxRenderer implements CombatRenderer
     @Override
     public void render(ShipAPI player, float amount)
     {
+        Vector2f radarCenter = radar.getRenderCenter();
+        float radarRadius = radar.getRenderRadius();
+        float radarAlpha = radar.getRadarAlpha();
+
         // Cache OpenGL commands for faster execution
         if (player.isHulk() == wasHulkLastFrame)
         {
@@ -68,10 +72,7 @@ public class RadarBoxRenderer implements CombatRenderer
                 glDeleteLists(RADAR_BOX_DISPLAY_LIST_ID, 1);
             }
 
-            Vector2f radarCenter = radar.getRenderCenter();
-            float radarRadius = radar.getRenderRadius();
-            float radarAlpha = radar.getRadarAlpha(),
-                    radarMidFade = (radarAlpha + RADAR_EDGE_ALPHA) / 2f;
+            float radarMidFade = (radarAlpha + RADAR_EDGE_ALPHA) / 2f;
 
             // Generate new display list
             RADAR_BOX_DISPLAY_LIST_ID = glGenLists(1);
@@ -143,5 +144,28 @@ public class RadarBoxRenderer implements CombatRenderer
 
             glEndList();
         }
+
+        float zoomLinePos = radarRadius / radar.getCurrentZoomLevel();
+        float zoomLineSize = radarRadius / 20f;
+
+        // Show current zoom level
+        glColor(Color.WHITE, radar.getRadarAlpha() * .66f, false);
+        glBegin(GL_LINES);
+        // Left line
+        glVertex2f(radarCenter.x - zoomLinePos, radarCenter.y - zoomLineSize);
+        glVertex2f(radarCenter.x - zoomLinePos, radarCenter.y + zoomLineSize);
+
+        // Right line
+        glVertex2f(radarCenter.x + zoomLinePos, radarCenter.y - zoomLineSize);
+        glVertex2f(radarCenter.x + zoomLinePos, radarCenter.y + zoomLineSize);
+
+        // Upper line
+        glVertex2f(radarCenter.x - zoomLineSize, radarCenter.y + zoomLinePos);
+        glVertex2f(radarCenter.x + zoomLineSize, radarCenter.y + zoomLinePos);
+
+        // Lower line
+        glVertex2f(radarCenter.x - zoomLineSize, radarCenter.y - zoomLinePos);
+        glVertex2f(radarCenter.x + zoomLineSize, radarCenter.y - zoomLinePos);
+        glEnd();
     }
 }
