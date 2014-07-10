@@ -104,9 +104,9 @@ public class CombatReadinessRenderer implements CombatRenderer
             glColor(CURRENT_CR_COLOR, alphaMod, false);
             glVertex2f(barLocation.x,
                     barLocation.y);
-            glVertex2f(barLocation.x - barWidth,
+            glVertex2f(barLocation.x + barWidth,
                     barLocation.y);
-            glVertex2f(barLocation.x - barWidth,
+            glVertex2f(barLocation.x + barWidth,
                     barLocation.y + currentCRPos);
             glVertex2f(barLocation.x,
                     barLocation.y + currentCRPos);
@@ -115,9 +115,9 @@ public class CombatReadinessRenderer implements CombatRenderer
             glColor(LOST_CR_COLOR, radar.getRadarAlpha(), false);
             glVertex2f(barLocation.x,
                     barLocation.y + currentCRPos);
-            glVertex2f(barLocation.x - barWidth,
+            glVertex2f(barLocation.x + barWidth,
                     barLocation.y + currentCRPos);
-            glVertex2f(barLocation.x - barWidth,
+            glVertex2f(barLocation.x + barWidth,
                     barLocation.y + initialCRPos);
             glVertex2f(barLocation.x,
                     barLocation.y + initialCRPos);
@@ -126,9 +126,9 @@ public class CombatReadinessRenderer implements CombatRenderer
             glColor(NO_CR_COLOR, radar.getRadarAlpha(), false);
             glVertex2f(barLocation.x,
                     barLocation.y + initialCRPos);
-            glVertex2f(barLocation.x - barWidth,
+            glVertex2f(barLocation.x + barWidth,
                     barLocation.y + initialCRPos);
-            glVertex2f(barLocation.x - barWidth,
+            glVertex2f(barLocation.x + barWidth,
                     barLocation.y + barHeight);
             glVertex2f(barLocation.x, barLocation.y
                     + barHeight);
@@ -142,9 +142,9 @@ public class CombatReadinessRenderer implements CombatRenderer
             {
                 float lineHeight = barLocation.y + ((barHeight / 5f) * x);
                 glVertex2f(barLocation.x, lineHeight);
-                glVertex2f(barLocation.x - (barWidth * .33f), lineHeight);
-                glVertex2f(barLocation.x - (barWidth * .66f), lineHeight);
-                glVertex2f(barLocation.x - barWidth, lineHeight);
+                glVertex2f(barLocation.x + (barWidth * .33f), lineHeight);
+                glVertex2f(barLocation.x + (barWidth * .66f), lineHeight);
+                glVertex2f(barLocation.x + barWidth, lineHeight);
             }
             glEnd();
 
@@ -159,9 +159,9 @@ public class CombatReadinessRenderer implements CombatRenderer
                     glLineWidth(1.5f);
                     glColor(Color.WHITE, radar.getRadarAlpha(), false);
                     glBegin(GL_LINES);
-                    glVertex2f(barLocation.x - (barWidth * 1.5f),
+                    glVertex2f(barLocation.x - (barWidth * 0.5f),
                             barLocation.y + maxCRPos);
-                    glVertex2f(barLocation.x + (barWidth * 0.5f),
+                    glVertex2f(barLocation.x + (barWidth * 1.5f),
                             barLocation.y + maxCRPos);
                     glEnd();
                 }
