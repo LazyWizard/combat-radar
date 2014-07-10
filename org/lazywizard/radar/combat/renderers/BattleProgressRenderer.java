@@ -3,7 +3,9 @@ package org.lazywizard.radar.combat.renderers;
 import java.awt.Color;
 import java.util.List;
 import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.combat.CombatAssignmentType;
 import com.fs.starfarer.api.combat.CombatFleetManagerAPI;
+import com.fs.starfarer.api.combat.CombatFleetManagerAPI.AssignmentInfo;
 import com.fs.starfarer.api.combat.ShipAPI;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
 import com.fs.starfarer.api.mission.FleetSide;
@@ -24,6 +26,7 @@ public class BattleProgressRenderer implements CombatRenderer
     private Vector2f barLocation;
     private float relativeStrengthAtBattleStart, displayedRelativeStrength;
     private float barWidth, barHeight;
+    private float flashProgress;
 
     @Override
     public void reloadSettings(JSONObject settings) throws JSONException
@@ -42,6 +45,7 @@ public class BattleProgressRenderer implements CombatRenderer
 
         Vector2f radarCenter = radar.getRenderCenter();
         float radarRadius = radar.getRenderRadius();
+
         barLocation = new Vector2f(radarCenter.x - radarRadius,
                 radarCenter.y - (radarRadius * 1.1f));
         barWidth = radarRadius * 2f;
@@ -49,6 +53,8 @@ public class BattleProgressRenderer implements CombatRenderer
 
         relativeStrengthAtBattleStart = getRelativeStrength();
         displayedRelativeStrength = relativeStrengthAtBattleStart;
+
+        flashProgress = 0.5f;
     }
 
     private static float getRelativeStrength()
@@ -78,6 +84,29 @@ public class BattleProgressRenderer implements CombatRenderer
         // No ships on either side = assume a draw
         float totalStrength = playerStrength + enemyStrength;
         return (totalStrength <= 0f ? 0.5f : (playerStrength / totalStrength));
+    }
+
+    // TODO: can be replaced with proper API method after .6.5a
+    private static boolean isRetreating(FleetSide side)
+    {
+        int owner = side.ordinal();
+        boolean hasDeployed = false;
+        CombatFleetManagerAPI fm = Global.getCombatEngine().getFleetManager(side);
+        for (ShipAPI ship : Global.getCombatEngine().getShips())
+        {
+            if (ship.getOwner() == owner)
+            {
+                hasDeployed = true;
+
+                AssignmentInfo orders = fm.getAssignmentFor(ship);
+                if (orders == null || orders.getType() != CombatAssignmentType.RETREAT)
+                {
+                    return false;
+                }
+            }
+        }
+
+        return hasDeployed;
     }
 
     @Override
@@ -112,9 +141,27 @@ public class BattleProgressRenderer implements CombatRenderer
             float relativeStrengthPos = barWidth * displayedRelativeStrength,
                     battleStartPos = barWidth * relativeStrengthAtBattleStart;
 
+            boolean playerRetreating = isRetreating(FleetSide.PLAYER),
+                    enemyRetreating = isRetreating(FleetSide.ENEMY);
+            if (playerRetreating || enemyRetreating)
+            {
+                flashProgress -= amount * 2f;
+                if (flashProgress <= 0f)
+                {
+                    flashProgress += 1f;
+                }
+            }
+            else
+            {
+                flashProgress = 0.5f;
+            }
+
+            float flashAlpha = (flashProgress / 2f) + .75f;
+
             glBegin(GL_QUADS);
             // Player strength
-            glColor(radar.getFriendlyContactColor(), radar.getRadarAlpha(), false);
+            glColor(radar.getFriendlyContactColor(), radar.getRadarAlpha()
+                    * (playerRetreating ? flashAlpha : 1f), false);
             glVertex2f(barLocation.x,
                     barLocation.y);
             glVertex2f(barLocation.x,
@@ -125,7 +172,8 @@ public class BattleProgressRenderer implements CombatRenderer
                     barLocation.y);
 
             // Enemy strength
-            glColor(radar.getEnemyContactColor(), radar.getRadarAlpha(), false);
+            glColor(radar.getEnemyContactColor(), radar.getRadarAlpha()
+                    * (enemyRetreating ? flashAlpha : 1f), false);
             glVertex2f(barLocation.x + relativeStrengthPos,
                     barLocation.y);
             glVertex2f(barLocation.x + relativeStrengthPos,

@@ -47,10 +47,12 @@ public class CombatReadinessRenderer implements CombatRenderer
 
         Vector2f radarCenter = radar.getRenderCenter();
         float radarRadius = radar.getRenderRadius();
+
         barLocation = new Vector2f(radarCenter.x + (radarRadius * 1.1f),
                 radarCenter.y - radarRadius);
         barWidth = radarRadius * .09f;
         barHeight = radarRadius * 2f;
+        
         flashProgress = 0.5f;
     }
 
