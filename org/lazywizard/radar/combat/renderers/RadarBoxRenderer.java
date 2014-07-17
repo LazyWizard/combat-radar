@@ -14,7 +14,6 @@ import org.lwjgl.util.vector.Vector2f;
 import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
 import static org.lwjgl.opengl.GL11.*;
 
-// TODO: Add zoom level notifier
 public class RadarBoxRenderer implements CombatRenderer
 {
     private static boolean SHOW_BORDER_LINES;
@@ -146,7 +145,8 @@ public class RadarBoxRenderer implements CombatRenderer
         }
 
         float zoomLinePos = radarRadius / radar.getCurrentZoomLevel();
-        float zoomLineSize = radarRadius / 20f;
+        float zoomLineSize = (radarRadius / 15f)
+                / (.75f + radar.getCurrentZoomLevel() / 2f);
 
         // Show current zoom level
         glColor(Color.WHITE, radar.getRadarAlpha() * .66f, false);
