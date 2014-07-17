@@ -122,7 +122,7 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
 
             // Register the renderer with the radar
             // TODO: Sort this list later using the "render order" column
-            // TODO: Write rendere 'wrapper' to hold misc rendering info
+            // TODO: Write renderer 'wrapper' to hold misc rendering info
             RENDERER_CLASSES.add(renderClass);
 
             // If a settings file was pointed to, tell the renderer to load it
