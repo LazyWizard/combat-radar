@@ -3,6 +3,7 @@ package org.lazywizard.radar;
 import java.awt.Color;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -94,7 +95,8 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
                 "renderer id", CSV_PATH, "lw_radar");
         final ClassLoader loader = Global.getSettings().getScriptClassLoader();
         RENDERER_CLASSES.clear();
-        Map<String, JSONObject> loadedFiles = new HashMap<>();
+        final List<RendererWrapper<CombatRenderer>> preSorted = new ArrayList<>();
+        final Map<String, JSONObject> loadedFiles = new HashMap<>();
         for (int x = 0; x < csv.length(); x++)
         {
             JSONObject row = csv.getJSONObject(x);
@@ -120,10 +122,9 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
                         + CombatRenderer.class.getCanonicalName());
             }
 
-            // Register the renderer with the radar
-            // TODO: Sort this list later using the "render order" column
-            // TODO: Write renderer 'wrapper' to hold misc rendering info
-            RENDERER_CLASSES.add(renderClass);
+            // Wrap the renderer's class and rendering info to be used later
+            // This will be sorted using the "render order" column
+            preSorted.add(new RendererWrapper(renderClass, renderOrder));
 
             // If a settings file was pointed to, tell the renderer to load it
             if (settingsPath != null && !settingsPath.isEmpty())
@@ -152,6 +153,16 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
                     throw new RuntimeException(ex);
                 }
             }
+        }
+
+        // Actually register the renderer with the radar
+        Collections.sort(preSorted);
+        for (RendererWrapper<CombatRenderer> wrapper : preSorted)
+        {
+            RENDERER_CLASSES.add(wrapper.getRendererClass());
+            Global.getLogger(CombatRadarPlugin.class).log(Level.DEBUG,
+                    "Added " + wrapper.getRendererClass().getSimpleName()
+                    + " with order " + wrapper.getRenderOrder());
         }
     }
 
