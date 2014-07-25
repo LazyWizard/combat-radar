@@ -258,8 +258,7 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         }
 
         // Finalize drawing
-        radarInfo.disableStencilTest();
-        //glClearStencil(0);
+        radarInfo.disableStencilTest(); // Minor idiot-proofing
         glDisable(GL_BLEND);
         glPopMatrix();
         glMatrixMode(GL_PROJECTION);
