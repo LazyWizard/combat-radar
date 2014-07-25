@@ -73,7 +73,7 @@ public class ShipRenderer implements CombatRenderer
         List<Vector2f> shape = new ArrayList<>();
 
         // Large ships have a slightly more complex shape
-        if (hullSize.ordinal() >= HullSize.DESTROYER.ordinal())
+        if (hullSize.ordinal() > HullSize.DESTROYER.ordinal())
         {
             shape.add(new Vector2f(size, 0f));
             shape.add(new Vector2f(-size / 1.5f, -(size / 1.75f)));
