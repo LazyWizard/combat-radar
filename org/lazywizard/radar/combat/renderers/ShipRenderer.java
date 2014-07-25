@@ -39,32 +39,23 @@ public class ShipRenderer implements CombatRenderer
         PHASE_ALPHA_MULT = (float) settings.getDouble("phasedShipAlphaMult");
     }
 
-    private static List<Vector2f> rotate(List<Vector2f> toRotate, float angle)
+    private static List<Vector2f> rotateAndTranslate(List<Vector2f> points,
+            float angle, Vector2f translation)
     {
         if (angle == 0f)
         {
-            return new ArrayList<>(toRotate);
+            return new ArrayList<>(points);
         }
 
         angle = (float) Math.toRadians(angle);
         float cos = (float) FastTrig.cos(angle), sin = (float) FastTrig.sin(angle);
-        for (Vector2f point : toRotate)
+        for (Vector2f point : points)
         {
-            point.set((point.x * cos) - (point.y * sin),
-                    (point.x * sin) + (point.y * cos));
+            point.set((point.x * cos) - (point.y * sin) + translation.x,
+                    (point.x * sin) + (point.y * cos) + translation.y);
         }
 
-        return toRotate;
-    }
-
-    private static List<Vector2f> translate(List<Vector2f> toTranslate, Vector2f translation)
-    {
-        for (Vector2f point : toTranslate)
-        {
-            point.set(point.x + translation.x, point.y + translation.y);
-        }
-
-        return toTranslate;
+        return points;
     }
 
     @Override
@@ -98,6 +89,7 @@ public class ShipRenderer implements CombatRenderer
             shape.add(new Vector2f(-size / 1.5f, -(size / 1.75f)));
             shape.add(new Vector2f(-size / 1.5f, size / 1.75f));
         }
+
         return shape;
     }
 
@@ -132,9 +124,8 @@ public class ShipRenderer implements CombatRenderer
         }
 
         Vector2f radarLoc = radar.getPointOnRadar(contact.getLocation());
-        List<Vector2f> shape = getShape(contact);
-        shape = rotate(shape, contact.getFacing());
-        shape = translate(shape, radarLoc);
+        List<Vector2f> shape = rotateAndTranslate(getShape(contact),
+                contact.getFacing(), radarLoc);
         for (Vector2f point : shape)
         {
             glVertex2f(point.x, point.y);

@@ -409,7 +409,9 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
             List<CombatEntityAPI> visible = new ArrayList<>();
             for (CombatEntityAPI contact : contacts)
             {
-                if (MathUtils.isWithinRange(contact, player, sightRadius))
+                // Check if any part of the contact is visible
+                if (MathUtils.isWithinRange(contact, player.getLocation(),
+                        sightRadius + contact.getCollisionRadius()))
                 {
                     if (RESPECT_FOG_OF_WAR && !CombatUtils.isVisibleToSide(
                             contact, player.getOwner()))
