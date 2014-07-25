@@ -44,6 +44,8 @@ public class AsteroidRenderer implements CombatRenderer
                     Global.getCombatEngine().getAsteroids());
             if (!asteroids.isEmpty())
             {
+                radar.enableStencilTest();
+
                 Vector2f radarLoc;
                 glColor(ASTEROID_COLOR, radar.getContactAlpha(), false);
                 glPointSize(2f * radar.getCurrentZoomLevel());
@@ -54,6 +56,8 @@ public class AsteroidRenderer implements CombatRenderer
                     glVertex2f(radarLoc.x, radarLoc.y);
                 }
                 glEnd();
+                
+                radar.disableStencilTest();
             }
         }
     }

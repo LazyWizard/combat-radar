@@ -199,6 +199,8 @@ public class ShipRenderer implements CombatRenderer
                     Global.getCombatEngine().getShips());
             if (!contacts.isEmpty())
             {
+                radar.enableStencilTest();
+
                 // Draw contacts
                 ShipAPI target = null;
                 glLineWidth(1f);
@@ -230,6 +232,8 @@ public class ShipRenderer implements CombatRenderer
                 {
                     drawTargetMarker(target);
                 }
+
+                radar.disableStencilTest();
             }
         }
     }
