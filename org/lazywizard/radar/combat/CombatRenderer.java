@@ -47,7 +47,8 @@ public interface CombatRenderer
      * you should call {@link CombatRadar#resetView()} at the end of this
      * method.
      * <p>
-     * @param player The player's ship. This will be at the center of the radar.
+     * @param player The player's ship; also the center of the radar. Will never
+     *               be null.
      * @param amount How long since the last frame, useful for animated radar
      *               elements.
      * <p>
