@@ -49,7 +49,7 @@ public class BattleProgressRenderer implements CombatRenderer
         barWidth = radarRadius * 2f;
         barHeight = radarRadius * .09f;
         barLocation = new Vector2f(radarCenter.x - radarRadius,
-                radarCenter.y - (radarRadius * 1.1f));
+                radarCenter.y - (radarRadius * 1.15f));
 
         relativeStrengthAtBattleStart = getRelativeStrength();
         displayedRelativeStrength = relativeStrengthAtBattleStart;
