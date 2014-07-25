@@ -50,7 +50,7 @@ public class CombatReadinessRenderer implements CombatRenderer
 
         barWidth = radarRadius * .09f;
         barHeight = radarRadius * 2f;
-        barLocation = new Vector2f(radarCenter.x + (radarRadius * 1.1f) - barWidth,
+        barLocation = new Vector2f(radarCenter.x + (radarRadius * 1.15f) - barWidth,
                 radarCenter.y - radarRadius);
 
         flashProgress = 0.5f;
