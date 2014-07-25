@@ -116,6 +116,8 @@ public class MissileRenderer implements CombatRenderer
                 }
                 glEnd();
 
+                radar.disableStencilTest();
+
                 if (SHOW_MISSILE_LOCK_ICON && playerLock)
                 {
                     glEnable(GL_TEXTURE_2D);
@@ -124,8 +126,6 @@ public class MissileRenderer implements CombatRenderer
                     icon.renderAtCenter(iconLocation.x, iconLocation.y);
                     glDisable(GL_TEXTURE_2D);
                 }
-
-                radar.disableStencilTest();
             }
         }
     }
