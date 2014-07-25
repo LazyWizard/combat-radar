@@ -62,6 +62,8 @@ public class MissileRenderer implements CombatRenderer
                     Global.getCombatEngine().getMissiles());
             if (!missiles.isEmpty())
             {
+                radar.enableStencilTest();
+
                 boolean playerLock = false;
                 float highestThreatAlpha = 0f;
 
@@ -122,6 +124,8 @@ public class MissileRenderer implements CombatRenderer
                     icon.renderAtCenter(iconLocation.x, iconLocation.y);
                     glDisable(GL_TEXTURE_2D);
                 }
+
+                radar.disableStencilTest();
             }
         }
     }

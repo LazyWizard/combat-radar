@@ -6,9 +6,12 @@ import com.fs.starfarer.api.combat.CombatEntityAPI;
 import com.fs.starfarer.api.combat.ShipAPI;
 import org.lwjgl.util.vector.Vector2f;
 
+// TODO: Javadoc this interface
 public interface CombatRadar
 {
     public void resetView();
+    public void enableStencilTest();
+    public void disableStencilTest();
 
     // THESE METHODS' RETURN VALUES STAY THE SAME
 
@@ -28,7 +31,7 @@ public interface CombatRadar
 
     // THESE METHODS' RETURN VALUES CAN CHANGE OVER TIME!
 
-    // Used for scaling radar elements
+    // Used for scaling true-sized radar elements
     public float getCurrentPixelsPerSU();
     public float getCurrentZoomLevel();
 

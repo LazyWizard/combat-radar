@@ -38,6 +38,8 @@ public class ObjectiveRenderer implements CombatRenderer
                     Global.getCombatEngine().getObjectives());
             if (!objectives.isEmpty())
             {
+                radar.enableStencilTest();
+
                 Vector2f radarLoc;
                 float size = 250f * radar.getCurrentPixelsPerSU();
                 glLineWidth(size / 5f);
@@ -71,6 +73,8 @@ public class ObjectiveRenderer implements CombatRenderer
                     glVertex2f(radarLoc.x - size, radarLoc.y);
                     glEnd();
                 }
+
+                radar.disableStencilTest();
             }
         }
     }

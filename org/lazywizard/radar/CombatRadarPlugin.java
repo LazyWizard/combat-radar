@@ -20,6 +20,7 @@ import org.json.JSONObject;
 import org.lazywizard.lazylib.JSONUtils;
 import org.lazywizard.lazylib.MathUtils;
 import org.lazywizard.lazylib.combat.CombatUtils;
+import org.lazywizard.lazylib.opengl.DrawUtils;
 import org.lazywizard.radar.combat.CombatRadar;
 import org.lazywizard.radar.combat.CombatRenderer;
 import org.lwjgl.input.Keyboard;
@@ -155,14 +156,11 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
             }
         }
 
-        // Actually register the renderer with the radar
+        // Actually register the renderers with the radar, in the proper order
         Collections.sort(preSorted);
         for (RendererWrapper<CombatRenderer> wrapper : preSorted)
         {
             RENDERER_CLASSES.add(wrapper.getRendererClass());
-            Global.getLogger(CombatRadarPlugin.class).log(Level.DEBUG,
-                    "Added " + wrapper.getRendererClass().getSimpleName()
-                    + " with order " + wrapper.getRenderOrder());
         }
     }
 
@@ -243,6 +241,16 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+        // Set up the stencil test
+        glClear(GL_STENCIL_BUFFER_BIT);
+        glEnable(GL_STENCIL_TEST);
+        glColorMask(false, false, false, false);
+        glStencilFunc(GL_ALWAYS, 1, 1);
+        glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
+        DrawUtils.drawCircle(renderCenter.x, renderCenter.y, renderRadius, 72, true);
+        glColorMask(true, true, true, true);
+        radarInfo.disableStencilTest();
+
         // Draw the radar elements individually
         for (CombatRenderer renderer : renderers)
         {
@@ -250,6 +258,8 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         }
 
         // Finalize drawing
+        radarInfo.disableStencilTest();
+        //glClearStencil(0);
         glDisable(GL_BLEND);
         glPopMatrix();
         glMatrixMode(GL_PROJECTION);
@@ -302,6 +312,22 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         public void resetView()
         {
             // TODO: call glOrtho() and glViewport() here
+        }
+
+        @Override
+        public void enableStencilTest()
+        {
+            glEnable(GL_STENCIL_TEST);
+            glStencilFunc(GL_EQUAL, 1, 1);
+            glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+        }
+
+        @Override
+        public void disableStencilTest()
+        {
+            //glStencilFunc(GL_ALWAYS, 1, 1);
+            //glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+            glDisable(GL_STENCIL_TEST);
         }
 
         @Override
