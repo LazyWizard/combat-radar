@@ -18,6 +18,7 @@ import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
 import static org.lwjgl.opengl.GL11.*;
 
 // TODO: Draw part of bar that's yet to be filled slightly darker
+// TODO: Switch to glDrawElements()
 public class BattleProgressRenderer implements CombatRenderer
 {
     private static boolean SHOW_BATTLE_PROGRESS, ANIMATE_BAR;
@@ -64,7 +65,7 @@ public class BattleProgressRenderer implements CombatRenderer
         // Total up player fleet strength
         CombatFleetManagerAPI fm = Global.getCombatEngine().getFleetManager(FleetSide.PLAYER);
         List<FleetMemberAPI> ships = fm.getDeployedCopy();
-        //if (!engine.isSimulationBattle())
+        //if (!engine.isSimulation())
         ships.addAll(fm.getReservesCopy());
         for (FleetMemberAPI ship : ships)
         {
@@ -74,7 +75,7 @@ public class BattleProgressRenderer implements CombatRenderer
         // Total up enemy fleet strength
         fm = Global.getCombatEngine().getFleetManager(FleetSide.ENEMY);
         ships = fm.getDeployedCopy();
-        //if (!engine.isSimulationBattle())
+        //if (!engine.isSimulation())
         ships.addAll(fm.getReservesCopy());
         for (FleetMemberAPI ship : ships)
         {
