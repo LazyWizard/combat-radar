@@ -1,6 +1,8 @@
 package org.lazywizard.radar.combat.renderers;
 
 import java.awt.Color;
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.ShipAPI;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
@@ -10,6 +12,7 @@ import org.lazywizard.lazylib.JSONUtils;
 import org.lazywizard.lazylib.combat.CombatUtils;
 import org.lazywizard.radar.combat.CombatRadar;
 import org.lazywizard.radar.combat.CombatRenderer;
+import org.lwjgl.BufferUtils;
 import org.lwjgl.util.vector.Vector2f;
 import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
 import static org.lwjgl.opengl.GL11.*;
@@ -23,6 +26,8 @@ public class CombatReadinessRenderer implements CombatRenderer
     private static Color CURRENT_CR_COLOR, LOST_CR_COLOR, NO_CR_COLOR;
     private CombatRadar radar;
     private Vector2f barLocation;
+    private FloatBuffer vertexMap, colorMap;
+    private IntBuffer indexMap;
     private float barWidth, barHeight;
     private float flashProgress;
 
@@ -40,18 +45,54 @@ public class CombatReadinessRenderer implements CombatRenderer
                 settings.getJSONArray("emptyBarColor"));
     }
 
+    private static float[] getQuadColor(Color color, float alphaMult)
+    {
+        float r = color.getRed() / 255f,
+                g = color.getGreen() / 255f,
+                b = color.getBlue() / 255f,
+                a = (color.getAlpha() / 255f) * alphaMult;
+
+        return new float[]
+        {
+            r, g, b, a,
+            r, g, b, a,
+            r, g, b, a,
+            r, g, b, a
+        };
+    }
+
     @Override
     public void init(CombatRadar radar)
     {
+        // Location and size of radar on the screen
         this.radar = radar;
-
         Vector2f radarCenter = radar.getRenderCenter();
         float radarRadius = radar.getRenderRadius();
 
+        // Location and size of bar on the screen
         barWidth = radarRadius * .09f;
         barHeight = radarRadius * 2f;
         barLocation = new Vector2f(radarCenter.x + (radarRadius * 1.15f) - barWidth,
                 radarCenter.y - radarRadius);
+
+        // Generate OpenGL index mappings
+        int[] indices = new int[]
+        {
+            // First quad (as triangles)
+            0, 1, 2,
+            0, 2, 3,
+            // Second quad (as triangles)
+            4, 5, 6,
+            4, 6, 7,
+            // Third quad (as triangles)
+            8, 9, 10,
+            8, 10, 11,
+        };
+
+        vertexMap = BufferUtils.createFloatBuffer(24);
+        colorMap = BufferUtils.createFloatBuffer(48);
+        indexMap = BufferUtils.createIntBuffer(18).put(indices);
+        indexMap.flip();
 
         flashProgress = 0.5f;
     }
@@ -90,49 +131,53 @@ public class CombatReadinessRenderer implements CombatRenderer
                 flashProgress += 1f;
             }
 
+            // Calculate current flash alpha
             float alphaMod = radar.getRadarAlpha();
             alphaMod *= ((flashProgress / 2f)) + .75f;
 
             // Dim the bar if player ship doesn't lose CR during battle
             if (!player.losesCRDuringCombat())
             {
-                alphaMod *= .6f;
+                alphaMod *= .5f;
             }
 
-            glBegin(GL_QUADS);
-            // Current CR
-            glColor(CURRENT_CR_COLOR, alphaMod, false);
-            glVertex2f(barLocation.x,
-                    barLocation.y);
-            glVertex2f(barLocation.x + barWidth,
-                    barLocation.y);
-            glVertex2f(barLocation.x + barWidth,
-                    barLocation.y + currentCRPos);
-            glVertex2f(barLocation.x,
-                    barLocation.y + currentCRPos);
+            // Generate OpenGL color mappings
+            float[] colors = new float[48];
+            System.arraycopy(getQuadColor(CURRENT_CR_COLOR, alphaMod),
+                    0, colors, 0, 16);
+            System.arraycopy(getQuadColor(LOST_CR_COLOR, radar.getRadarAlpha()),
+                    0, colors, 16, 16);
+            System.arraycopy(getQuadColor(NO_CR_COLOR, radar.getRadarAlpha()),
+                    0, colors, 32, 16);
+            colorMap.put(colors).flip();
 
-            // Lost CR
-            glColor(LOST_CR_COLOR, radar.getRadarAlpha(), false);
-            glVertex2f(barLocation.x,
-                    barLocation.y + currentCRPos);
-            glVertex2f(barLocation.x + barWidth,
-                    barLocation.y + currentCRPos);
-            glVertex2f(barLocation.x + barWidth,
-                    barLocation.y + initialCRPos);
-            glVertex2f(barLocation.x,
-                    barLocation.y + initialCRPos);
+            // Generate vertex mappings
+            float[] vertices = new float[]
+            {
+                // Current CR
+                barLocation.x, barLocation.y,
+                barLocation.x + barWidth, barLocation.y,
+                barLocation.x + barWidth, barLocation.y + currentCRPos,
+                barLocation.x, barLocation.y + currentCRPos,
+                // Lost CR
+                barLocation.x, barLocation.y + currentCRPos,
+                barLocation.x + barWidth, barLocation.y + currentCRPos,
+                barLocation.x + barWidth, barLocation.y + initialCRPos,
+                barLocation.x, barLocation.y + initialCRPos,
+                // Unobtained CR
+                barLocation.x, barLocation.y + initialCRPos,
+                barLocation.x + barWidth, barLocation.y + initialCRPos,
+                barLocation.x + barWidth, barLocation.y + barHeight,
+                barLocation.x, barLocation.y + barHeight
+            };
+            vertexMap.put(vertices).flip();
 
-            // Unobtained CR
-            glColor(NO_CR_COLOR, radar.getRadarAlpha(), false);
-            glVertex2f(barLocation.x,
-                    barLocation.y + initialCRPos);
-            glVertex2f(barLocation.x + barWidth,
-                    barLocation.y + initialCRPos);
-            glVertex2f(barLocation.x + barWidth,
-                    barLocation.y + barHeight);
-            glVertex2f(barLocation.x, barLocation.y
-                    + barHeight);
-            glEnd();
+            // Finally, we can actually draw the bar
+            glEnableClientState(GL_VERTEX_ARRAY);
+            glEnableClientState(GL_COLOR_ARRAY);
+            glVertexPointer(2, 0, vertexMap);
+            glColorPointer(4, 0, colorMap);
+            glDrawElements(GL_TRIANGLES, indexMap);
 
             // Draw CR threshold notches
             glColor(Color.WHITE, .5f, false);
