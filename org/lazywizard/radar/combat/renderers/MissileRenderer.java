@@ -1,6 +1,8 @@
 package org.lazywizard.radar.combat.renderers;
 
 import java.awt.Color;
+import java.nio.FloatBuffer;
+import java.util.Iterator;
 import java.util.List;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.CombatEntityAPI;
@@ -14,8 +16,8 @@ import org.json.JSONObject;
 import org.lazywizard.lazylib.JSONUtils;
 import org.lazywizard.radar.combat.CombatRadar;
 import org.lazywizard.radar.combat.CombatRenderer;
+import org.lwjgl.BufferUtils;
 import org.lwjgl.util.vector.Vector2f;
-import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
 import static org.lwjgl.opengl.GL11.*;
 
 public class MissileRenderer implements CombatRenderer
@@ -49,7 +51,7 @@ public class MissileRenderer implements CombatRenderer
             float radarRadius = radar.getRenderRadius();
             icon = Global.getSettings().getSprite("radar", MISSILE_ICON);
             iconLocation = new Vector2f(radarCenter.x - (radarRadius * 0.9f),
-                radarCenter.y + (radarRadius * 0.9f));
+                    radarCenter.y + (radarRadius * 0.9f));
         }
     }
 
@@ -67,12 +69,20 @@ public class MissileRenderer implements CombatRenderer
                 boolean playerLock = false;
                 float highestThreatAlpha = 0f;
 
-                glPointSize(2f * radar.getCurrentZoomLevel());
-                glBegin(GL_POINTS);
-                for (CombatEntityAPI entity : missiles)
+                float[] vertices = new float[missiles.size() * 2];
+                float[] colors = new float[missiles.size() * 4];
+                Iterator<? extends CombatEntityAPI> iter = missiles.iterator();
+                for (int v = 0, c = 0; v < missiles.size() * 2; v += 2, c += 4)
                 {
-                    MissileAPI missile = (MissileAPI) entity;
-                    // TODO: Add a setting for missile damage alpha mod
+                    MissileAPI missile = (MissileAPI) iter.next();
+
+                    // Calculate vertices
+                    Vector2f radarLoc = radar.getPointOnRadar(missile.getLocation());
+                    vertices[v] = radarLoc.x;
+                    vertices[v + 1] = radarLoc.y;
+
+                    // Calculate color
+                    Color color;
                     float alphaMod = Math.min(1f, Math.max(0.3f,
                             missile.getDamageAmount() / 750f));
                     alphaMod *= (missile.isFading() ? .5f : 1f);
@@ -80,10 +90,8 @@ public class MissileRenderer implements CombatRenderer
                     // Burnt-out missiles count as hostile
                     if (missile.isFizzling())
                     {
-                        glColor(radar.getEnemyContactColor(),
-                                radar.getContactAlpha() * alphaMod, false);
+                        color = radar.getEnemyContactColor();
                     }
-
                     // Enemy missiles
                     else if (missile.getOwner() + player.getOwner() == 1)
                     {
@@ -94,27 +102,40 @@ public class MissileRenderer implements CombatRenderer
                         {
                             playerLock = true;
                             highestThreatAlpha = alphaMod;
-                            glColor(MISSILE_LOCKED_COLOR,
-                                    radar.getContactAlpha() * alphaMod, false);
+                            color = MISSILE_LOCKED_COLOR;
                         }
                         else
                         {
-                            glColor(radar.getEnemyContactColor(),
-                                    radar.getContactAlpha() * alphaMod, false);
+                            color = radar.getEnemyContactColor();
                         }
                     }
-
                     // Allied missiles
                     else
                     {
-                        glColor(radar.getFriendlyContactColor(),
-                                radar.getContactAlpha() * alphaMod, false);
+                        color = radar.getFriendlyContactColor();
                     }
 
-                    Vector2f radarLoc = radar.getPointOnRadar(missile.getLocation());
-                    glVertex2f(radarLoc.x, radarLoc.y);
+                    colors[c] = color.getRed() / 255f;
+                    colors[c + 1] = color.getGreen() / 255f;
+                    colors[c + 2] = color.getBlue() / 255f;
+                    colors[c + 3] = color.getAlpha() / 255f * alphaMod;
                 }
-                glEnd();
+
+                FloatBuffer vertexMap = BufferUtils.createFloatBuffer(vertices.length).put(vertices);
+                vertexMap.flip();
+
+                FloatBuffer colorMap = BufferUtils.createFloatBuffer(colors.length).put(colors);
+                colorMap.flip();
+
+                // Draw missiles
+                glPointSize(2f * radar.getCurrentZoomLevel());
+                glEnableClientState(GL_VERTEX_ARRAY);
+                glEnableClientState(GL_COLOR_ARRAY);
+                glVertexPointer(2, 0, vertexMap);
+                glColorPointer(4, 0, colorMap);
+                glDrawArrays(GL_POINTS, 0, vertices.length / 2);
+                glDisableClientState(GL_VERTEX_ARRAY);
+                glDisableClientState(GL_COLOR_ARRAY);
 
                 radar.disableStencilTest();
 
