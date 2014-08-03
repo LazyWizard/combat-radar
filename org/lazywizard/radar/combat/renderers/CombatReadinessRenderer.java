@@ -178,6 +178,8 @@ public class CombatReadinessRenderer implements CombatRenderer
             glVertexPointer(2, 0, vertexMap);
             glColorPointer(4, 0, colorMap);
             glDrawElements(GL_TRIANGLES, indexMap);
+            glDisableClientState(GL_VERTEX_ARRAY);
+            glDisableClientState(GL_COLOR_ARRAY);
 
             // Draw CR threshold notches
             glColor(Color.WHITE, .5f, false);
