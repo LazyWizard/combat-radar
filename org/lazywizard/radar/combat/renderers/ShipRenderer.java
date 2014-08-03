@@ -1,6 +1,7 @@
 package org.lazywizard.radar.combat.renderers;
 
 import java.awt.Color;
+import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import com.fs.starfarer.api.Global;
@@ -15,14 +16,18 @@ import org.lazywizard.lazylib.JSONUtils;
 import org.lazywizard.lazylib.opengl.DrawUtils;
 import org.lazywizard.radar.combat.CombatRadar;
 import org.lazywizard.radar.combat.CombatRenderer;
+import org.lwjgl.BufferUtils;
 import org.lwjgl.util.vector.Vector2f;
+import org.lwjgl.util.vector.Vector4f;
 import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
 import static org.lwjgl.opengl.GL11.*;
 
 // TODO: Switch to pre-calculated rotations for ships
+// TODO: This needs a huge cleanup after new rendering code was added!
 public class ShipRenderer implements CombatRenderer
 {
     private static boolean SHOW_SHIPS, SHOW_SHIELDS;
+    private static int MAX_SHIPS = 100; /// TODO: Implement, add to config file
     private static Color SHIELD_COLOR, MARKER_COLOR;
     private static float PHASE_ALPHA_MULT;
     private CombatRadar radar;
@@ -90,10 +95,17 @@ public class ShipRenderer implements CombatRenderer
             shape.add(new Vector2f(-size / 1.5f, size / 1.75f));
         }
 
-        return shape;
+        return rotateAndTranslate(shape, contact.getFacing(),
+                radar.getPointOnRadar(contact.getLocation()));
     }
 
-    private void drawShip(ShipAPI contact, int playerSide)
+    private static Vector4f asVector4f(Color color, float alphaMod)
+    {
+        return new Vector4f(color.getRed() / 255f, color.getGreen() / 255f,
+                color.getBlue() / 255f, color.getAlpha() / 255f * alphaMod);
+    }
+
+    private Vector4f getColor(ShipAPI contact, int playerSide)
     {
         float alphaMod = (contact.getPhaseCloak() != null
                 && contact.getPhaseCloak().isOn()) ? PHASE_ALPHA_MULT : 1f;
@@ -101,34 +113,26 @@ public class ShipRenderer implements CombatRenderer
         // Hulks
         if (contact.isHulk())
         {
-            glColor(radar.getNeutralContactColor(),
-                    radar.getContactAlpha(), false);
+            return asVector4f(radar.getNeutralContactColor(),
+                    radar.getContactAlpha());
         }
         // Allies
         else if (contact.getOwner() == playerSide)
         {
-            glColor(radar.getFriendlyContactColor(),
-                    radar.getContactAlpha() * alphaMod, false);
+            return asVector4f(radar.getFriendlyContactColor(),
+                    radar.getContactAlpha() * alphaMod);
         }
         // Enemies
         else if (contact.getOwner() + playerSide == 1)
         {
-            glColor(radar.getEnemyContactColor(),
-                    radar.getContactAlpha() * alphaMod, false);
+            return asVector4f(radar.getEnemyContactColor(),
+                    radar.getContactAlpha() * alphaMod);
         }
         // Neutral (doesn't show up in vanilla)
         else
         {
-            glColor(radar.getNeutralContactColor(),
-                    radar.getContactAlpha() * alphaMod, false);
-        }
-
-        Vector2f radarLoc = radar.getPointOnRadar(contact.getLocation());
-        List<Vector2f> shape = rotateAndTranslate(getShape(contact),
-                contact.getFacing(), radarLoc);
-        for (Vector2f point : shape)
-        {
-            glVertex2f(point.x, point.y);
+            return asVector4f(radar.getNeutralContactColor(),
+                    radar.getContactAlpha() * alphaMod);
         }
     }
 
@@ -149,36 +153,44 @@ public class ShipRenderer implements CombatRenderer
 
     private void drawTargetMarker(ShipAPI target)
     {
+        // Generate vertices
         float size = 1.8f * (target.getHullSize().ordinal() + 1)
                 * radar.getCurrentZoomLevel();
         Vector2f radarLoc = radar.getPointOnRadar(target.getLocation());
         float margin = size * .5f;
+        float[] vertices = new float[]
+        {
+            // Upper left corner
+            radarLoc.x - size, radarLoc.y + size,
+            radarLoc.x - margin, radarLoc.y + size,
+            radarLoc.x - size, radarLoc.y + size,
+            radarLoc.x - size, radarLoc.y + margin,
+            // Upper right corner
+            radarLoc.x + size, radarLoc.y + size,
+            radarLoc.x + margin, radarLoc.y + size,
+            radarLoc.x + size, radarLoc.y + size,
+            radarLoc.x + size, radarLoc.y + margin,
+            // Lower left corner
+            radarLoc.x - size, radarLoc.y - size,
+            radarLoc.x - margin, radarLoc.y - size,
+            radarLoc.x - size, radarLoc.y - size,
+            radarLoc.x - size, radarLoc.y - margin,
+            // Lower right corner
+            radarLoc.x + size, radarLoc.y - size,
+            radarLoc.x + margin, radarLoc.y - size,
+            radarLoc.x + size, radarLoc.y - size,
+            radarLoc.x + size, radarLoc.y - margin
+        };
+
+        FloatBuffer vertexMap = BufferUtils.createFloatBuffer(vertices.length).put(vertices);
+        vertexMap.flip();
+
+        // Draw the target marker
         glColor(MARKER_COLOR, radar.getContactAlpha(), false);
-        glBegin(GL_LINES);
-        // Upper left corner
-        glVertex2f(radarLoc.x - size, radarLoc.y + size);
-        glVertex2f(radarLoc.x - margin, radarLoc.y + size);
-        glVertex2f(radarLoc.x - size, radarLoc.y + size);
-        glVertex2f(radarLoc.x - size, radarLoc.y + margin);
-
-        // Upper right corner
-        glVertex2f(radarLoc.x + size, radarLoc.y + size);
-        glVertex2f(radarLoc.x + margin, radarLoc.y + size);
-        glVertex2f(radarLoc.x + size, radarLoc.y + size);
-        glVertex2f(radarLoc.x + size, radarLoc.y + margin);
-
-        // Lower left corner
-        glVertex2f(radarLoc.x - size, radarLoc.y - size);
-        glVertex2f(radarLoc.x - margin, radarLoc.y - size);
-        glVertex2f(radarLoc.x - size, radarLoc.y - size);
-        glVertex2f(radarLoc.x - size, radarLoc.y - margin);
-
-        // Lower right corner
-        glVertex2f(radarLoc.x + size, radarLoc.y - size);
-        glVertex2f(radarLoc.x + margin, radarLoc.y - size);
-        glVertex2f(radarLoc.x + size, radarLoc.y - size);
-        glVertex2f(radarLoc.x + size, radarLoc.y - margin);
-        glEnd();
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glVertexPointer(2, 0, vertexMap);
+        glDrawArrays(GL_LINES, 0, vertices.length / 2);
+        glDisableClientState(GL_VERTEX_ARRAY);
     }
 
     @Override
@@ -194,11 +206,18 @@ public class ShipRenderer implements CombatRenderer
 
                 // Draw contacts
                 ShipAPI target = null;
-                glLineWidth(1f);
-                glBegin(GL_TRIANGLES);
+                List<Vector2f> vertices = new ArrayList<>();
+                List<Vector4f> colors = new ArrayList<>();
                 for (CombatEntityAPI entity : contacts)
                 {
-                    drawShip((ShipAPI) entity, player.getOwner());
+                    List<Vector2f> shape = getShape((ShipAPI) entity);
+                    vertices.addAll(shape);
+
+                    Vector4f color = getColor((ShipAPI) entity, player.getOwner());
+                    for (int x = 0; x < vertices.size(); x++)
+                    {
+                        colors.add(color);
+                    }
 
                     // Check for current ship target
                     if (player.getShipTarget() == entity)
@@ -206,11 +225,40 @@ public class ShipRenderer implements CombatRenderer
                         target = (ShipAPI) entity;
                     }
                 }
-                glEnd();
+
+                // Generate vertex map
+                FloatBuffer vertexMap = BufferUtils.createFloatBuffer(vertices.size() * 2);
+                for (Vector2f vec : vertices)
+                {
+                    vertexMap.put(vec.x);
+                    vertexMap.put(vec.y);
+                }
+                vertexMap.flip();
+
+                // Generate color map
+                FloatBuffer colorMap = BufferUtils.createFloatBuffer(colors.size() * 4);
+                for (Vector4f col : colors)
+                {
+                    colorMap.put(col.x);
+                    colorMap.put(col.y);
+                    colorMap.put(col.z);
+                    colorMap.put(col.w);
+                }
+                colorMap.flip();
+
+                // Draw the ships
+                glEnableClientState(GL_VERTEX_ARRAY);
+                glEnableClientState(GL_COLOR_ARRAY);
+                glVertexPointer(2, 0, vertexMap);
+                glColorPointer(4, 0, colorMap);
+                glDrawArrays(GL_TRIANGLES, 0, vertices.size());
+                glDisableClientState(GL_VERTEX_ARRAY);
+                glDisableClientState(GL_COLOR_ARRAY);
 
                 // Draw shields
                 if (SHOW_SHIELDS)
                 {
+                    glLineWidth(1f);
                     glColor(SHIELD_COLOR, radar.getContactAlpha(), false);
                     for (CombatEntityAPI entity : contacts)
                     {
