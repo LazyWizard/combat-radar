@@ -31,8 +31,8 @@ public class ShipRenderer implements CombatRenderer
     private static int MAX_SHIPS = 100; /// TODO: Implement, add to config file
     private static Color SHIELD_COLOR, MARKER_COLOR;
     private static float PHASE_ALPHA_MULT;
-    private FloatBuffer vertexMap;
-    private IntBuffer indexMap;
+    private FloatBuffer markerVertexMap;
+    private IntBuffer markerIndexMap;
     private CombatRadar radar;
 
     @Override
@@ -83,10 +83,10 @@ public class ShipRenderer implements CombatRenderer
             9, 10, 9, 11
         };
 
-        indexMap = BufferUtils.createIntBuffer(indices.length).put(indices);
-        indexMap.flip();
+        markerIndexMap = BufferUtils.createIntBuffer(indices.length).put(indices);
+        markerIndexMap.flip();
 
-        vertexMap = BufferUtils.createFloatBuffer(24);
+        markerVertexMap = BufferUtils.createFloatBuffer(24);
     }
 
     // Must be a series of three points that make up shape's component triangles
@@ -198,14 +198,14 @@ public class ShipRenderer implements CombatRenderer
             radarLoc.x + size, radarLoc.y - margin  // 11
         };
 
-        vertexMap.put(vertices);
-        vertexMap.flip();
+        markerVertexMap.put(vertices);
+        markerVertexMap.flip();
 
         // Draw the target marker
         glColor(MARKER_COLOR, radar.getContactAlpha(), false);
         glEnableClientState(GL_VERTEX_ARRAY);
-        glVertexPointer(2, 0, vertexMap);
-        glDrawElements(GL_LINES, indexMap);
+        glVertexPointer(2, 0, markerVertexMap);
+        glDrawElements(GL_LINES, markerIndexMap);
         glDisableClientState(GL_VERTEX_ARRAY);
     }
 
