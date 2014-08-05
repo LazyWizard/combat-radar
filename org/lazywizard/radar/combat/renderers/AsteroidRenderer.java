@@ -20,6 +20,7 @@ import static org.lwjgl.opengl.GL11.*;
 public class AsteroidRenderer implements CombatRenderer
 {
     private static boolean SHOW_ASTEROIDS;
+    private static int MAX_ASTEROIDS_SHOWN;
     private static Color ASTEROID_COLOR;
     private CombatRadar radar;
 
@@ -29,6 +30,7 @@ public class AsteroidRenderer implements CombatRenderer
         SHOW_ASTEROIDS = settings.getBoolean("showAsteroids");
 
         settings = settings.getJSONObject("asteroidRenderer");
+        MAX_ASTEROIDS_SHOWN = settings.optInt("maxShown", 1000);
         ASTEROID_COLOR = JSONUtils.toColor(settings.getJSONArray("asteroidColor"));
     }
 
@@ -44,7 +46,7 @@ public class AsteroidRenderer implements CombatRenderer
         if (SHOW_ASTEROIDS && !player.isHulk())
         {
             List<? extends CombatEntityAPI> asteroids = radar.filterVisible(
-                    Global.getCombatEngine().getAsteroids());
+                    Global.getCombatEngine().getAsteroids(), MAX_ASTEROIDS_SHOWN);
             if (!asteroids.isEmpty())
             {
                 radar.enableStencilTest();

@@ -14,15 +14,16 @@
 
     # Controls what shows up on the radar. Disabling some of these
     # might improve performance on a particularly slow machine
-    "showBorderLines":true,     # Default: true, performance impact very low
-    "showShips":true,           # Default: true, performance impact moderate
-    "showShields":true,         # Default: true, performance impact moderate
-    "showAsteroids":true,       # Default: true, performance impact low
-    "showMissiles":true,        # Default: true, performance impact low
-    "showMissileLockIcon":true, # Default: true, performance impact very low
-    "showObjectives":true,      # Default: true, performance impact very low
-    "showBattleProgress":true,  # Default: true, performance impact low
-    "showCombatReadiness":true, # Default: true, performance impact low
+    "showBorderLines":true,         # Default: true, performance impact very low
+    "showShips":true,               # Default: true, performance impact moderate
+    "showShields":true,             # Default: true, performance impact moderate
+    "showMarkerAroundTarget":true,  # Default: true, performance impact very low
+    "showAsteroids":true,           # Default: true, performance impact low
+    "showMissiles":true,            # Default: true, performance impact low
+    "showMissileLockIcon":true,     # Default: true, performance impact very low
+    "showObjectives":true,          # Default: true, performance impact very low
+    "showBattleProgress":true,      # Default: true, performance impact low
+    "showCombatReadiness":true,     # Default: true, performance impact very low
 
     # How far the radar can see, in su
     # Be very careful, radar CPU cost grows exponentially with higher values
@@ -60,6 +61,7 @@
 
     "shipRenderer":
     {
+        #"maxShown":150,
         "shieldColor":[0,255,255,255],
         "targetMarkerColor":[255,255,255,255],
         "phasedShipAlphaMult":0.5,
@@ -67,11 +69,13 @@
 
     "asteroidRenderer":
     {
+        #"maxShown":250,
         "asteroidColor":[192,192,192,255],
     },
 
     "missileRenderer":
     {
+        #"maxShown":150,
         # ID of the missile lock icon, found in data/config/settings.json
         # Must be in the "radar" subcategory of the "graphics" section
         "missileLockIcon":"missileLock",

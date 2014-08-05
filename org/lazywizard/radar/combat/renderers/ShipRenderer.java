@@ -27,8 +27,8 @@ import static org.lwjgl.opengl.GL11.*;
 // TODO: This needs a huge cleanup after new rendering code was added!
 public class ShipRenderer implements CombatRenderer
 {
-    private static boolean SHOW_SHIPS, SHOW_SHIELDS;
-    private static int MAX_SHIPS = 100; /// TODO: Implement, add to config file
+    private static boolean SHOW_SHIPS, SHOW_SHIELDS, SHOW_TARGET_MARKER;
+    private static int MAX_SHIPS_SHOWN;
     private static Color SHIELD_COLOR, MARKER_COLOR;
     private static float PHASE_ALPHA_MULT;
     private FloatBuffer markerVertexMap;
@@ -40,8 +40,10 @@ public class ShipRenderer implements CombatRenderer
     {
         SHOW_SHIPS = settings.getBoolean("showShips");
         SHOW_SHIELDS = settings.getBoolean("showShields");
+        SHOW_TARGET_MARKER = settings.getBoolean("showMarkerAroundTarget");
 
         settings = settings.getJSONObject("shipRenderer");
+        MAX_SHIPS_SHOWN = settings.optInt("maxShown", 1000);
         SHIELD_COLOR = JSONUtils.toColor(settings.getJSONArray("shieldColor"));
         MARKER_COLOR = JSONUtils.toColor(settings.getJSONArray("targetMarkerColor"));
         PHASE_ALPHA_MULT = (float) settings.getDouble("phasedShipAlphaMult");
@@ -181,19 +183,19 @@ public class ShipRenderer implements CombatRenderer
         float[] vertices = new float[]
         {
             // Upper left corner
-            radarLoc.x - size, radarLoc.y + size,   // 0
+            radarLoc.x - size, radarLoc.y + size, // 0
             radarLoc.x - margin, radarLoc.y + size, // 1
             radarLoc.x - size, radarLoc.y + margin, // 2
             // Upper right corner
-            radarLoc.x + size, radarLoc.y + size,   // 3
+            radarLoc.x + size, radarLoc.y + size, // 3
             radarLoc.x + margin, radarLoc.y + size, // 4
             radarLoc.x + size, radarLoc.y + margin, // 5
             // Lower left corner
-            radarLoc.x - size, radarLoc.y - size,   // 6
+            radarLoc.x - size, radarLoc.y - size, // 6
             radarLoc.x - margin, radarLoc.y - size, // 7
             radarLoc.x - size, radarLoc.y - margin, // 8
             // Lower right corner
-            radarLoc.x + size, radarLoc.y - size,   // 9
+            radarLoc.x + size, radarLoc.y - size, // 9
             radarLoc.x + margin, radarLoc.y - size, // 10
             radarLoc.x + size, radarLoc.y - margin  // 11
         };
@@ -215,7 +217,7 @@ public class ShipRenderer implements CombatRenderer
         if (SHOW_SHIPS && !player.isHulk())
         {
             List<? extends CombatEntityAPI> contacts = radar.filterVisible(
-                    Global.getCombatEngine().getShips());
+                    Global.getCombatEngine().getShips(), MAX_SHIPS_SHOWN);
             if (!contacts.isEmpty())
             {
                 radar.enableStencilTest();
@@ -283,7 +285,7 @@ public class ShipRenderer implements CombatRenderer
                 }
 
                 // Draw marker around current ship target
-                if (target != null)
+                if (SHOW_TARGET_MARKER && target != null)
                 {
                     drawTargetMarker(target);
                 }

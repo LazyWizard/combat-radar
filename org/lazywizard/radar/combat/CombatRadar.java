@@ -39,4 +39,5 @@ public interface CombatRadar
 
     public Vector2f getPointOnRadar(Vector2f worldLoc);
     public List<? extends CombatEntityAPI> filterVisible(List<? extends CombatEntityAPI> contacts);
+    public List<? extends CombatEntityAPI> filterVisible(List<? extends CombatEntityAPI> contacts, int maxContacts);
 }
