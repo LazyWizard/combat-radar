@@ -214,7 +214,7 @@ public class ShipRenderer implements CombatRenderer
                     vertices.addAll(shape);
 
                     Vector4f color = getColor((ShipAPI) entity, player.getOwner());
-                    for (int x = 0; x < vertices.size(); x++)
+                    for (int x = 0; x < shape.size(); x++)
                     {
                         colors.add(color);
                     }
