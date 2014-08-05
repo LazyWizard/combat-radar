@@ -424,5 +424,19 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
 
             return visible;
         }
+
+        @Override
+        public List<CombatEntityAPI> filterVisible(List<? extends CombatEntityAPI> contacts,
+                int maxContacts)
+        {
+            List<CombatEntityAPI> visible = filterVisible(contacts);
+
+            if (visible.size() > maxContacts)
+            {
+                return visible.subList(0, maxContacts - 1);
+            }
+
+            return visible;
+        }
     }
 }

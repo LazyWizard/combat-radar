@@ -23,6 +23,7 @@ import static org.lwjgl.opengl.GL11.*;
 public class MissileRenderer implements CombatRenderer
 {
     private static boolean SHOW_MISSILES, SHOW_MISSILE_LOCK_ICON;
+    private static int MAX_MISSILES_SHOWN;
     private static Color MISSILE_LOCKED_COLOR;
     private static String MISSILE_ICON;
     private SpriteAPI icon;
@@ -36,6 +37,7 @@ public class MissileRenderer implements CombatRenderer
         SHOW_MISSILE_LOCK_ICON = settings.getBoolean("showMissileLockIcon");
 
         settings = settings.getJSONObject("missileRenderer");
+        MAX_MISSILES_SHOWN = settings.optInt("maxShown", 1000);
         MISSILE_LOCKED_COLOR = JSONUtils.toColor(settings.getJSONArray("lockedMissileColor"));
         MISSILE_ICON = settings.optString("missileLockIcon", null);
     }
@@ -61,7 +63,7 @@ public class MissileRenderer implements CombatRenderer
         if (SHOW_MISSILES && !player.isHulk())
         {
             List<? extends CombatEntityAPI> missiles = radar.filterVisible(
-                    Global.getCombatEngine().getMissiles());
+                    Global.getCombatEngine().getMissiles(), MAX_MISSILES_SHOWN);
             if (!missiles.isEmpty())
             {
                 radar.enableStencilTest();
