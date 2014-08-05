@@ -73,22 +73,25 @@ public class ShipRenderer implements CombatRenderer
     {
         this.radar = radar;
 
-        int[] indices = new int[]
+        if (SHOW_TARGET_MARKER)
         {
-            // Upper left corner
-            0, 1, 0, 2,
-            // Upper right corner
-            3, 4, 3, 5,
-            // Lower left corner
-            6, 7, 6, 8,
-            // Lower right corner
-            9, 10, 9, 11
-        };
+            int[] indices = new int[]
+            {
+                // Upper left corner
+                0, 1, 0, 2,
+                // Upper right corner
+                3, 4, 3, 5,
+                // Lower left corner
+                6, 7, 6, 8,
+                // Lower right corner
+                9, 10, 9, 11
+            };
 
-        markerIndexMap = BufferUtils.createIntBuffer(indices.length).put(indices);
-        markerIndexMap.flip();
+            markerIndexMap = BufferUtils.createIntBuffer(indices.length).put(indices);
+            markerIndexMap.flip();
 
-        markerVertexMap = BufferUtils.createFloatBuffer(24);
+            markerVertexMap = BufferUtils.createFloatBuffer(24);
+        }
     }
 
     // Must be a series of three points that make up shape's component triangles
