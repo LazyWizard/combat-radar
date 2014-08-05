@@ -2,6 +2,7 @@ package org.lazywizard.radar.combat.renderers;
 
 import java.awt.Color;
 import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import com.fs.starfarer.api.Global;
@@ -30,6 +31,8 @@ public class ShipRenderer implements CombatRenderer
     private static int MAX_SHIPS = 100; /// TODO: Implement, add to config file
     private static Color SHIELD_COLOR, MARKER_COLOR;
     private static float PHASE_ALPHA_MULT;
+    private FloatBuffer vertexMap;
+    private IntBuffer indexMap;
     private CombatRadar radar;
 
     @Override
@@ -67,6 +70,23 @@ public class ShipRenderer implements CombatRenderer
     public void init(CombatRadar radar)
     {
         this.radar = radar;
+
+        int[] indices = new int[]
+        {
+            // Upper left corner
+            0, 1, 0, 2,
+            // Upper right corner
+            3, 4, 3, 5,
+            // Lower left corner
+            6, 7, 6, 8,
+            // Lower right corner
+            9, 10, 9, 11
+        };
+
+        indexMap = BufferUtils.createIntBuffer(indices.length).put(indices);
+        indexMap.flip();
+
+        vertexMap = BufferUtils.createFloatBuffer(24);
     }
 
     // Must be a series of three points that make up shape's component triangles
@@ -161,35 +181,31 @@ public class ShipRenderer implements CombatRenderer
         float[] vertices = new float[]
         {
             // Upper left corner
-            radarLoc.x - size, radarLoc.y + size,
-            radarLoc.x - margin, radarLoc.y + size,
-            radarLoc.x - size, radarLoc.y + size,
-            radarLoc.x - size, radarLoc.y + margin,
+            radarLoc.x - size, radarLoc.y + size,   // 0
+            radarLoc.x - margin, radarLoc.y + size, // 1
+            radarLoc.x - size, radarLoc.y + margin, // 2
             // Upper right corner
-            radarLoc.x + size, radarLoc.y + size,
-            radarLoc.x + margin, radarLoc.y + size,
-            radarLoc.x + size, radarLoc.y + size,
-            radarLoc.x + size, radarLoc.y + margin,
+            radarLoc.x + size, radarLoc.y + size,   // 3
+            radarLoc.x + margin, radarLoc.y + size, // 4
+            radarLoc.x + size, radarLoc.y + margin, // 5
             // Lower left corner
-            radarLoc.x - size, radarLoc.y - size,
-            radarLoc.x - margin, radarLoc.y - size,
-            radarLoc.x - size, radarLoc.y - size,
-            radarLoc.x - size, radarLoc.y - margin,
+            radarLoc.x - size, radarLoc.y - size,   // 6
+            radarLoc.x - margin, radarLoc.y - size, // 7
+            radarLoc.x - size, radarLoc.y - margin, // 8
             // Lower right corner
-            radarLoc.x + size, radarLoc.y - size,
-            radarLoc.x + margin, radarLoc.y - size,
-            radarLoc.x + size, radarLoc.y - size,
-            radarLoc.x + size, radarLoc.y - margin
+            radarLoc.x + size, radarLoc.y - size,   // 9
+            radarLoc.x + margin, radarLoc.y - size, // 10
+            radarLoc.x + size, radarLoc.y - margin  // 11
         };
 
-        FloatBuffer vertexMap = BufferUtils.createFloatBuffer(vertices.length).put(vertices);
+        vertexMap.put(vertices);
         vertexMap.flip();
 
         // Draw the target marker
         glColor(MARKER_COLOR, radar.getContactAlpha(), false);
         glEnableClientState(GL_VERTEX_ARRAY);
         glVertexPointer(2, 0, vertexMap);
-        glDrawArrays(GL_LINES, 0, vertices.length / 2);
+        glDrawElements(GL_LINES, indexMap);
         glDisableClientState(GL_VERTEX_ARRAY);
     }
 
@@ -252,8 +268,8 @@ public class ShipRenderer implements CombatRenderer
                 glVertexPointer(2, 0, vertexMap);
                 glColorPointer(4, 0, colorMap);
                 glDrawArrays(GL_TRIANGLES, 0, vertices.size());
-                glDisableClientState(GL_VERTEX_ARRAY);
                 glDisableClientState(GL_COLOR_ARRAY);
+                glDisableClientState(GL_VERTEX_ARRAY);
 
                 // Draw shields
                 if (SHOW_SHIELDS)
