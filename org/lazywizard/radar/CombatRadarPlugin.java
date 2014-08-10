@@ -171,8 +171,8 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         radarScaling = renderRadius / sightRadius;
         currentZoom = zoom;
 
-        Global.getLogger(CombatRadarPlugin.class).log(Level.DEBUG,
-                "Zoom level set to " + zoom + "(" + zoomLevel + ")");
+        //Global.getLogger(CombatRadarPlugin.class).log(Level.DEBUG,
+        //        "Zoom level set to " + zoom + "(" + zoomLevel + ")");
     }
 
     private void checkInit()
