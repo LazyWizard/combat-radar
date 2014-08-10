@@ -100,7 +100,7 @@ public class BattleProgressRenderer implements CombatRenderer
         nextCheck = TIME_BETWEEN_CHECKS;
     }
 
-    private float getRelativeStrength()
+    private static float getRelativeStrength()
     {
         CombatEngineAPI engine = Global.getCombatEngine();
         float playerStrength = 0f, enemyStrength = 0f;

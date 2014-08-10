@@ -66,8 +66,8 @@ public class RadarBoxRenderer implements CombatRenderer
             // Delete old display list, if existant
             if (RADAR_BOX_DISPLAY_LIST_ID >= 0)
             {
-                Global.getLogger(RadarBoxRenderer.class).log(Level.DEBUG,
-                        "Deleting old list with ID " + RADAR_BOX_DISPLAY_LIST_ID);
+                //Global.getLogger(RadarBoxRenderer.class).log(Level.DEBUG,
+                //        "Deleting old list with ID " + RADAR_BOX_DISPLAY_LIST_ID);
                 glDeleteLists(RADAR_BOX_DISPLAY_LIST_ID, 1);
             }
 
@@ -75,8 +75,8 @@ public class RadarBoxRenderer implements CombatRenderer
 
             // Generate new display list
             RADAR_BOX_DISPLAY_LIST_ID = glGenLists(1);
-            Global.getLogger(RadarBoxRenderer.class).log(Level.DEBUG,
-                    "Creating new list with ID " + RADAR_BOX_DISPLAY_LIST_ID);
+            //Global.getLogger(RadarBoxRenderer.class).log(Level.DEBUG,
+            //        "Creating new list with ID " + RADAR_BOX_DISPLAY_LIST_ID);
             glNewList(RADAR_BOX_DISPLAY_LIST_ID, GL_COMPILE);
             glLineWidth(1f);
 
