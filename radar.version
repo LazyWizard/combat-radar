@@ -1,0 +1,11 @@
+{
+    "masterVersionFile":"https://dl.dropboxusercontent.com/u/32722116/Version%20Files/radar.version",
+    "modName":"Common Radar",
+    "modVersion":
+    {
+        "major":0,
+        "minor":8,
+        "patch":3
+    },
+    "starsectorVersion":".6.2a"
+}
