@@ -3,7 +3,6 @@ package org.lazywizard.radar.combat.renderers;
 import java.awt.Color;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.ShipAPI;
-import org.apache.log4j.Level;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.lazywizard.lazylib.JSONUtils;
@@ -142,6 +141,7 @@ public class RadarBoxRenderer implements CombatRenderer
             }
 
             glEndList();
+            glCallList(RADAR_BOX_DISPLAY_LIST_ID);
         }
 
         float zoomLinePos = radarRadius / radar.getCurrentZoomLevel();
