@@ -20,7 +20,7 @@ public class RadarBoxRenderer implements CombatRenderer
     private static float RADAR_OPACITY, RADAR_EDGE_ALPHA;
     // Radar OpenGL buffers/display lists
     private static int RADAR_BOX_DISPLAY_LIST_ID = -123;
-    private boolean wasHulkLastFrame = false;
+    private boolean firstFrame = true, wasHulkLastFrame = false;
     private CombatRadar radar;
 
     @Override
@@ -43,7 +43,7 @@ public class RadarBoxRenderer implements CombatRenderer
     public void init(CombatRadar radar)
     {
         this.radar = radar;
-        wasHulkLastFrame = !radar.getPlayer().isHulk();
+        firstFrame = true;
     }
 
     @Override
@@ -54,12 +54,9 @@ public class RadarBoxRenderer implements CombatRenderer
         float radarAlpha = radar.getRadarAlpha();
 
         // Cache OpenGL commands for faster execution
-        if (player.isHulk() == wasHulkLastFrame)
+        if (firstFrame || player.isHulk() != wasHulkLastFrame)
         {
-            glCallList(RADAR_BOX_DISPLAY_LIST_ID);
-        }
-        else
-        {
+            firstFrame = false;
             wasHulkLastFrame = player.isHulk();
 
             // Delete old display list, if existant
@@ -141,6 +138,10 @@ public class RadarBoxRenderer implements CombatRenderer
             }
 
             glEndList();
+            glCallList(RADAR_BOX_DISPLAY_LIST_ID);
+        }
+        else
+        {
             glCallList(RADAR_BOX_DISPLAY_LIST_ID);
         }
 
