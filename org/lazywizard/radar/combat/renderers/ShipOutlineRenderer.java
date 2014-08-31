@@ -10,6 +10,7 @@ import com.fs.starfarer.api.combat.BoundsAPI.SegmentAPI;
 import com.fs.starfarer.api.combat.CombatEntityAPI;
 import com.fs.starfarer.api.combat.ShieldAPI;
 import com.fs.starfarer.api.combat.ShipAPI;
+import com.fs.starfarer.api.combat.ShipAPI.HullSize;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.lazywizard.lazylib.FastTrig;
@@ -70,14 +71,21 @@ public class ShipOutlineRenderer implements CombatRenderer
         List<Vector2f> shape = new ArrayList<>();
 
         // Large ships have a slightly more complex shape
-        if (!contact.isFighter())
+        if (contact.getHullSize().compareTo(HullSize.FIGHTER) > 0)
         {
             BoundsAPI bounds = contact.getExactBounds();
             bounds.update(contact.getLocation(), contact.getFacing());
+            shape.add(radar.getPointOnRadar(contact.getLocation()));
             for (Iterator<SegmentAPI> iter = bounds.getSegments().iterator(); iter.hasNext();)
             {
                 SegmentAPI segment = iter.next();
                 shape.add(radar.getPointOnRadar(segment.getP1()));
+
+                // TODO: Remove if GL_POLYGON doesn't work out
+                if (!iter.hasNext())
+                {
+                    shape.add(radar.getPointOnRadar(segment.getP2()));
+                }
             }
         }
         else
@@ -86,6 +94,7 @@ public class ShipOutlineRenderer implements CombatRenderer
             shape.add(new Vector2f(size, 0f));
             shape.add(new Vector2f(-size / 1.5f, -(size / 1.75f)));
             shape.add(new Vector2f(-size / 1.5f, size / 1.75f));
+            shape.add(new Vector2f(size, 0f)); // TODO: Remove if GL_POLYGON doesn't work out
             shape = rotateAndTranslate(shape, contact.getFacing(),
                     radar.getPointOnRadar(contact.getLocation()));
         }
@@ -124,7 +133,7 @@ public class ShipOutlineRenderer implements CombatRenderer
         }
 
         List<Vector2f> shape = getShape(contact);
-        glBegin(GL_LINE_LOOP);
+        glBegin(GL_POLYGON);// GL_LINE_LOOP);
         for (Vector2f point : shape)
         {
             glVertex2f(point.x, point.y);
