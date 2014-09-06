@@ -240,6 +240,8 @@ public class BattleProgressRenderer implements CombatRenderer
             glVertexPointer(2, 0, vertexMap);
             glColorPointer(4, 0, colorMap);
             glDrawElements(GL_TRIANGLES, indexMap);
+            glDisableClientState(GL_COLOR_ARRAY);
+            glDisableClientState(GL_VERTEX_ARRAY);
 
             // Show original relative strengths
             glLineWidth(1f);
