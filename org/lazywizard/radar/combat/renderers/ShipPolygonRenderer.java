@@ -30,7 +30,7 @@ import static org.lwjgl.opengl.GL31.glPrimitiveRestartIndex;
 
 // TODO: Switch to pre-calculated rotations for ships
 // TODO: This needs a huge cleanup after new rendering code was added!
-public class ShipOutlineRenderer implements CombatRenderer
+public class ShipPolygonRenderer implements CombatRenderer
 {
     private static final int PRIMITIVE_RESTART_INDEX = 12354;
     private static boolean SHOW_SHIPS, SHOW_SHIELDS, SHOW_TARGET_MARKER;
@@ -239,12 +239,13 @@ public class ShipOutlineRenderer implements CombatRenderer
                 // Draw contacts
                 ShipAPI target = null;
                 List<Vector2f> vertices = new ArrayList<>();
+                List<Integer> resetIndices = new ArrayList<>();
                 List<Vector4f> colors = new ArrayList<>();
                 for (CombatEntityAPI entity : contacts)
                 {
                     List<Vector2f> shape = getShape((ShipAPI) entity);
                     vertices.addAll(shape);
-                    vertices.add(null);
+                    resetIndices.add(vertices.size());
 
                     Vector4f color = getColor((ShipAPI) entity, player.getOwner());
                     for (int x = 0; x < shape.size(); x++)
@@ -263,15 +264,8 @@ public class ShipOutlineRenderer implements CombatRenderer
                 FloatBuffer vertexMap = BufferUtils.createFloatBuffer(vertices.size() * 2);
                 for (Vector2f vec : vertices)
                 {
-                    if (vec == null)
-                    {
-                        vertexMap.put(PRIMITIVE_RESTART_INDEX);
-                    }
-                    else
-                    {
-                        vertexMap.put(vec.x);
-                        vertexMap.put(vec.y);
-                    }
+                    vertexMap.put(vec.x);
+                    vertexMap.put(vec.y);
                 }
                 vertexMap.flip();
 
@@ -293,7 +287,14 @@ public class ShipOutlineRenderer implements CombatRenderer
                 glEnable(GL_PRIMITIVE_RESTART);
                 glVertexPointer(2, 0, vertexMap);
                 glColorPointer(4, 0, colorMap);
-                glDrawArrays(GL_POLYGON, 0, vertices.size());
+
+                int lastIndex = 0;
+                for (Integer resetIndex : resetIndices)
+                {
+                    glDrawArrays(GL_POLYGON, lastIndex, resetIndex - lastIndex);
+                    lastIndex = resetIndex;
+                }
+
                 glDisable(GL_PRIMITIVE_RESTART);
                 glDisableClientState(GL_COLOR_ARRAY);
                 glDisableClientState(GL_VERTEX_ARRAY);
