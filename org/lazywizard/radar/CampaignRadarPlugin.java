@@ -7,36 +7,32 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import com.fs.starfarer.api.EveryFrameScript;
 import com.fs.starfarer.api.Global;
-import com.fs.starfarer.api.combat.CombatEngineAPI;
-import com.fs.starfarer.api.combat.CombatEntityAPI;
-import com.fs.starfarer.api.combat.EveryFrameCombatPlugin;
-import com.fs.starfarer.api.combat.ShipAPI;
-import com.fs.starfarer.api.input.InputEventAPI;
+import com.fs.starfarer.api.campaign.CampaignFleetAPI;
+import com.fs.starfarer.api.campaign.SectorAPI;
+import com.fs.starfarer.api.campaign.SectorEntityToken;
 import org.apache.log4j.Level;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.lazywizard.lazylib.JSONUtils;
 import org.lazywizard.lazylib.MathUtils;
-import org.lazywizard.lazylib.combat.CombatUtils;
 import org.lazywizard.lazylib.opengl.DrawUtils;
-import org.lazywizard.radar.renderers.CombatRenderer;
+import org.lazywizard.radar.renderers.CampaignRenderer;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.util.vector.Vector2f;
 import static org.lwjgl.opengl.GL11.*;
 
-public class CombatRadarPlugin implements EveryFrameCombatPlugin
+public class CampaignRadarPlugin implements EveryFrameScript
 {
     // == STATIC VARIABLES ==
     // Path to master settings files, link to individual renderers + their settings
-    private static final String SETTINGS_FILE = "data/config/radar/combat_radar.json";
-    private static final String CSV_PATH = "data/config/radar/combat_radar_plugins.csv";
+    private static final String SETTINGS_FILE = "data/config/radar/campaign_radar.json";
+    private static final String CSV_PATH = "data/config/radar/campaign_radar_plugins.csv";
     // List of loaded rendering plugins
-    private static final List<Class<? extends CombatRenderer>> RENDERER_CLASSES = new ArrayList<>();
-    // Performance settings
-    private static boolean RESPECT_FOG_OF_WAR = true;
+    private static final List<Class<? extends CampaignRenderer>> RENDERER_CLASSES = new ArrayList<>();
     // Radar range settings
     private static float MAX_SIGHT_RANGE;
     private static int NUM_ZOOM_LEVELS;
@@ -47,13 +43,13 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
     private static int RADAR_TOGGLE_KEY;
 
     // == LOCAL VARIABLES ==
-    private final List<CombatRenderer> renderers = new ArrayList<>();
-    private CombatRadarInfo radarInfo;
+    private final List<CampaignRenderer> renderers = new ArrayList<>();
+    private CampaignRadarInfo radarInfo;
     private Vector2f renderCenter;
     private float renderRadius, sightRadius, radarScaling;
     private int currentZoom;
-    private ShipAPI player;
-    private boolean initialized = false;
+    private CampaignFleetAPI player;
+    private boolean initialized = false, keyDown = false;
 
     static void reloadSettings() throws IOException, JSONException
     {
@@ -61,12 +57,9 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
 
         // Toggle key
         RADAR_TOGGLE_KEY = settings.getInt("toggleKey");
-        Global.getLogger(CombatRadarPlugin.class).log(Level.INFO,
+        Global.getLogger(CampaignRadarPlugin.class).log(Level.INFO,
                 "Radar toggle key set to " + Keyboard.getKeyName(RADAR_TOGGLE_KEY)
                 + " (" + RADAR_TOGGLE_KEY + ")");
-
-        // Performance tweak settings
-        RESPECT_FOG_OF_WAR = settings.getBoolean("onlyShowVisibleContacts");
 
         // Radar options
         RADAR_ALPHA = (float) settings.getDouble("radarUIAlpha");
@@ -95,7 +88,7 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
                 "renderer id", CSV_PATH, "lw_radar");
         final ClassLoader loader = Global.getSettings().getScriptClassLoader();
         RENDERER_CLASSES.clear();
-        final List<RendererWrapper<CombatRenderer>> preSorted = new ArrayList<>();
+        final List<RendererWrapper<CampaignRenderer>> preSorted = new ArrayList<>();
         final Map<String, JSONObject> loadedFiles = new HashMap<>();
         for (int x = 0; x < csv.length(); x++)
         {
@@ -115,11 +108,11 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
             }
 
             // Ensure this is actually a valid renderer
-            if (!CombatRenderer.class.isAssignableFrom(renderClass))
+            if (!CampaignRenderer.class.isAssignableFrom(renderClass))
             {
                 throw new RuntimeException(renderClass.getCanonicalName()
                         + " does not implement interface "
-                        + CombatRenderer.class.getCanonicalName());
+                        + CampaignRenderer.class.getCanonicalName());
             }
 
             // Wrap the renderer's class and rendering info to be used later
@@ -145,7 +138,7 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
                 // Load settings for each individual renderer
                 try
                 {
-                    CombatRenderer tmp = ((CombatRenderer) renderClass.newInstance());
+                    CampaignRenderer tmp = ((CampaignRenderer) renderClass.newInstance());
                     tmp.reloadSettings(renderSettings);
                 }
                 catch (InstantiationException | IllegalAccessException ex)
@@ -157,10 +150,22 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
 
         // Actually register the renderers with the radar, in the proper order
         Collections.sort(preSorted);
-        for (RendererWrapper<CombatRenderer> wrapper : preSorted)
+        for (RendererWrapper<CampaignRenderer> wrapper : preSorted)
         {
             RENDERER_CLASSES.add(wrapper.getRendererClass());
         }
+    }
+
+    @Override
+    public boolean isDone()
+    {
+        return false;
+    }
+
+    @Override
+    public boolean runWhilePaused()
+    {
+        return true;
     }
 
     private void setZoomLevel(int zoom)
@@ -176,14 +181,18 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         if (!initialized)
         {
             initialized = true;
+            renderRadius = Display.getHeight() / 10f;
+            renderCenter = new Vector2f(Display.getWidth() - (renderRadius * 1.2f),
+                    renderRadius * 1.2f);
+            setZoomLevel(NUM_ZOOM_LEVELS);
 
             renderers.clear(); // Needed due to a .6.2a bug
-            radarInfo = new CombatRadarInfo();
-            for (Class<? extends CombatRenderer> rendererClass : RENDERER_CLASSES)
+            radarInfo = new CampaignRadarInfo();
+            for (Class<? extends CampaignRenderer> rendererClass : RENDERER_CLASSES)
             {
                 try
                 {
-                    CombatRenderer renderer = rendererClass.newInstance();
+                    CampaignRenderer renderer = rendererClass.newInstance();
                     renderers.add(renderer);
                     renderer.init(radarInfo);
                 }
@@ -195,27 +204,26 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         }
     }
 
-    private void checkInput(List<InputEventAPI> events)
+    private void checkInput()
     {
-        for (InputEventAPI event : events)
+        if (Keyboard.isKeyDown(RADAR_TOGGLE_KEY))
         {
-            if (event.isConsumed())
+            if (keyDown == true)
             {
-                continue;
+                return;
             }
 
-            // Radar zoom+off toggle
-            if (event.isKeyDownEvent() && event.getEventValue() == RADAR_TOGGLE_KEY)
+            if (--currentZoom < 0)
             {
-                if (--currentZoom < 0)
-                {
-                    currentZoom = NUM_ZOOM_LEVELS;
-                }
-
-                setZoomLevel(currentZoom);
-                event.consume();
-                break;
+                currentZoom = NUM_ZOOM_LEVELS;
             }
+
+            setZoomLevel(currentZoom);
+            keyDown = true;
+        }
+        else
+        {
+            keyDown = false;
         }
     }
 
@@ -248,7 +256,7 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         radarInfo.disableStencilTest();
 
         // Draw the radar elements individually
-        for (CombatRenderer renderer : renderers)
+        for (CampaignRenderer renderer : renderers)
         {
             renderer.render(player, amount);
         }
@@ -262,25 +270,25 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
     }
 
     @Override
-    public void advance(float amount, List<InputEventAPI> events)
+    public void advance(float amount)
     {
-        CombatEngineAPI engine = Global.getCombatEngine();
+        SectorAPI sector = Global.getSector();
 
-        // Temp fix for .6.2a bug
-        if (engine == null)
+        // Don't display over menus
+        if (sector.getCampaignUI().isShowingDialog())
         {
             return;
         }
 
-        // This also acts as a main menu check
-        player = engine.getPlayerShip();
-        if (player == null || !engine.isEntityInPlay(player))
+        // Don't render if no player is found
+        player = sector.getPlayerFleet();
+        if (player == null || !player.isAlive())
         {
             return;
         }
 
         checkInit();
-        checkInput(events);
+        checkInput();
 
         // Zoom 0 = radar disabled
         if (currentZoom != 0)
@@ -289,18 +297,7 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         }
     }
 
-    @Override
-    public void init(CombatEngineAPI engine)
-    {
-        initialized = false;
-
-        renderRadius = Display.getHeight() / 10f;
-        renderCenter = new Vector2f(Display.getWidth() - (renderRadius * 1.2f),
-                renderRadius * 1.2f);
-        setZoomLevel(NUM_ZOOM_LEVELS);
-    }
-
-    private class CombatRadarInfo implements CombatRadar
+    private class CampaignRadarInfo implements CampaignRadar
     {
         @Override
         @Deprecated // TEMPORARY
@@ -393,11 +390,11 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         }
 
         @Override
-        public List<CombatEntityAPI> filterVisible(List<? extends CombatEntityAPI> contacts,
+        public List<SectorEntityToken> filterVisible(List<? extends SectorEntityToken> contacts,
                 int maxContacts)
         {
-            List<CombatEntityAPI> visible = new ArrayList<>();
-            for (CombatEntityAPI contact : contacts)
+            List<SectorEntityToken> visible = new ArrayList<>();
+            for (SectorEntityToken contact : contacts)
             {
                 // Limit maximum contacts displayed
                 if (visible.size() >= maxContacts)
@@ -407,14 +404,8 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
 
                 // Check if any part of the contact is visible
                 if (MathUtils.isWithinRange(contact, player.getLocation(),
-                        sightRadius + contact.getCollisionRadius()))
+                        sightRadius + contact.getRadius()))
                 {
-                    if (RESPECT_FOG_OF_WAR && !CombatUtils.isVisibleToSide(
-                            contact, player.getOwner()))
-                    {
-                        continue;
-                    }
-
                     visible.add(contact);
                 }
             }
