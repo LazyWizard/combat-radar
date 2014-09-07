@@ -1,4 +1,4 @@
-package org.lazywizard.radar.combat.renderers;
+package org.lazywizard.radar.renderers.combat;
 
 import java.awt.Color;
 import java.nio.FloatBuffer;
@@ -10,8 +10,8 @@ import com.fs.starfarer.api.combat.ShipAPI;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.lazywizard.lazylib.JSONUtils;
-import org.lazywizard.radar.combat.CombatRadar;
-import org.lazywizard.radar.combat.CombatRenderer;
+import org.lazywizard.radar.CombatRadar;
+import org.lazywizard.radar.renderers.CombatRenderer;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.util.vector.Vector2f;
 import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;

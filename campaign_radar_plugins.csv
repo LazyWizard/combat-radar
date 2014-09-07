@@ -1,0 +1,2 @@
+renderer id,render order,script,settings file (optional)
+RadarBoxRenderer,10,org.lazywizard.radar.renderers.campaign.RadarBoxRenderer,data/config/radar/campaign_radar.json

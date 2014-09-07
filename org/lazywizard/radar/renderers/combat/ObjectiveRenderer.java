@@ -1,4 +1,4 @@
-package org.lazywizard.radar.combat.renderers;
+package org.lazywizard.radar.renderers.combat;
 
 import java.util.List;
 import com.fs.starfarer.api.Global;
@@ -6,8 +6,8 @@ import com.fs.starfarer.api.combat.CombatEntityAPI;
 import com.fs.starfarer.api.combat.ShipAPI;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.lazywizard.radar.combat.CombatRadar;
-import org.lazywizard.radar.combat.CombatRenderer;
+import org.lazywizard.radar.CombatRadar;
+import org.lazywizard.radar.renderers.CombatRenderer;
 import org.lwjgl.util.vector.Vector2f;
 import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
 import static org.lwjgl.opengl.GL11.*;
@@ -35,7 +35,7 @@ public class ObjectiveRenderer implements CombatRenderer
         if (SHOW_OBJECTIVES && !player.isHulk())
         {
             List<? extends CombatEntityAPI> objectives = radar.filterVisible(
-                    Global.getCombatEngine().getObjectives());
+                    Global.getCombatEngine().getObjectives(), 1000);
             if (!objectives.isEmpty())
             {
                 radar.enableStencilTest();

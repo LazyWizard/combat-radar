@@ -1,11 +1,14 @@
-package org.lazywizard.radar.combat.renderers;
+package org.lazywizard.radar.renderers.combat;
 
 import java.awt.Color;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.combat.BoundsAPI;
+import com.fs.starfarer.api.combat.BoundsAPI.SegmentAPI;
 import com.fs.starfarer.api.combat.CombatEntityAPI;
 import com.fs.starfarer.api.combat.ShieldAPI;
 import com.fs.starfarer.api.combat.ShipAPI;
@@ -15,17 +18,18 @@ import org.json.JSONObject;
 import org.lazywizard.lazylib.FastTrig;
 import org.lazywizard.lazylib.JSONUtils;
 import org.lazywizard.lazylib.opengl.DrawUtils;
-import org.lazywizard.radar.combat.CombatRadar;
-import org.lazywizard.radar.combat.CombatRenderer;
+import org.lazywizard.radar.CombatRadar;
+import org.lazywizard.radar.renderers.CombatRenderer;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.util.vector.Vector2f;
 import org.lwjgl.util.vector.Vector4f;
 import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
 import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL31.GL_PRIMITIVE_RESTART;
 
 // TODO: Switch to pre-calculated rotations for ships
 // TODO: This needs a huge cleanup after new rendering code was added!
-public class ShipRenderer implements CombatRenderer
+public class ShipPolygonRenderer implements CombatRenderer
 {
     private static boolean SHOW_SHIPS, SHOW_SHIELDS, SHOW_TARGET_MARKER;
     private static int MAX_SHIPS_SHOWN;
@@ -94,34 +98,42 @@ public class ShipRenderer implements CombatRenderer
         }
     }
 
-    // Must be a series of three points that make up shape's component triangles
     private List<Vector2f> getShape(ShipAPI contact)
     {
-        HullSize hullSize = contact.getHullSize();
-        float size = 1.5f * (hullSize.ordinal() + 1)
-                * radar.getCurrentZoomLevel();
         List<Vector2f> shape = new ArrayList<>();
 
-        // Large ships have a slightly more complex shape
-        if (hullSize.ordinal() > HullSize.DESTROYER.ordinal())
+        // Frigates and larger have a polygonal shape based on collision bounds
+        // Some fighters (ex: Wasp) have non-simple bounds, hence their exclusion
+        if (contact.getHullSize().compareTo(HullSize.FIGHTER) > 0)
         {
-            shape.add(new Vector2f(size, 0f));
-            shape.add(new Vector2f(-size / 1.5f, -(size / 1.75f)));
-            shape.add(new Vector2f(-size * .5f, 0f));
+            BoundsAPI bounds = contact.getExactBounds();
+            bounds.update(contact.getLocation(), contact.getFacing());
+            shape.add(radar.getPointOnRadar(contact.getLocation()));
+            for (Iterator<SegmentAPI> iter = bounds.getSegments().iterator(); iter.hasNext();)
+            {
+                SegmentAPI segment = iter.next();
+                shape.add(radar.getPointOnRadar(segment.getP1()));
 
-            shape.add(new Vector2f(size, 0f));
-            shape.add(new Vector2f(-size / 1.5f, size / 1.75f));
-            shape.add(new Vector2f(-size * .5f, 0f));
+                // Ensure first point is also final point for a complete polygon
+                if (!iter.hasNext())
+                {
+                    shape.add(radar.getPointOnRadar(segment.getP2()));
+                }
+            }
+
+            return shape;
         }
         else
         {
+            float size = contact.getCollisionRadius() * radar.getCurrentPixelsPerSU();
             shape.add(new Vector2f(size, 0f));
             shape.add(new Vector2f(-size / 1.5f, -(size / 1.75f)));
             shape.add(new Vector2f(-size / 1.5f, size / 1.75f));
-        }
+            shape.add(new Vector2f(size, 0f));
 
-        return rotateAndTranslate(shape, contact.getFacing(),
-                radar.getPointOnRadar(contact.getLocation()));
+            return rotateAndTranslate(shape, contact.getFacing(),
+                    radar.getPointOnRadar(contact.getLocation()));
+        }
     }
 
     private static Vector4f asVector4f(Color color, float alphaMod)
@@ -167,8 +179,7 @@ public class ShipRenderer implements CombatRenderer
         if (shield != null && shield.isOn())
         {
             Vector2f radarLoc = radar.getPointOnRadar(contact.getLocation());
-            float size = 1.75f * (contact.getHullSize().ordinal() + 1)
-                    * radar.getCurrentZoomLevel();
+            float size = shield.getRadius() * radar.getCurrentPixelsPerSU();
             DrawUtils.drawArc(radarLoc.x, radarLoc.y, size,
                     shield.getFacing() - (shield.getActiveArc() / 2f),
                     shield.getActiveArc(),
@@ -179,8 +190,7 @@ public class ShipRenderer implements CombatRenderer
     private void drawTargetMarker(ShipAPI target)
     {
         // Generate vertices
-        float size = 1.8f * (target.getHullSize().ordinal() + 1)
-                * radar.getCurrentZoomLevel();
+        float size = target.getCollisionRadius() * radar.getCurrentPixelsPerSU();;
         Vector2f radarLoc = radar.getPointOnRadar(target.getLocation());
         float margin = size * .5f;
         float[] vertices = new float[]
@@ -228,11 +238,13 @@ public class ShipRenderer implements CombatRenderer
                 // Draw contacts
                 ShipAPI target = null;
                 List<Vector2f> vertices = new ArrayList<>();
+                List<Integer> resetIndices = new ArrayList<>();
                 List<Vector4f> colors = new ArrayList<>();
                 for (CombatEntityAPI entity : contacts)
                 {
                     List<Vector2f> shape = getShape((ShipAPI) entity);
                     vertices.addAll(shape);
+                    resetIndices.add(vertices.size());
 
                     Vector4f color = getColor((ShipAPI) entity, player.getOwner());
                     for (int x = 0; x < shape.size(); x++)
@@ -272,7 +284,15 @@ public class ShipRenderer implements CombatRenderer
                 glEnableClientState(GL_COLOR_ARRAY);
                 glVertexPointer(2, 0, vertexMap);
                 glColorPointer(4, 0, colorMap);
-                glDrawArrays(GL_TRIANGLES, 0, vertices.size());
+
+                int lastIndex = 0;
+                for (Integer resetIndex : resetIndices)
+                {
+                    glDrawArrays(GL_POLYGON, lastIndex, resetIndex - lastIndex);
+                    lastIndex = resetIndex;
+                }
+
+                glDisable(GL_PRIMITIVE_RESTART);
                 glDisableClientState(GL_COLOR_ARRAY);
                 glDisableClientState(GL_VERTEX_ARRAY);
 
