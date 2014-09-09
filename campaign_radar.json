@@ -46,9 +46,9 @@
     {
         # Radar backdrop colors
         "radarBackgroundColor":[0,0,0,255],
-        "radarBackgroundAlpha":0.33, # Default: 0.33
+        "radarBackgroundAlpha":0.5, # Default: 0.5
         # Controls how faded the edges of the radar box are
-        "radarEdgeAlpha":0.25, # Default: 0.25
+        "radarEdgeAlpha":0.33, # Default: 0.33
     },
 
     "stationRenderer":

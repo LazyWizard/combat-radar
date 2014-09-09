@@ -58,7 +58,7 @@ public class JumpPointRenderer implements CampaignRenderer
                 glEnable(GL_TEXTURE_2D);
 
                 icon.setColor(JUMP_POINT_COLOR);
-                icon.setAlphaMult(1f);//radar.getContactAlpha());
+                icon.setAlphaMult(radar.getContactAlpha());
                 for (JumpPointAPI jumpPoint : jumpPoints)
                 {
                     // Resize and draw jump point on radar

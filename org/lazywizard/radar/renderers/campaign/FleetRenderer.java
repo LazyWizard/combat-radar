@@ -16,6 +16,7 @@ public class FleetRenderer implements CampaignRenderer
 {
     private static boolean SHOW_FLEETS;
     private CampaignRadar radar;
+    private float lastFacing;
 
     @Override
     public void reloadSettings(JSONObject settings) throws JSONException
@@ -27,6 +28,7 @@ public class FleetRenderer implements CampaignRenderer
     public void init(CampaignRadar radar)
     {
         this.radar = radar;
+        lastFacing = 0f;
     }
 
     @Override
@@ -55,10 +57,20 @@ public class FleetRenderer implements CampaignRenderer
                         glColor(radar.getFriendlyContactColor(), radar.getContactAlpha(), false);
                     }
 
+                    // Calculate facing of player ship
+                    float facing;
+                    if (fleet.getVelocity().lengthSquared() < 25f)
+                    {
+                        facing = (fleet == player ? lastFacing : 0f);
+                    }
+                    else
+                    {
+                        facing = VectorUtils.getFacing(fleet.getVelocity());
+                        lastFacing = facing;
+                    }
+
                     // Draw fleet on radar as angled triangle
                     Vector2f center = radar.getPointOnRadar(fleet.getLocation());
-                    float facing = (fleet.getVelocity().lengthSquared() > 1f
-                            ? VectorUtils.getFacing(fleet.getVelocity()) : 0f);
                     float size = Math.max(60f, fleet.getRadius())
                             * radar.getCurrentPixelsPerSU();
                     size *= 2f; // Scale upwards for better visibility

@@ -300,11 +300,13 @@ public class ShipPolygonRenderer implements CombatRenderer
                 if (SHOW_SHIELDS)
                 {
                     glLineWidth(1f);
+                    glEnable(GL_LINE_SMOOTH);
                     glColor(SHIELD_COLOR, radar.getContactAlpha(), false);
                     for (CombatEntityAPI entity : contacts)
                     {
                         drawShield((ShipAPI) entity);
                     }
+                    glDisable(GL_LINE_SMOOTH);
                 }
 
                 // Draw marker around current ship target
