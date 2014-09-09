@@ -66,6 +66,7 @@
     "jumpPointRenderer":
     {
         #"maxShown":150,
-        "jumpPointColor":[125,0,135,255],
+        "jumpPointIcon":"jumpPoint",
+        "jumpPointColor":[255,0,255,255],
     },
 }
