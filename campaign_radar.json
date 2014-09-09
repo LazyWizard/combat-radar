@@ -8,22 +8,14 @@
     # http://www.lwjgl.org/javadoc/constant-values.html#org.lwjgl.input.Keyboard.KEY_0
     "toggleKey":37, # Default: K (37)
 
-    # Disabling this will help performance on slow rigs,
-    # but the radar won't respect fog of war anymore
-    "onlyShowVisibleContacts":true, # Default: true
-
     # Controls what shows up on the radar. Disabling some of these
     # might improve performance on a particularly slow machine
-    "showBorderLines":true,         # Default: true, performance impact very low
-    "showShips":true,               # Default: true, performance impact moderate
-    "showShields":true,             # Default: true, performance impact moderate
-    "showMarkerAroundTarget":true,  # Default: true, performance impact very low
+    "showFleets":true,              # Default: true, performance impact ???
+    "showMarkerAroundTarget":true,  # Default: true, performance impact ???
+    "showPlanets":true,             # Default: true, performance impact ???
+    "showStations":true,            # Default: true, performance impact ???
     "showAsteroids":true,           # Default: true, performance impact low
-    "showMissiles":true,            # Default: true, performance impact low
-    "showMissileLockIcon":true,     # Default: true, performance impact very low
-    "showObjectives":true,          # Default: true, performance impact very low
-    "showBattleProgress":true,      # Default: true, performance impact low
-    "showCombatReadiness":true,     # Default: true, performance impact very low
+    "showJumpPoints":true,          # Default: true, performance impact ???
 
     # How far the radar can see, in su
     # Be very careful, radar CPU cost grows exponentially with higher values
@@ -43,7 +35,7 @@
     # Alpha channel is multiplied by contactAlpha setting
     "friendlyColor":[0,255,0,255],
     "enemyColor":[255,0,0,255],
-    "neutralColor":[75,75,75,255], # Only used for hulks right now
+    "neutralColor":[75,75,75,255],
 
 
     ################################
@@ -59,45 +51,15 @@
         "radarEdgeAlpha":0.25, # Default: 0.25
     },
 
-    "shipRenderer":
-    {
-        #"maxShown":150,
-        "shieldColor":[0,255,255,255],
-        "targetMarkerColor":[255,255,255,255],
-        "phasedShipAlphaMult":0.5,
-    },
-
     "asteroidRenderer":
     {
         #"maxShown":250,
         "asteroidColor":[192,192,192,255],
     },
 
-    "missileRenderer":
+    "jumpPointRenderer":
     {
         #"maxShown":150,
-        # ID of the missile lock icon, found in data/config/settings.json
-        # Must be in the "radar" subcategory of the "graphics" section
-        "missileLockIcon":"missileLock",
-        "lockedMissileColor":[255,200,0,255],
-    },
-
-    "battleProgressRenderer":
-    {
-        # Whether the bar should gradually move when a ship is destroyed
-        "animateProgressBar":true,
-        # How fast the bar should update, in percent per second
-        # This setting is ignored if "animateProgressBar" is false
-        "barAnimationSpeed":15.0;
-    },
-
-    "combatReadinessRenderer":
-    {
-        # Color of the portion of the bar representing player's current CR
-        "currentCRColor":[0,255,255,255],
-        # Color of the portion representing CR lost during this battle
-        "lostCRColor":[0,0,255,255],
-        # Color of the portion representing CR never obtained
-        "emptyBarColor":[64,64,64,255],
+        "jumpPointColor":[125,0,135,255],
     },
 }
