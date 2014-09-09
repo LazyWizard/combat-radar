@@ -28,6 +28,4 @@ interface BaseRadar
     public float getCurrentPixelsPerSU();
     public float getCurrentZoomLevel();
     public Vector2f getPointOnRadar(Vector2f worldLoc);
-
-    //public <T> List<T> filterVisible(List<T> contacts, int maxContacts);
 }

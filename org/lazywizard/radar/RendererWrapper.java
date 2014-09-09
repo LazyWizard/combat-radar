@@ -1,5 +1,7 @@
 package org.lazywizard.radar;
 
+import java.util.Objects;
+
 class RendererWrapper<T> implements Comparable<RendererWrapper>
 {
     private final Class<T> renderClass;
@@ -36,6 +38,15 @@ class RendererWrapper<T> implements Comparable<RendererWrapper>
 
         RendererWrapper tmp = (RendererWrapper) other;
         return renderClass.equals(tmp.renderClass) && renderOrder == tmp.renderOrder;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        int hash = 3;
+        hash = 61 * hash + Objects.hashCode(this.renderClass);
+        hash = 61 * hash + this.renderOrder;
+        return hash;
     }
 
     @Override
