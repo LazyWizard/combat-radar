@@ -27,7 +27,7 @@ public class RadarBoxRenderer implements CampaignRenderer
     {
         // Foreground settings (match vanilla HUD)
         // TODO: switch with campaign UI color ID
-        RADAR_FG_COLOR = Global.getSettings().getColor("textFriendColor");
+        RADAR_FG_COLOR = Global.getSettings().getColor("tripadGridColor");
 
         // Background settings
         settings = settings.getJSONObject("radarBoxRenderer");
