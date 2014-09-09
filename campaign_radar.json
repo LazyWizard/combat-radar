@@ -35,7 +35,7 @@
     # Alpha channel is multiplied by contactAlpha setting
     "friendlyColor":[0,255,0,255],
     "enemyColor":[255,0,0,255],
-    "neutralColor":[75,75,75,255],
+    "neutralColor":[225,225,225,255],
 
 
     ################################
@@ -49,6 +49,12 @@
         "radarBackgroundAlpha":0.33, # Default: 0.33
         # Controls how faded the edges of the radar box are
         "radarEdgeAlpha":0.25, # Default: 0.25
+    },
+
+    "stationRenderer":
+    {
+        #"maxShown":250,
+        "stationIcon":"station",
     },
 
     "asteroidRenderer":
