@@ -1,12 +1,16 @@
 {
-    "plugins":{
-        "CombatRadarPlugin":"org.lazywizard.radar.CombatRadarPlugin",
+    "plugins":
+    {
+        "CombatRadarPlugin":"org.lazywizard.radar.CombatRadarPlugin"
     },
 
-    "graphics":{
-        "radar":{
-            "missileLock":"graphics/lw_radar/combat/missile-20-W.png",
-            "station":"graphics/lw_radar/campaign/station0.png",
-        },
+    "graphics":
+    {
+        "radar":
+        {
+            "missileLock":"graphics/lw_radar/combat/missile.png",
+            "station":"graphics/lw_radar/campaign/station.png",
+            "jumpPoint":"graphics/lw_radar/campaign/portal.png"
+        }
     }
 }
