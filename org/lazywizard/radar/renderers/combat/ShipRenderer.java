@@ -43,7 +43,7 @@ public class ShipRenderer implements CombatRenderer
         SHOW_TARGET_MARKER = settings.getBoolean("showMarkerAroundTarget");
 
         settings = settings.getJSONObject("shipRenderer");
-        MAX_SHIPS_SHOWN = settings.optInt("maxShown", 1000);
+        MAX_SHIPS_SHOWN = settings.optInt("maxShown", 1_000);
         SHIELD_COLOR = JSONUtils.toColor(settings.getJSONArray("shieldColor"));
         MARKER_COLOR = JSONUtils.toColor(settings.getJSONArray("targetMarkerColor"));
         PHASE_ALPHA_MULT = (float) settings.getDouble("phasedShipAlphaMult");
@@ -219,7 +219,7 @@ public class ShipRenderer implements CombatRenderer
     {
         if (SHOW_SHIPS && !player.isHulk())
         {
-            List<? extends CombatEntityAPI> contacts = radar.filterVisible(
+            List<ShipAPI> contacts = radar.filterVisible(
                     Global.getCombatEngine().getShips(), MAX_SHIPS_SHOWN);
             if (!contacts.isEmpty())
             {
@@ -229,12 +229,12 @@ public class ShipRenderer implements CombatRenderer
                 ShipAPI target = null;
                 List<Vector2f> vertices = new ArrayList<>();
                 List<Vector4f> colors = new ArrayList<>();
-                for (CombatEntityAPI entity : contacts)
+                for (ShipAPI entity : contacts)
                 {
-                    List<Vector2f> shape = getShape((ShipAPI) entity);
+                    List<Vector2f> shape = getShape(entity);
                     vertices.addAll(shape);
 
-                    Vector4f color = getColor((ShipAPI) entity, player.getOwner());
+                    Vector4f color = getColor(entity, player.getOwner());
                     for (int x = 0; x < shape.size(); x++)
                     {
                         colors.add(color);
@@ -243,7 +243,7 @@ public class ShipRenderer implements CombatRenderer
                     // Check for current ship target
                     if (player.getShipTarget() == entity)
                     {
-                        target = (ShipAPI) entity;
+                        target = entity;
                     }
                 }
 
