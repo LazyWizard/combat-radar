@@ -1,9 +1,9 @@
 package org.lazywizard.radar.renderers;
 
-import org.lazywizard.radar.CombatRadar;
 import com.fs.starfarer.api.combat.ShipAPI;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.lazywizard.radar.CombatRadar;
 import org.lazywizard.radar.RadarModPlugin;
 
 /**

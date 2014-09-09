@@ -22,6 +22,23 @@ class RendererWrapper<T> implements Comparable<RendererWrapper>
     }
 
     @Override
+    public boolean equals(Object other)
+    {
+        if (other == null)
+        {
+            return false;
+        }
+
+        if (!(other instanceof RendererWrapper))
+        {
+            return false;
+        }
+
+        RendererWrapper tmp = (RendererWrapper) other;
+        return renderClass.equals(tmp.renderClass) && renderOrder == tmp.renderOrder;
+    }
+
+    @Override
     public int compareTo(RendererWrapper other)
     {
         return Integer.compare(this.renderOrder, other.renderOrder);

@@ -2,7 +2,7 @@ package org.lazywizard.radar.renderers.combat;
 
 import java.util.List;
 import com.fs.starfarer.api.Global;
-import com.fs.starfarer.api.combat.CombatEntityAPI;
+import com.fs.starfarer.api.combat.BattleObjectiveAPI;
 import com.fs.starfarer.api.combat.ShipAPI;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -34,8 +34,8 @@ public class ObjectiveRenderer implements CombatRenderer
     {
         if (SHOW_OBJECTIVES && !player.isHulk())
         {
-            List<? extends CombatEntityAPI> objectives = radar.filterVisible(
-                    Global.getCombatEngine().getObjectives(), 1000);
+            List<BattleObjectiveAPI> objectives = radar.filterVisible(
+                    Global.getCombatEngine().getObjectives(), 1_000);
             if (!objectives.isEmpty())
             {
                 radar.enableStencilTest();
@@ -43,7 +43,7 @@ public class ObjectiveRenderer implements CombatRenderer
                 Vector2f radarLoc;
                 float size = 250f * radar.getCurrentPixelsPerSU();
                 glLineWidth(size / 5f);
-                for (CombatEntityAPI objective : objectives)
+                for (BattleObjectiveAPI objective : objectives)
                 {
                     // Owned by player
                     if (objective.getOwner() == player.getOwner())

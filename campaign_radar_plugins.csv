@@ -1,2 +1,7 @@
 renderer id,render order,script,settings file (optional)
 RadarBoxRenderer,10,org.lazywizard.radar.renderers.campaign.RadarBoxRenderer,data/config/radar/campaign_radar.json
+#PlanetRenderer,20,org.lazywizard.radar.renderers.campaign.PlanetRenderer,data/config/radar/campaign_radar.json
+AsteroidRenderer,30,org.lazywizard.radar.renderers.campaign.AsteroidRenderer,data/config/radar/campaign_radar.json
+#FleetRenderer,40,org.lazywizard.radar.renderers.campaign.FleetRenderer,data/config/radar/campaign_radar.json
+#StationRenderer,50,org.lazywizard.radar.renderers.campaign.StationRenderer,data/config/radar/campaign_radar.json
+#JumpPointRenderer,60,org.lazywizard.radar.renderers.campaign.JumpPointRenderer,data/config/radar/campaign_radar.json

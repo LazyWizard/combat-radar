@@ -5,7 +5,6 @@ import java.nio.FloatBuffer;
 import java.util.Iterator;
 import java.util.List;
 import com.fs.starfarer.api.Global;
-import com.fs.starfarer.api.combat.CombatEntityAPI;
 import com.fs.starfarer.api.combat.GuidedMissileAI;
 import com.fs.starfarer.api.combat.MissileAIPlugin;
 import com.fs.starfarer.api.combat.MissileAPI;
@@ -37,7 +36,7 @@ public class MissileRenderer implements CombatRenderer
         SHOW_MISSILE_LOCK_ICON = settings.getBoolean("showMissileLockIcon");
 
         settings = settings.getJSONObject("missileRenderer");
-        MAX_MISSILES_SHOWN = settings.optInt("maxShown", 1000);
+        MAX_MISSILES_SHOWN = settings.optInt("maxShown", 1_000);
         MISSILE_LOCKED_COLOR = JSONUtils.toColor(settings.getJSONArray("lockedMissileColor"));
         MISSILE_ICON = settings.optString("missileLockIcon", null);
     }
@@ -62,7 +61,7 @@ public class MissileRenderer implements CombatRenderer
     {
         if (SHOW_MISSILES && !player.isHulk())
         {
-            List<? extends CombatEntityAPI> missiles = radar.filterVisible(
+            List<MissileAPI> missiles = radar.filterVisible(
                     Global.getCombatEngine().getMissiles(), MAX_MISSILES_SHOWN);
             if (!missiles.isEmpty())
             {
@@ -73,10 +72,10 @@ public class MissileRenderer implements CombatRenderer
 
                 float[] vertices = new float[missiles.size() * 2];
                 float[] colors = new float[missiles.size() * 4];
-                Iterator<? extends CombatEntityAPI> iter = missiles.iterator();
+                Iterator<MissileAPI> iter = missiles.iterator();
                 for (int v = 0, c = 0; v < missiles.size() * 2; v += 2, c += 4)
                 {
-                    MissileAPI missile = (MissileAPI) iter.next();
+                    MissileAPI missile = iter.next();
 
                     // Calculate vertices
                     Vector2f radarLoc = radar.getPointOnRadar(missile.getLocation());
@@ -84,12 +83,12 @@ public class MissileRenderer implements CombatRenderer
                     vertices[v + 1] = radarLoc.y;
 
                     // Calculate color
-                    Color color;
                     float alphaMod = Math.min(1f, Math.max(0.3f,
                             missile.getDamageAmount() / 750f));
                     alphaMod *= (missile.isFading() ? .5f : 1f);
 
                     // Burnt-out missiles count as hostile
+                    Color color;
                     if (missile.isFizzling())
                     {
                         color = radar.getEnemyContactColor();

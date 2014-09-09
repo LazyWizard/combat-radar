@@ -15,8 +15,7 @@ import static org.lwjgl.opengl.GL11.*;
 
 public class RadarBoxRenderer implements CampaignRenderer
 {
-    private static boolean SHOW_BORDER_LINES;
-    private static Color RADAR_BG_COLOR, RADAR_FG_COLOR, RADAR_FG_DEAD_COLOR;
+    private static Color RADAR_BG_COLOR, RADAR_FG_COLOR;
     private static float RADAR_OPACITY, RADAR_EDGE_ALPHA;
     // Radar OpenGL buffers/display lists
     private static int RADAR_BOX_DISPLAY_LIST_ID = -123;
@@ -26,11 +25,9 @@ public class RadarBoxRenderer implements CampaignRenderer
     @Override
     public void reloadSettings(JSONObject settings) throws JSONException
     {
-        SHOW_BORDER_LINES = settings.getBoolean("showBorderLines");
-
         // Foreground settings (match vanilla HUD)
+        // TODO: switch with campaign UI color ID
         RADAR_FG_COLOR = Global.getSettings().getColor("textFriendColor");
-        RADAR_FG_DEAD_COLOR = Global.getSettings().getColor("textNeutralColor");
 
         // Background settings
         settings = settings.getJSONObject("radarBoxRenderer");
