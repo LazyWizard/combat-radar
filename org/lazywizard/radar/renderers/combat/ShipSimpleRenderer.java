@@ -25,7 +25,7 @@ import static org.lwjgl.opengl.GL11.*;
 
 // TODO: Switch to pre-calculated rotations for ships
 // TODO: This needs a huge cleanup after new rendering code was added!
-public class ShipRenderer implements CombatRenderer
+public class ShipSimpleRenderer implements CombatRenderer
 {
     private static boolean SHOW_SHIPS, SHOW_SHIELDS, SHOW_TARGET_MARKER;
     private static int MAX_SHIPS_SHOWN;
