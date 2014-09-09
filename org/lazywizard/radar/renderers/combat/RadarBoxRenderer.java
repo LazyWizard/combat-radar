@@ -74,25 +74,26 @@ public class RadarBoxRenderer implements CombatRenderer
             //Global.getLogger(RadarBoxRenderer.class).log(Level.DEBUG,
             //        "Creating new list with ID " + RADAR_BOX_DISPLAY_LIST_ID);
             glNewList(RADAR_BOX_DISPLAY_LIST_ID, GL_COMPILE);
+            glEnable(GL_LINE_SMOOTH);
             glLineWidth(1f);
 
             // Slight darkening of radar background
             glColor(RADAR_BG_COLOR, RADAR_OPACITY, false);
-            DrawUtils.drawCircle(radarCenter.x, radarCenter.y, radarRadius, 72, true);
+            DrawUtils.drawCircle(radarCenter.x, radarCenter.y, radarRadius, 144, true);
 
             Color color = (player.isHulk() ? RADAR_FG_DEAD_COLOR : RADAR_FG_COLOR);
 
             // Outer circle
             glColor(color, radarAlpha * RADAR_EDGE_ALPHA, false);
-            DrawUtils.drawCircle(radarCenter.x, radarCenter.y, radarRadius, 72, false);
+            DrawUtils.drawCircle(radarCenter.x, radarCenter.y, radarRadius, 144, false);
 
             // Middle circle
             glColor(color, radarAlpha * radarMidFade, false);
-            DrawUtils.drawCircle(radarCenter.x, radarCenter.y, radarRadius * .66f, 54, false);
+            DrawUtils.drawCircle(radarCenter.x, radarCenter.y, radarRadius * .66f, 108, false);
 
             // Inner circle
             glColor(color, radarAlpha, false);
-            DrawUtils.drawCircle(radarCenter.x, radarCenter.y, radarRadius * .33f, 36, false);
+            DrawUtils.drawCircle(radarCenter.x, radarCenter.y, radarRadius * .33f, 72, false);
 
             glBegin(GL_LINES);
             // Left line
@@ -137,6 +138,7 @@ public class RadarBoxRenderer implements CombatRenderer
                 glEnd();
             }
 
+            glDisable(GL_LINE_SMOOTH);
             glEndList();
         }
 

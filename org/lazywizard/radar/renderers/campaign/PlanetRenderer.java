@@ -10,6 +10,7 @@ import org.lazywizard.radar.CampaignRadar;
 import org.lazywizard.radar.renderers.CampaignRenderer;
 import org.lwjgl.util.vector.Vector2f;
 import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
+import static org.lwjgl.opengl.GL11.*;
 
 public class PlanetRenderer implements CampaignRenderer
 {
@@ -38,6 +39,7 @@ public class PlanetRenderer implements CampaignRenderer
             if (!planets.isEmpty())
             {
                 radar.enableStencilTest();
+                glEnable(GL_LINE_SMOOTH);
 
                 // TODO: make planets look better
                 for (PlanetAPI planet : planets)
@@ -45,9 +47,10 @@ public class PlanetRenderer implements CampaignRenderer
                     Vector2f center = radar.getPointOnRadar(planet.getLocation());
                     float radius = planet.getRadius() * radar.getCurrentPixelsPerSU();
                     glColor(planet.getSpec().getIconColor(), radar.getContactAlpha(), false);
-                    DrawUtils.drawCircle(center.x, center.y, radius, 16, true);
+                    DrawUtils.drawCircle(center.x, center.y, radius, 64, true);
                 }
 
+                glDisable(GL_LINE_SMOOTH);
                 radar.disableStencilTest();
             }
         }

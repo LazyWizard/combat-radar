@@ -243,7 +243,7 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         glColorMask(false, false, false, false);
         glStencilFunc(GL_ALWAYS, 1, 1);
         glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
-        DrawUtils.drawCircle(renderCenter.x, renderCenter.y, renderRadius, 72, true);
+        DrawUtils.drawCircle(renderCenter.x, renderCenter.y, renderRadius, 144, true);
         glColorMask(true, true, true, true);
         radarInfo.disableStencilTest();
 
