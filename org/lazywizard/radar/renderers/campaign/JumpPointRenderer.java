@@ -52,13 +52,13 @@ public class JumpPointRenderer implements CampaignRenderer
                     player.getContainingLocation().getEntities(JumpPointAPI.class), 1_000);
             if (!jumpPoints.isEmpty())
             {
-                float angle = (System.currentTimeMillis() / 10) % 360;
+                float angle = (System.currentTimeMillis() / 15) % 360;
 
                 radar.enableStencilTest();
                 glEnable(GL_TEXTURE_2D);
 
                 icon.setColor(JUMP_POINT_COLOR);
-                icon.setAlphaMult(radar.getContactAlpha());
+                icon.setAlphaMult(1f);//radar.getContactAlpha());
                 for (JumpPointAPI jumpPoint : jumpPoints)
                 {
                     // Resize and draw jump point on radar
@@ -68,8 +68,10 @@ public class JumpPointRenderer implements CampaignRenderer
                     icon.setSize(size, size);
                     icon.setAngle(angle);
                     icon.renderAtCenter(center.x, center.y);
+
                     // Render again for better visibility
-                    size *= 2f;
+                    size = (player.getContainingLocation().isHyperspace()
+                            ? (size / 2f) : (size * 2f));
                     icon.setSize(size, size);
                     icon.setAngle(360f - angle);
                     icon.renderAtCenter(center.x, center.y);
