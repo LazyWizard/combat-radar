@@ -55,12 +55,11 @@ public class FleetRenderer implements CampaignRenderer
                         glColor(radar.getFriendlyContactColor(), radar.getContactAlpha(), false);
                     }
 
-                    // Draw fleet on radar (circle with angled triangle inside)
+                    // Draw fleet on radar as angled triangle inside
                     Vector2f center = radar.getPointOnRadar(fleet.getLocation());
                     float size = Math.max(60f, fleet.getRadius())
                             * radar.getCurrentPixelsPerSU();
                     size *= 2f; // Scale upwards for better visibility
-                    //DrawUtils.drawCircle(center.x, center.y, size, 16, false);
                     DrawUtils.drawEllipse(center.x, center.y, size, size * .65f,
                             VectorUtils.getFacing(fleet.getVelocity()), 3, true);
                 }
