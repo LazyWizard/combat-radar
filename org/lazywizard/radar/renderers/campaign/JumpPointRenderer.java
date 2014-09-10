@@ -52,7 +52,7 @@ public class JumpPointRenderer implements CampaignRenderer
                     player.getContainingLocation().getEntities(JumpPointAPI.class), 1_000);
             if (!jumpPoints.isEmpty())
             {
-                float angle = (System.currentTimeMillis() / 15) % 360;
+                float angle = (System.currentTimeMillis() / 20) % 360;
 
                 radar.enableStencilTest();
                 glEnable(GL_TEXTURE_2D);

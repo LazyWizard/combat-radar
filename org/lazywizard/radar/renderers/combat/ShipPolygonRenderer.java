@@ -125,7 +125,9 @@ public class ShipPolygonRenderer implements CombatRenderer
         }
         else
         {
-            float size = contact.getCollisionRadius() * radar.getCurrentPixelsPerSU();
+            // Fighters have a minimum size to ensure proper visibility
+            float size = Math.max(50f, 1.5f * contact.getCollisionRadius())
+                    * radar.getCurrentPixelsPerSU();
             shape.add(new Vector2f(size, 0f));
             shape.add(new Vector2f(-size / 1.5f, -(size / 1.75f)));
             shape.add(new Vector2f(-size / 1.5f, size / 1.75f));
