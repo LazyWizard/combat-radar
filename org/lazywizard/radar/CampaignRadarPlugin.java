@@ -176,14 +176,14 @@ public class CampaignRadarPlugin implements EveryFrameScript
 
     private void setZoomLevel(int zoom)
     {
-        zoomLevel = zoom;
-        intendedZoom = (zoomLevel / (float) NUM_ZOOM_LEVELS);
+        intendedZoom = (zoom / (float) NUM_ZOOM_LEVELS);
 
-        if ((!REVERSE_ZOOM && zoom == NUM_ZOOM_LEVELS)
-                || (REVERSE_ZOOM && zoom == 1))
+        if (zoomLevel == 0)
         {
             currentZoom = intendedZoom;
         }
+
+        zoomLevel = zoom;
     }
 
     private void checkInit()
@@ -224,22 +224,28 @@ public class CampaignRadarPlugin implements EveryFrameScript
                 return;
             }
 
-            if (REVERSE_ZOOM)
+            int newZoom = zoomLevel;
+            if (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT)
+                    || Keyboard.isKeyDown(Keyboard.KEY_LCONTROL)
+                    || Keyboard.isKeyDown(Keyboard.KEY_LMENU)
+                    || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT)
+                    || Keyboard.isKeyDown(Keyboard.KEY_RCONTROL)
+                    || Keyboard.isKeyDown(Keyboard.KEY_RMENU))
             {
-                if (++zoomLevel > NUM_ZOOM_LEVELS)
+                if (++newZoom > NUM_ZOOM_LEVELS)
                 {
-                    zoomLevel = 0;
+                    newZoom = 0;
                 }
             }
             else
             {
-                if (--zoomLevel < 0)
+                if (--newZoom < 0)
                 {
-                    zoomLevel = NUM_ZOOM_LEVELS;
+                    newZoom = NUM_ZOOM_LEVELS;
                 }
             }
 
-            setZoomLevel(zoomLevel);
+            setZoomLevel(newZoom);
             keyDown = true;
         }
         else
