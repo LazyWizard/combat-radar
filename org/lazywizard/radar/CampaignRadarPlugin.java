@@ -27,12 +27,16 @@ import static org.lwjgl.opengl.GL11.*;
 
 public class CampaignRadarPlugin implements EveryFrameScript
 {
-    // == STATIC VARIABLES ==
+    // == CONSTANTS ==
     // Path to master settings files, link to individual renderers + their settings
     private static final String SETTINGS_FILE = "data/config/radar/campaign_radar.json";
     private static final String CSV_PATH = "data/config/radar/campaign_radar_plugins.csv";
+    // How fast the zoom animates
+    private static final float ZOOM_ANIMATION_DURATION = .4f;
     // List of loaded rendering plugins
     private static final List<Class<? extends CampaignRenderer>> RENDERER_CLASSES = new ArrayList<>();
+
+    // == STATIC VARIABLES ==
     // Radar range settings
     private static float MAX_SIGHT_RANGE;
     private static int NUM_ZOOM_LEVELS;
@@ -41,13 +45,15 @@ public class CampaignRadarPlugin implements EveryFrameScript
     private static Color FRIENDLY_COLOR, ENEMY_COLOR, NEUTRAL_COLOR;
     // Radar toggle button LWJGL constant
     private static int RADAR_TOGGLE_KEY;
+    // Whether zoom direction is zoomed in -> zoomed out
+    private static boolean REVERSE_ZOOM = false; // TODO: Add setting for this
 
     // == LOCAL VARIABLES ==
     private final List<CampaignRenderer> renderers = new ArrayList<>();
     private CampaignRadarInfo radarInfo;
     private Vector2f renderCenter;
-    private float renderRadius, sightRadius, radarScaling;
-    private int currentZoom;
+    private float renderRadius, sightRadius, radarScaling, currentZoom, intendedZoom;
+    private int zoomLevel;
     private CampaignFleetAPI player;
     private boolean initialized = false, keyDown = false;
 
@@ -170,10 +176,14 @@ public class CampaignRadarPlugin implements EveryFrameScript
 
     private void setZoomLevel(int zoom)
     {
-        float zoomLevel = (zoom / (float) NUM_ZOOM_LEVELS);
-        sightRadius = MAX_SIGHT_RANGE * zoomLevel;
-        radarScaling = renderRadius / sightRadius;
-        currentZoom = zoom;
+        zoomLevel = zoom;
+        intendedZoom = (zoomLevel / (float) NUM_ZOOM_LEVELS);
+
+        if ((!REVERSE_ZOOM && zoom == NUM_ZOOM_LEVELS)
+                || (REVERSE_ZOOM && zoom == 1))
+        {
+            currentZoom = intendedZoom;
+        }
     }
 
     private void checkInit()
@@ -185,6 +195,7 @@ public class CampaignRadarPlugin implements EveryFrameScript
             renderCenter = new Vector2f(Display.getWidth() - (renderRadius * 1.2f),
                     renderRadius * 1.2f);
             setZoomLevel(NUM_ZOOM_LEVELS);
+            currentZoom = intendedZoom;
 
             renderers.clear(); // Needed due to a .6.2a bug
             radarInfo = new CampaignRadarInfo();
@@ -213,18 +224,47 @@ public class CampaignRadarPlugin implements EveryFrameScript
                 return;
             }
 
-            if (--currentZoom < 0)
+            if (REVERSE_ZOOM)
             {
-                currentZoom = NUM_ZOOM_LEVELS;
+                if (++zoomLevel > NUM_ZOOM_LEVELS)
+                {
+                    zoomLevel = 0;
+                }
+            }
+            else
+            {
+                if (--zoomLevel < 0)
+                {
+                    zoomLevel = NUM_ZOOM_LEVELS;
+                }
             }
 
-            setZoomLevel(currentZoom);
+            setZoomLevel(zoomLevel);
             keyDown = true;
         }
         else
         {
             keyDown = false;
         }
+    }
+
+    private void advanceZoom(float amount)
+    {
+        // Gradually zoom towards actual zoom level
+        final float animationSpeed = (ZOOM_ANIMATION_DURATION * amount)
+                * (float) NUM_ZOOM_LEVELS;
+        if (currentZoom < intendedZoom)
+        {
+            currentZoom = Math.min(intendedZoom, currentZoom + animationSpeed);
+        }
+        else if (currentZoom > intendedZoom)
+        {
+            currentZoom = Math.max(intendedZoom, currentZoom - animationSpeed);
+        }
+
+        // Calculate zoom effect on radar elements
+        sightRadius = MAX_SIGHT_RANGE * currentZoom;
+        radarScaling = renderRadius / sightRadius;
     }
 
     private void render(float amount)
@@ -291,8 +331,9 @@ public class CampaignRadarPlugin implements EveryFrameScript
         checkInput();
 
         // Zoom 0 = radar disabled
-        if (currentZoom != 0)
+        if (zoomLevel != 0)
         {
+            advanceZoom(amount);
             render(amount);
         }
     }
@@ -343,7 +384,7 @@ public class CampaignRadarPlugin implements EveryFrameScript
         @Override
         public float getCurrentZoomLevel()
         {
-            return NUM_ZOOM_LEVELS / (float) currentZoom;
+            return NUM_ZOOM_LEVELS / (float) zoomLevel;
         }
 
         @Override
