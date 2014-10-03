@@ -171,14 +171,14 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
 
     private void setZoomLevel(int zoom)
     {
-        zoomLevel = zoom;
-        intendedZoom = (zoomLevel / (float) NUM_ZOOM_LEVELS);
+        intendedZoom = (zoom / (float) NUM_ZOOM_LEVELS);
 
-        if ((!REVERSE_ZOOM && zoom == NUM_ZOOM_LEVELS)
-                || (REVERSE_ZOOM && zoom == 1))
+        if (zoomLevel == 0)
         {
             currentZoom = intendedZoom;
         }
+
+        zoomLevel = zoom;
     }
 
     private void checkInit()
@@ -186,6 +186,11 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         if (!initialized)
         {
             initialized = true;
+            renderRadius = Display.getHeight() / 10f;
+            renderCenter = new Vector2f(Display.getWidth() - (renderRadius * 1.2f),
+                    renderRadius * 1.2f);
+            setZoomLevel(NUM_ZOOM_LEVELS);
+            currentZoom = intendedZoom;
 
             renderers.clear(); // Needed due to a .6.2a bug
             radarInfo = new CombatRadarInfo();
@@ -217,22 +222,23 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
             // Radar zoom+off toggle
             if (event.isKeyDownEvent() && event.getEventValue() == RADAR_TOGGLE_KEY)
             {
-                if (REVERSE_ZOOM)
+                int newZoom = zoomLevel;
+                if (event.isShiftDown() || event.isCtrlDown() || event.isAltDown())
                 {
-                    if (++zoomLevel > NUM_ZOOM_LEVELS)
+                    if (++newZoom > NUM_ZOOM_LEVELS)
                     {
-                        zoomLevel = 0;
+                        newZoom = 0;
                     }
                 }
                 else
                 {
-                    if (--zoomLevel < 0)
+                    if (--newZoom < 0)
                     {
-                        zoomLevel = NUM_ZOOM_LEVELS;
+                        newZoom = NUM_ZOOM_LEVELS;
                     }
                 }
 
-                setZoomLevel(zoomLevel);
+                setZoomLevel(newZoom);
                 event.consume();
                 break;
             }
@@ -333,12 +339,6 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
     public void init(CombatEngineAPI engine)
     {
         initialized = false;
-
-        renderRadius = Display.getHeight() / 10f;
-        renderCenter = new Vector2f(Display.getWidth() - (renderRadius * 1.2f),
-                renderRadius * 1.2f);
-        setZoomLevel(NUM_ZOOM_LEVELS);
-        currentZoom = intendedZoom;
     }
 
     private class CombatRadarInfo implements CombatRadar
