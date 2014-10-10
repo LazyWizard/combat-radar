@@ -43,10 +43,8 @@ public class CampaignRadarPlugin implements EveryFrameScript
     // Radar color settings
     private static float RADAR_ALPHA, CONTACT_ALPHA;
     private static Color FRIENDLY_COLOR, ENEMY_COLOR, NEUTRAL_COLOR;
-    // Radar toggle button LWJGL constant
-    private static int RADAR_TOGGLE_KEY;
-    // Whether zoom direction is zoomed in -> zoomed out
-    private static boolean REVERSE_ZOOM = false; // TODO: Add setting for this
+    // Radar button LWJGL constants
+    private static int RADAR_TOGGLE_KEY, ZOOM_IN_KEY, ZOOM_OUT_KEY;
 
     // == LOCAL VARIABLES ==
     private final List<CampaignRenderer> renderers = new ArrayList<>();
@@ -55,14 +53,16 @@ public class CampaignRadarPlugin implements EveryFrameScript
     private float renderRadius, sightRadius, radarScaling, currentZoom, intendedZoom;
     private int zoomLevel;
     private CampaignFleetAPI player;
-    private boolean initialized = false, keyDown = false;
+    private boolean initialized = false, keyDown = false, enabled = true;
 
     static void reloadSettings() throws IOException, JSONException
     {
         final JSONObject settings = Global.getSettings().loadJSON(SETTINGS_FILE);
 
-        // Toggle key
+        // Key bindings
         RADAR_TOGGLE_KEY = settings.getInt("toggleKey");
+        ZOOM_IN_KEY = settings.getInt("zoomInKey");
+        ZOOM_OUT_KEY = settings.getInt("zoomOutKey");
         Global.getLogger(CampaignRadarPlugin.class).log(Level.INFO,
                 "Radar toggle key set to " + Keyboard.getKeyName(RADAR_TOGGLE_KEY)
                 + " (" + RADAR_TOGGLE_KEY + ")");
@@ -217,35 +217,43 @@ public class CampaignRadarPlugin implements EveryFrameScript
 
     private void checkInput()
     {
-        if (Keyboard.isKeyDown(RADAR_TOGGLE_KEY))
+        final boolean zoomIn = Keyboard.isKeyDown(ZOOM_IN_KEY),
+                zoomOut = Keyboard.isKeyDown(ZOOM_OUT_KEY),
+                toggle = Keyboard.isKeyDown(RADAR_TOGGLE_KEY);
+        if (zoomIn || zoomOut || toggle)
         {
             if (keyDown == true)
             {
                 return;
             }
 
-            int newZoom = zoomLevel;
-            if (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT)
-                    || Keyboard.isKeyDown(Keyboard.KEY_LCONTROL)
-                    || Keyboard.isKeyDown(Keyboard.KEY_LMENU)
-                    || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT)
-                    || Keyboard.isKeyDown(Keyboard.KEY_RCONTROL)
-                    || Keyboard.isKeyDown(Keyboard.KEY_RMENU))
+            // Radar on/off toggle
+            if (toggle)
             {
-                if (++newZoom > NUM_ZOOM_LEVELS)
-                {
-                    newZoom = 0;
-                }
+                enabled = !enabled;
             }
+            // Radar zoom levels
             else
             {
-                if (--newZoom < 0)
+                int newZoom = zoomLevel;
+                if (zoomIn)
                 {
-                    newZoom = NUM_ZOOM_LEVELS;
+                    if (--newZoom <= 0)
+                    {
+                        newZoom = NUM_ZOOM_LEVELS;
+                    }
                 }
+                else
+                {
+                    if (++newZoom > NUM_ZOOM_LEVELS)
+                    {
+                        newZoom = 1;
+                    }
+                }
+
+                setZoomLevel(newZoom);
             }
 
-            setZoomLevel(newZoom);
             keyDown = true;
         }
         else
@@ -337,7 +345,7 @@ public class CampaignRadarPlugin implements EveryFrameScript
         checkInput();
 
         // Zoom 0 = radar disabled
-        if (zoomLevel != 0)
+        if (enabled && zoomLevel != 0)
         {
             advanceZoom(amount);
             render(amount);
