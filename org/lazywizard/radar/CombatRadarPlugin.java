@@ -12,6 +12,7 @@ import com.fs.starfarer.api.combat.CombatEngineAPI;
 import com.fs.starfarer.api.combat.CombatEntityAPI;
 import com.fs.starfarer.api.combat.EveryFrameCombatPlugin;
 import com.fs.starfarer.api.combat.ShipAPI;
+import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.input.InputEventAPI;
 import org.apache.log4j.Level;
 import org.json.JSONArray;
@@ -47,10 +48,8 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
     // Radar color settings
     private static float RADAR_ALPHA, CONTACT_ALPHA;
     private static Color FRIENDLY_COLOR, ENEMY_COLOR, NEUTRAL_COLOR;
-    // Radar toggle button LWJGL constant
-    private static int RADAR_TOGGLE_KEY;
-    // Whether zoom direction is zoomed in -> zoomed out
-    private static boolean REVERSE_ZOOM = false; // TODO: Add setting for this
+    // Radar button LWJGL constants
+    private static int RADAR_TOGGLE_KEY, ZOOM_IN_KEY, ZOOM_OUT_KEY;
 
     // == LOCAL VARIABLES ==
     private final List<CombatRenderer> renderers = new ArrayList<>();
@@ -59,14 +58,16 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
     private float renderRadius, sightRadius, radarScaling, currentZoom, intendedZoom;
     private int zoomLevel;
     private ShipAPI player;
-    private boolean initialized = false;
+    private boolean initialized = false, enabled = true;
 
     static void reloadSettings() throws IOException, JSONException
     {
         final JSONObject settings = Global.getSettings().loadJSON(SETTINGS_FILE);
 
-        // Toggle key
+        // Key bindings
         RADAR_TOGGLE_KEY = settings.getInt("toggleKey");
+        ZOOM_IN_KEY = settings.getInt("zoomInKey");
+        ZOOM_OUT_KEY = settings.getInt("zoomOutKey");
         Global.getLogger(CombatRadarPlugin.class).log(Level.INFO,
                 "Radar toggle key set to " + Keyboard.getKeyName(RADAR_TOGGLE_KEY)
                 + " (" + RADAR_TOGGLE_KEY + ")");
@@ -219,28 +220,40 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
                 continue;
             }
 
-            // Radar zoom+off toggle
-            if (event.isKeyDownEvent() && event.getEventValue() == RADAR_TOGGLE_KEY)
+            if (event.isKeyDownEvent())
             {
-                int newZoom = zoomLevel;
-                if (event.isShiftDown() || event.isCtrlDown() || event.isAltDown())
+                // Radar on/off toggle
+                if (event.getEventValue() == RADAR_TOGGLE_KEY)
                 {
-                    if (++newZoom > NUM_ZOOM_LEVELS)
-                    {
-                        newZoom = 0;
-                    }
+                    enabled = !enabled;
+                    event.consume();
                 }
-                else
+                // Radar zoom levels
+                else if (event.getEventValue() == ZOOM_IN_KEY
+                        || event.getEventValue() == ZOOM_OUT_KEY)
                 {
-                    if (--newZoom < 0)
+                    int newZoom = zoomLevel;
+                    // Zoom in
+                    if (event.getEventValue() == ZOOM_IN_KEY)
                     {
-                        newZoom = NUM_ZOOM_LEVELS;
+                        if (--newZoom <= 0)
+                        {
+                            newZoom = NUM_ZOOM_LEVELS;
+                        }
                     }
-                }
+                    // Zoom out
+                    else
+                    {
+                        if (++newZoom > NUM_ZOOM_LEVELS)
+                        {
+                            newZoom = 1;
+                        }
+                    }
 
-                setZoomLevel(newZoom);
-                event.consume();
-                break;
+                    setZoomLevel(newZoom);
+                    event.consume();
+                    break;
+                }
             }
         }
     }
@@ -328,7 +341,7 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         checkInput(events);
 
         // Zoom 0 = radar disabled
-        if (zoomLevel != 0)
+        if (enabled && zoomLevel != 0)
         {
             advanceZoom(amount);
             render(amount);
@@ -339,6 +352,17 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
     public void init(CombatEngineAPI engine)
     {
         initialized = false;
+    }
+
+    // TODO: Use these
+    //@Override
+    public void renderInWorldCoords(ViewportAPI view)
+    {
+    }
+
+    //@Override
+    public void renderInUICoords(ViewportAPI view)
+    {
     }
 
     private class CombatRadarInfo implements CombatRadar
