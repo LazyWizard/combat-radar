@@ -355,12 +355,12 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
     }
 
     // TODO: Use these
-    //@Override
+    @Override
     public void renderInWorldCoords(ViewportAPI view)
     {
     }
 
-    //@Override
+    @Override
     public void renderInUICoords(ViewportAPI view)
     {
     }
