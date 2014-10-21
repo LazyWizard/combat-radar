@@ -3,8 +3,9 @@ package org.lazywizard.radar.renderers.campaign;
 import java.util.List;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
-import com.fs.starfarer.api.campaign.OrbitalStationAPI;
+import com.fs.starfarer.api.campaign.SectorEntityToken;
 import com.fs.starfarer.api.graphics.SpriteAPI;
+import com.fs.starfarer.api.impl.campaign.ids.Tags;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.lazywizard.radar.CampaignRadar;
@@ -44,15 +45,16 @@ public class StationRenderer implements CampaignRenderer
     {
         if (SHOW_STATIONS)
         {
-            List<OrbitalStationAPI> stations = radar.filterVisible(
-                    player.getContainingLocation().getOrbitalStations(), 1_000);
+            List<SectorEntityToken> stations = radar.filterVisible(
+                    player.getContainingLocation().getEntitiesWithTag(
+                           Tags.STATION), 1_000);
             if (!stations.isEmpty())
             {
                 radar.enableStencilTest();
                 glEnable(GL_TEXTURE_2D);
 
                 icon.setAlphaMult(radar.getContactAlpha());
-                for (OrbitalStationAPI station : stations)
+                for (SectorEntityToken station : stations)
                 {
                     // Calculate color of station
                     float relationship = station.getFaction().getRelationship(

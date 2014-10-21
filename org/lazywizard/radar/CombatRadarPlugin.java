@@ -324,8 +324,9 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
     {
         CombatEngineAPI engine = Global.getCombatEngine();
 
-        // Temp fix for .6.2a bug
-        if (engine == null)
+        // Don't display over menus
+        // TODO: Uncomment after next hotfix
+        if (engine == null)// || engine.isUIShowingDialog())
         {
             return;
         }
