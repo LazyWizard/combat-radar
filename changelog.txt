@@ -1,0 +1,7 @@
+ 1.1 (October 21, 2014)
+========================
+Updated to support Starsector .65a
+Station rendering fixed in campaign
+Comm relays are now included on the campaign radar
+Zooming is now done using +/-, toggling the radar on/off is still K by default
+Zooming in/out is now animated

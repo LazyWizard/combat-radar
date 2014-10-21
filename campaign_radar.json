@@ -12,6 +12,7 @@
 
     # Controls what shows up on the radar. Disabling some of these
     # might improve performance on a particularly slow machine
+    # TODO: Profile + stress test these and list performance impact per renderer
     "showFleets":true,              # Default: true, performance impact ???
     "showMarkerAroundTarget":true,  # Default: true, performance impact ???
     "showPlanets":true,             # Default: true, performance impact ???
