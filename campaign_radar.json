@@ -16,6 +16,7 @@
     "showMarkerAroundTarget":true,  # Default: true, performance impact ???
     "showPlanets":true,             # Default: true, performance impact ???
     "showStations":true,            # Default: true, performance impact ???
+    "showRelays":true,              # Default: true, performance impact ???
     "showAsteroids":true,           # Default: true, performance impact low
     "showJumpPoints":true,          # Default: true, performance impact ???
 
@@ -57,6 +58,12 @@
     {
         #"maxShown":250,
         "stationIcon":"station",
+    },
+
+    "relayRenderer":
+    {
+        #"maxShown":250,
+        "relayIcon":"relay",
     },
 
     "asteroidRenderer":

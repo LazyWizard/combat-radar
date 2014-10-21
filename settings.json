@@ -10,6 +10,7 @@
         {
             "missileLock":"graphics/lw_radar/combat/missile.png",
             "station":"graphics/lw_radar/campaign/station.png",
+            "relay":"graphics/lw_radar/campaign/relay.png",
             "jumpPoint":"graphics/lw_radar/campaign/portal.png"
         }
     }
