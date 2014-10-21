@@ -5,10 +5,8 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.List;
 import com.fs.starfarer.api.Global;
-import com.fs.starfarer.api.combat.CombatAssignmentType;
 import com.fs.starfarer.api.combat.CombatEngineAPI;
 import com.fs.starfarer.api.combat.CombatFleetManagerAPI;
-import com.fs.starfarer.api.combat.CombatFleetManagerAPI.AssignmentInfo;
 import com.fs.starfarer.api.combat.ShipAPI;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
 import com.fs.starfarer.api.mission.FleetSide;
@@ -130,27 +128,9 @@ public class BattleProgressRenderer implements CombatRenderer
         return (totalStrength <= 0f ? 0.5f : (playerStrength / totalStrength));
     }
 
-    // TODO: can be replaced with proper API method after .6.5a
     private static boolean isRetreating(FleetSide side)
     {
-        int owner = side.ordinal();
-        boolean hasDeployed = false;
-        CombatFleetManagerAPI fm = Global.getCombatEngine().getFleetManager(side);
-        for (ShipAPI ship : Global.getCombatEngine().getShips())
-        {
-            if (ship.getOwner() == owner)
-            {
-                hasDeployed = true;
-
-                AssignmentInfo orders = fm.getAssignmentFor(ship);
-                if (orders == null || orders.getType() != CombatAssignmentType.RETREAT)
-                {
-                    return false;
-                }
-            }
-        }
-
-        return hasDeployed;
+        return Global.getCombatEngine().getFleetManager(side).isInFullRetreat();
     }
 
     @Override
