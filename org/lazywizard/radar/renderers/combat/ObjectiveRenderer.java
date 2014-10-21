@@ -12,7 +12,6 @@ import org.lwjgl.util.vector.Vector2f;
 import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
 import static org.lwjgl.opengl.GL11.*;
 
-// TODO: Fix jagged corners at max zoom
 public class ObjectiveRenderer implements CombatRenderer
 {
     private static boolean SHOW_OBJECTIVES;

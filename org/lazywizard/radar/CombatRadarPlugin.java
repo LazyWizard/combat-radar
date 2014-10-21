@@ -326,7 +326,7 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
 
         // Don't display over menus
         // TODO: Uncomment after next hotfix
-        if (engine == null)// || engine.isUIShowingDialog())
+        if (engine == null) //|| !engine.isUIShowingHUD() || engine.isUIShowingDialog())
         {
             return;
         }
