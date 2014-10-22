@@ -98,37 +98,36 @@ public class BattleProgressRenderer implements CombatRenderer
         nextCheck = TIME_BETWEEN_CHECKS;
     }
 
+    private static float getStrength(FleetSide side)
+    {
+        final CombatEngineAPI engine = Global.getCombatEngine();
+        final CombatFleetManagerAPI fm = engine.getFleetManager(side);
+        final List<FleetMemberAPI> ships = fm.getDeployedCopy();
+        float strength = 0f;
+
+        // Ignore reserves if player is in a refit simulation battle
+        // Also ignore if fleet is in full retreat and can't send them out
+        if (!engine.isSimulation() && !fm.isInFullRetreat())
+        {
+            ships.addAll(fm.getReservesCopy());
+        }
+
+        // Total up strength of every ship in the fleet
+        for (FleetMemberAPI ship : ships)
+        {
+            strength += ship.getMemberStrength(); //.getFleetPointCost();
+        }
+
+        return strength;
+    }
+
     private static float getRelativeStrength()
     {
-        CombatEngineAPI engine = Global.getCombatEngine();
-        float playerStrength = 0f, enemyStrength = 0f;
-
-        // Total up player fleet strength
-        CombatFleetManagerAPI fm = engine.getFleetManager(FleetSide.PLAYER);
-        List<FleetMemberAPI> ships = fm.getDeployedCopy();
-        if (!engine.isSimulation() && !isRetreating(FleetSide.PLAYER))
-        {
-            ships.addAll(fm.getReservesCopy());
-        }
-        for (FleetMemberAPI ship : ships)
-        {
-            playerStrength += ship.getMemberStrength(); //.getFleetPointCost();
-        }
-
-        // Total up enemy fleet strength
-        fm = engine.getFleetManager(FleetSide.ENEMY);
-        ships = fm.getDeployedCopy();
-        if (!engine.isSimulation() && !isRetreating(FleetSide.ENEMY))
-        {
-            ships.addAll(fm.getReservesCopy());
-        }
-        for (FleetMemberAPI ship : ships)
-        {
-            enemyStrength += ship.getMemberStrength(); //.getFleetPointCost();
-        }
+        final float playerStrength = getStrength(FleetSide.PLAYER),
+                enemyStrength = getStrength(FleetSide.ENEMY),
+                totalStrength = playerStrength + enemyStrength;
 
         // No ships on either side = assume a draw
-        float totalStrength = playerStrength + enemyStrength;
         return (totalStrength <= 0f ? 0.5f : (playerStrength / totalStrength));
     }
 
@@ -142,6 +141,7 @@ public class BattleProgressRenderer implements CombatRenderer
     {
         if (SHOW_BATTLE_PROGRESS)
         {
+            // The ships fielded don't change often, so don't check every frame
             nextCheck -= amount;
             if (nextCheck <= 0)
             {
@@ -228,14 +228,17 @@ public class BattleProgressRenderer implements CombatRenderer
             glDisableClientState(GL_VERTEX_ARRAY);
 
             // Show original relative strengths
-            glLineWidth(1f);
-            glColor(Color.WHITE, radar.getRadarAlpha(), false);
-            glBegin(GL_LINES);
-            glVertex2f(barLocation.x + battleStartPos,
-                    barLocation.y + (barHeight * 1.5f));
-            glVertex2f(barLocation.x + battleStartPos,
-                    barLocation.y - (barHeight * 0.5f));
-            glEnd();
+            if (!Global.getCombatEngine().isSimulation())
+            {
+                glLineWidth(1f);
+                glColor(Color.WHITE, radar.getRadarAlpha(), false);
+                glBegin(GL_LINES);
+                glVertex2f(barLocation.x + battleStartPos,
+                        barLocation.y + (barHeight * 1.5f));
+                glVertex2f(barLocation.x + battleStartPos,
+                        barLocation.y - (barHeight * 0.5f));
+                glEnd();
+            }
         }
     }
 }
