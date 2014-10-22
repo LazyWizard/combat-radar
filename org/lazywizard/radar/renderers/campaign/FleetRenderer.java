@@ -46,9 +46,7 @@ public class FleetRenderer implements CampaignRenderer
                 for (CampaignFleetAPI fleet : fleets)
                 {
                     // Calculate color of fleet
-                    float relationship = fleet.getFaction().getRelationship(
-                            player.getFaction().getId());
-                    if (relationship < 0)
+                    if (fleet.getFaction().isHostileTo(player.getFaction()))
                     {
                         glColor(radar.getEnemyContactColor(), radar.getContactAlpha(), false);
                     }
