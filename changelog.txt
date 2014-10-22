@@ -1,3 +1,12 @@
+ 1.1b (October 22, 2014)
+=========================
+Campaign fleet renderer changes:
+ - Fleets are only colored red if they are hostile towards the player
+Battle progress bar changes:
+ - Doesn't show initial relative fleet strengths in a simulation battle
+ - Ignores ships still in picker in simulation battles
+ - Doesn't count the reserves of a fleet in full retreat
+
  1.1 (October 21, 2014)
 ========================
 Updated to support Starsector .65a

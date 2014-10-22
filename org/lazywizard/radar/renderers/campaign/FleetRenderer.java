@@ -12,6 +12,7 @@ import org.lwjgl.util.vector.Vector2f;
 import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
 import static org.lwjgl.opengl.GL11.glLineWidth;
 
+// TODO: Properly color these
 public class FleetRenderer implements CampaignRenderer
 {
     private static boolean SHOW_FLEETS;
