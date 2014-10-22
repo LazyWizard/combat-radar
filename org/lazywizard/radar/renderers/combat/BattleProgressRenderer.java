@@ -106,8 +106,10 @@ public class BattleProgressRenderer implements CombatRenderer
         // Total up player fleet strength
         CombatFleetManagerAPI fm = engine.getFleetManager(FleetSide.PLAYER);
         List<FleetMemberAPI> ships = fm.getDeployedCopy();
-        //if (!engine.isSimulation())
-        ships.addAll(fm.getReservesCopy());
+        if (!engine.isSimulation() && !isRetreating(FleetSide.PLAYER))
+        {
+            ships.addAll(fm.getReservesCopy());
+        }
         for (FleetMemberAPI ship : ships)
         {
             playerStrength += ship.getMemberStrength(); //.getFleetPointCost();
@@ -116,8 +118,10 @@ public class BattleProgressRenderer implements CombatRenderer
         // Total up enemy fleet strength
         fm = engine.getFleetManager(FleetSide.ENEMY);
         ships = fm.getDeployedCopy();
-        //if (!engine.isSimulation())
-        ships.addAll(fm.getReservesCopy());
+        if (!engine.isSimulation() && !isRetreating(FleetSide.ENEMY))
+        {
+            ships.addAll(fm.getReservesCopy());
+        }
         for (FleetMemberAPI ship : ships)
         {
             enemyStrength += ship.getMemberStrength(); //.getFleetPointCost();
