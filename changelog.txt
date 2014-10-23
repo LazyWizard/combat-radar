@@ -1,4 +1,4 @@
- 1.1b (October 22, 2014)
+ 1.1b (October 23, 2014)
 =========================
 Campaign fleet renderer changes:
  - Fleets are only colored red if they are hostile towards the player
