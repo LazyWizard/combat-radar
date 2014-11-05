@@ -8,9 +8,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin;
 import com.fs.starfarer.api.combat.CombatEngineAPI;
 import com.fs.starfarer.api.combat.CombatEntityAPI;
-import com.fs.starfarer.api.combat.EveryFrameCombatPlugin;
 import com.fs.starfarer.api.combat.ShipAPI;
 import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.input.InputEventAPI;
@@ -28,7 +28,7 @@ import org.lwjgl.opengl.Display;
 import org.lwjgl.util.vector.Vector2f;
 import static org.lwjgl.opengl.GL11.*;
 
-public class CombatRadarPlugin implements EveryFrameCombatPlugin
+public class CombatRadarPlugin extends BaseEveryFrameCombatPlugin
 {
     // == CONSTANTS ==
     // Path to master settings files, link to individual renderers + their settings
@@ -284,6 +284,7 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
                 height = (int) (Display.getHeight() * Display.getPixelScaleFactor());
 
         // Set OpenGL flags
+        glPushAttrib(GL_ALL_ATTRIB_BITS);
         glMatrixMode(GL_PROJECTION);
         glPushMatrix();
         glLoadIdentity();
@@ -317,19 +318,33 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
         glPopMatrix();
         glMatrixMode(GL_PROJECTION);
         glPopMatrix();
+        glPopAttrib();
+    }
+
+    @Override
+    public void renderInUICoords(ViewportAPI view)
+    {
+        CombatEngineAPI engine = Global.getCombatEngine();
+
+        // Don't display over menus
+        if (engine == null)// || !engine.isUIShowingHUD() || engine.isUIShowingDialog())
+        {
+            return;
+        }
+
+        // Zoom 0 = radar disabled
+        if (enabled && zoomLevel != 0)
+        {
+            float amount = engine.getElapsedInLastFrame();
+            advanceZoom(amount);
+            render(amount);
+        }
     }
 
     @Override
     public void advance(float amount, List<InputEventAPI> events)
     {
         CombatEngineAPI engine = Global.getCombatEngine();
-
-        // Don't display over menus
-        // TODO: Uncomment after next hotfix
-        if (engine == null) //|| !engine.isUIShowingHUD() || engine.isUIShowingDialog())
-        {
-            return;
-        }
 
         // This also acts as a main menu check
         player = engine.getPlayerShip();
@@ -340,30 +355,12 @@ public class CombatRadarPlugin implements EveryFrameCombatPlugin
 
         checkInit();
         checkInput(events);
-
-        // Zoom 0 = radar disabled
-        if (enabled && zoomLevel != 0)
-        {
-            advanceZoom(amount);
-            render(amount);
-        }
     }
 
     @Override
     public void init(CombatEngineAPI engine)
     {
         initialized = false;
-    }
-
-    // TODO: Use these
-    @Override
-    public void renderInWorldCoords(ViewportAPI view)
-    {
-    }
-
-    @Override
-    public void renderInUICoords(ViewportAPI view)
-    {
     }
 
     private class CombatRadarInfo implements CombatRadar
