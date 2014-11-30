@@ -5,7 +5,7 @@
 
     # What buttons to press to change the radar zoom level or toggle radar on/off
     # Key IDs are integers, and can be found in the LWJGL documentation here:
-    # http://www.lwjgl.org/javadoc/constant-values.html#org.lwjgl.input.Keyboard.KEY_0
+    # http://legacy.lwjgl.org/javadoc/constant-values.html#org.lwjgl.input.Keyboard.KEY_0
     "toggleKey":37, # Default: K (37)
     "zoomInKey":13,   # Default: = (13)
     "zoomOutKey":12,  # Default: - (12)
