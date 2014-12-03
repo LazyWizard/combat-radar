@@ -104,9 +104,9 @@ public class ShipPolygonRenderer implements CombatRenderer
 
         // Frigates and larger have a polygonal shape based on collision bounds
         // Some fighters (ex: Wasp) have non-simple bounds, hence their exclusion
-        if (contact.getHullSize().compareTo(HullSize.FIGHTER) > 0)
+        BoundsAPI bounds = contact.getExactBounds();
+        if (bounds != null && contact.getHullSize().compareTo(HullSize.FIGHTER) > 0)
         {
-            BoundsAPI bounds = contact.getExactBounds();
             bounds.update(contact.getLocation(), contact.getFacing());
             shape.add(radar.getPointOnRadar(contact.getLocation()));
             for (Iterator<SegmentAPI> iter = bounds.getSegments().iterator(); iter.hasNext();)
