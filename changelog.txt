@@ -1,5 +1,7 @@
  1.1c (December 03, 2014)
 ==========================
+The radar is no longer drawn over menus or when the HUD is turned off
+Greatly increased the speed of the battle progress bar animation
 Fixed crash in ShipPolygonRenderer when rendering ships that lack bounds
 Radar no longer reactivates when the player's ship is fully destroyed
 

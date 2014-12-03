@@ -324,10 +324,10 @@ public class CombatRadarPlugin extends BaseEveryFrameCombatPlugin
     @Override
     public void renderInUICoords(ViewportAPI view)
     {
-        CombatEngineAPI engine = Global.getCombatEngine();
-
         // Don't display over menus
-        if (engine == null)// || !engine.isUIShowingHUD() || engine.isUIShowingDialog())
+        CombatEngineAPI engine = Global.getCombatEngine();
+        if (engine == null || player == null || !engine.isEntityInPlay(player)
+                || !engine.isUIShowingHUD())
         {
             return;
         }

@@ -90,7 +90,7 @@
         "animateProgressBar":true,
         # How fast the bar should update, in percent per second
         # This setting is ignored if "animateProgressBar" is false
-        "barAnimationSpeed":15.0;
+        "barAnimationSpeed":25.0;
     },
 
     "combatReadinessRenderer":
