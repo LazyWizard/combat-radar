@@ -43,7 +43,7 @@ public class AsteroidRenderer implements CombatRenderer
     @Override
     public void render(ShipAPI player, float amount)
     {
-        if (SHOW_ASTEROIDS && !player.isHulk())
+        if (SHOW_ASTEROIDS && player.isAlive())
         {
             List<CombatEntityAPI> asteroids = radar.filterVisible(
                     Global.getCombatEngine().getAsteroids(), MAX_ASTEROIDS_SHOWN);

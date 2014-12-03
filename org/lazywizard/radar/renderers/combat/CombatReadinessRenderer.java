@@ -100,7 +100,7 @@ public class CombatReadinessRenderer implements CombatRenderer
     @Override
     public void render(ShipAPI player, float amount)
     {
-        if (SHOW_COMBAT_READINESS && !player.isHulk())
+        if (SHOW_COMBAT_READINESS && player.isAlive())
         {
             float currentCRPos = barHeight * Math.min(1f, player.getCurrentCR()),
                     initialCRPos = Math.max(currentCRPos,

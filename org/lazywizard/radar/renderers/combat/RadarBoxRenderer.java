@@ -20,7 +20,7 @@ public class RadarBoxRenderer implements CombatRenderer
     private static float RADAR_OPACITY, RADAR_EDGE_ALPHA;
     // Radar OpenGL buffers/display lists
     private static int RADAR_BOX_DISPLAY_LIST_ID = -123;
-    private boolean firstFrame = true, wasHulkLastFrame = false;
+    private boolean firstFrame = true, wasAliveLastFrame = false;
     private CombatRadar radar;
 
     @Override
@@ -54,10 +54,10 @@ public class RadarBoxRenderer implements CombatRenderer
         float radarAlpha = radar.getRadarAlpha();
 
         // Cache OpenGL commands for faster execution
-        if (firstFrame || player.isHulk() != wasHulkLastFrame)
+        if (firstFrame || player.isAlive() != wasAliveLastFrame)
         {
             firstFrame = false;
-            wasHulkLastFrame = player.isHulk();
+            wasAliveLastFrame = player.isAlive();
 
             // Delete old display list, if existant
             if (RADAR_BOX_DISPLAY_LIST_ID >= 0)
@@ -81,7 +81,7 @@ public class RadarBoxRenderer implements CombatRenderer
             glColor(RADAR_BG_COLOR, RADAR_OPACITY, false);
             DrawUtils.drawCircle(radarCenter.x, radarCenter.y, radarRadius, 144, true);
 
-            Color color = (player.isHulk() ? RADAR_FG_DEAD_COLOR : RADAR_FG_COLOR);
+            Color color = (player.isAlive() ? RADAR_FG_COLOR : RADAR_FG_DEAD_COLOR);
 
             // Outer circle
             glColor(color, radarAlpha * RADAR_EDGE_ALPHA, false);
