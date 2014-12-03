@@ -59,7 +59,7 @@ public class MissileRenderer implements CombatRenderer
     @Override
     public void render(ShipAPI player, float amount)
     {
-        if (SHOW_MISSILES && !player.isHulk())
+        if (SHOW_MISSILES && player.isAlive())
         {
             List<MissileAPI> missiles = radar.filterVisible(
                     Global.getCombatEngine().getMissiles(), MAX_MISSILES_SHOWN);

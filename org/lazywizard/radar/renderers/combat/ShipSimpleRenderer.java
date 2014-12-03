@@ -217,7 +217,7 @@ public class ShipSimpleRenderer implements CombatRenderer
     @Override
     public void render(ShipAPI player, float amount)
     {
-        if (SHOW_SHIPS && !player.isHulk())
+        if (SHOW_SHIPS && player.isAlive())
         {
             List<ShipAPI> contacts = radar.filterVisible(
                     Global.getCombatEngine().getShips(), MAX_SHIPS_SHOWN);

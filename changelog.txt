@@ -1,3 +1,8 @@
+ 1.1c (December 03, 2014)
+==========================
+Fixed crash in ShipPolygonRenderer when rendering ships that lack bounds
+Radar no longer reactivates when the player's ship is fully destroyed
+
  1.1b (October 23, 2014)
 =========================
 Campaign fleet renderer changes:

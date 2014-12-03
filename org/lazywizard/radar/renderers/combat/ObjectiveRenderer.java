@@ -32,7 +32,7 @@ public class ObjectiveRenderer implements CombatRenderer
     @Override
     public void render(ShipAPI player, float amount)
     {
-        if (SHOW_OBJECTIVES && !player.isHulk())
+        if (SHOW_OBJECTIVES && player.isAlive())
         {
             List<BattleObjectiveAPI> objectives = radar.filterVisible(
                     Global.getCombatEngine().getObjectives(), 1_000);
