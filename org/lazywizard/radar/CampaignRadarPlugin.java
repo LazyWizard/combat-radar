@@ -288,7 +288,6 @@ public class CampaignRadarPlugin implements EveryFrameScript
                 height = (int) (Display.getHeight() * Display.getPixelScaleFactor());
 
         // Set OpenGL flags
-        glPushAttrib(GL_ALL_ATTRIB_BITS);
         glMatrixMode(GL_PROJECTION);
         glPushMatrix();
         glLoadIdentity();
@@ -322,7 +321,6 @@ public class CampaignRadarPlugin implements EveryFrameScript
         glPopMatrix();
         glMatrixMode(GL_PROJECTION);
         glPopMatrix();
-        glPopAttrib();
     }
 
     @Override
