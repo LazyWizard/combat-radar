@@ -1,3 +1,7 @@
+ 1.1d (December 09, 2014)
+==========================
+Hopefully fixed a bug where campaign radar components would occasionally vanish
+
  1.1c (December 03, 2014)
 ==========================
 The radar is no longer drawn over menus or when the HUD is turned off
