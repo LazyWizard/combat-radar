@@ -1,6 +1,7 @@
 package org.lazywizard.radar.renderers;
 
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
+import com.fs.starfarer.api.campaign.SectorEntityToken;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.lazywizard.radar.CampaignRadar;
@@ -9,6 +10,13 @@ import org.lazywizard.radar.RadarModPlugin;
 
 public interface CampaignRenderer
 {
+    /**
+     * {@link SectorEntityToken}s with this tag will be invisible to the radar.
+     * <p>
+     * @since 1.1e
+     */
+    public static final String NODRAW_TAG = "radar_nodraw";
+
     /**
      * Called when the game first loads or when
      * {@link RadarModPlugin#reloadSettings()} is called. You should set up
