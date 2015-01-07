@@ -1,10 +1,13 @@
 package org.lazywizard.radar.renderers.campaign;
 
+import java.util.ArrayList;
 import java.util.List;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
+import com.fs.starfarer.api.campaign.LocationAPI;
 import com.fs.starfarer.api.campaign.SectorEntityToken;
 import com.fs.starfarer.api.graphics.SpriteAPI;
+import com.fs.starfarer.api.impl.campaign.ids.Tags;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.lazywizard.radar.CampaignRadar;
@@ -39,13 +42,31 @@ public class CommRelayRenderer implements CampaignRenderer
         }
     }
 
+    private static List<SectorEntityToken> getValidRelays(LocationAPI loc)
+    {
+        List<SectorEntityToken> allRelays = loc.getEntitiesWithTag(Tags.COMM_RELAY);
+        List<SectorEntityToken> relays = new ArrayList<>(allRelays.size());
+        for (SectorEntityToken tmp : allRelays)
+        {
+            // Support for Knights Templar and Exigency relay sources
+            if (tmp.hasTag(Tags.STATION) || tmp.hasTag(Tags.PLANET))
+            {
+                continue;
+            }
+
+            relays.add(tmp);
+        }
+
+        return relays;
+    }
+
     @Override
     public void render(CampaignFleetAPI player, float amount)
     {
         if (SHOW_RELAYS)
         {
             List<SectorEntityToken> relays = radar.filterVisible(
-                    player.getContainingLocation().getEntitiesWithTag("comm_relay"), 1_000);
+                    getValidRelays(player.getContainingLocation()), 1_000);
             if (!relays.isEmpty())
             {
                 radar.enableStencilTest();

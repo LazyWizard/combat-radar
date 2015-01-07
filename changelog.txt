@@ -1,3 +1,8 @@
+ 1.1e (January XX, 2015)
+=========================
+Stations and planets with the comm_relay tag aren't considered relays
+The campaign radar will not draw anything with the tag "radar_nodraw"
+
  1.1d (December 09, 2014)
 ==========================
 Hopefully fixed a bug where campaign radar components would occasionally vanish
