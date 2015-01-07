@@ -460,7 +460,8 @@ public class CampaignRadarPlugin implements EveryFrameScript
                 // Check if any part of the contact is visible
                 // Ignore any tokens with the nodraw tag
                 if (MathUtils.isWithinRange(contact, player.getLocation(),
-                        sightRadius + contact.getRadius()) && !contact.hasTag("radar_nodraw"))
+                        sightRadius + contact.getRadius())
+                        && !contact.hasTag(CampaignRenderer.NODRAW_TAG))
                 {
                     visible.add(contact);
                 }
