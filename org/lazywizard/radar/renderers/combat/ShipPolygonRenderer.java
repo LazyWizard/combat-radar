@@ -62,7 +62,7 @@ public class ShipPolygonRenderer implements CombatRenderer
         }
 
         angle = (float) Math.toRadians(angle);
-        float cos = (float) FastTrig.cos(angle), sin = (float) FastTrig.sin(angle);
+        final float cos = (float) FastTrig.cos(angle), sin = (float) FastTrig.sin(angle);
         for (Vector2f point : points)
         {
             point.set((point.x * cos) - (point.y * sin) + translation.x,
