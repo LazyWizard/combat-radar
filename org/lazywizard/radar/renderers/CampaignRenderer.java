@@ -11,7 +11,10 @@ import org.lazywizard.radar.RadarModPlugin;
 public interface CampaignRenderer
 {
     /**
-     * {@link SectorEntityToken}s with this tag will be invisible to the radar.
+     * {@link SectorEntityToken}s with this tag should be ignored by all
+     * {@link CampaignRenderer}s. If your renderer uses
+     * {@link CampaignRadar#filterVisible(java.util.List, int)}, entities with
+     * this tag will already be filtered out for you.
      * <p>
      * @since 1.1e
      */
