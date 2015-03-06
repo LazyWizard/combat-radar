@@ -289,12 +289,14 @@ public class CombatRadarPlugin extends BaseEveryFrameCombatPlugin
         glPushMatrix();
         glLoadIdentity();
         glViewport(0, 0, width, height);
-        glOrtho(0, width, 0, height, 1, -1);
+        glOrtho(0, width, 0, height, -1, 1);
         glMatrixMode(GL_MODELVIEW);
         glPushMatrix();
         glLoadIdentity();
+        glDisable(GL_TEXTURE_2D);
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glTranslatef(0.01f, 0.01f, 0);
 
         // Set up the stencil test
         glClear(GL_STENCIL_BUFFER_BIT);
