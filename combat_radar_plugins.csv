@@ -1,6 +1,6 @@
 renderer id,render order,script,settings file (optional)
+MapBorderRenderer,0,org.lazywizard.radar.renderers.combat.MapBorderRenderer,data/config/radar/combat_radar.json
 RadarBoxRenderer,10,org.lazywizard.radar.renderers.combat.RadarBoxRenderer,data/config/radar/combat_radar.json
-MapBorderRenderer,15,org.lazywizard.radar.renderers.combat.MapBorderRenderer,data/config/radar/combat_radar.json
 BattleProgressRenderer,20,org.lazywizard.radar.renderers.combat.BattleProgressRenderer,data/config/radar/combat_radar.json
 CombatReadinessRenderer,30,org.lazywizard.radar.renderers.combat.CombatReadinessRenderer,data/config/radar/combat_radar.json
 ShipRenderer,40,org.lazywizard.radar.renderers.combat.ShipPolygonRenderer,data/config/radar/combat_radar.json
