@@ -17,7 +17,7 @@ public class MapBorderRenderer implements CombatRenderer
 {
     private static boolean SHOW_BORDERS;
     private static Color RETREAT_AREA_COLOR, GRAVITY_BARRIER_COLOR;
-    private float mapWidth, mapHeight;
+    private Vector2f rawLL, rawUR;
     private CombatRadar radar;
 
     @Override
@@ -36,8 +36,10 @@ public class MapBorderRenderer implements CombatRenderer
         this.radar = radar;
 
         CombatEngineAPI engine = Global.getCombatEngine();
-        mapWidth = engine.getMapWidth() / 2f;
-        mapHeight = engine.getMapHeight() / 2f;
+        final float mapWidth = engine.getMapWidth() / 2f,
+                mapHeight = engine.getMapHeight() / 2f;
+        rawLL = new Vector2f(-mapWidth, -mapHeight);
+        rawUR = new Vector2f(mapWidth, mapHeight);
     }
 
     @Override
@@ -47,8 +49,8 @@ public class MapBorderRenderer implements CombatRenderer
         {
             radar.enableStencilTest();
 
-            final Vector2f ll = radar.getPointOnRadar(new Vector2f(-mapWidth, -mapHeight)),
-                    ur = radar.getPointOnRadar(new Vector2f(mapWidth, mapHeight));
+            final Vector2f ll = radar.getPointOnRadar(rawLL),
+                    ur = radar.getPointOnRadar(rawUR);
             final float retreatDistance = 2000f * radar.getCurrentPixelsPerSU();
 
             // Draw retreat areas
@@ -69,7 +71,6 @@ public class MapBorderRenderer implements CombatRenderer
             glEnd();
 
             // Draw gravity barrier
-            // FIXME: Doesn't quite line up with retreat area at max zoom
             glLineWidth(50f * radar.getCurrentPixelsPerSU());
             glColor(GRAVITY_BARRIER_COLOR, radar.getRadarAlpha(), false);
             glBegin(GL_LINE_LOOP);
