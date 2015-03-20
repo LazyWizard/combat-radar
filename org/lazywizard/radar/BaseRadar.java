@@ -27,5 +27,6 @@ interface BaseRadar
     // Used for scaling true-sized radar elements
     public float getCurrentPixelsPerSU();
     public float getCurrentZoomLevel();
+    public float getCurrentSightRadius();
     public Vector2f getPointOnRadar(Vector2f worldLoc);
 }

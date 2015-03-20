@@ -415,6 +415,12 @@ public class CombatRadarPlugin extends BaseEveryFrameCombatPlugin
         }
 
         @Override
+        public float getCurrentSightRadius()
+        {
+            return sightRadius;
+        }
+
+        @Override
         public float getRadarAlpha()
         {
             return RADAR_ALPHA;

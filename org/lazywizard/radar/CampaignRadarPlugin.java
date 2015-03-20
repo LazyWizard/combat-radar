@@ -404,6 +404,12 @@ public class CampaignRadarPlugin implements EveryFrameScript
         }
 
         @Override
+        public float getCurrentSightRadius()
+        {
+            return sightRadius;
+        }
+
+        @Override
         public float getRadarAlpha()
         {
             return RADAR_ALPHA;

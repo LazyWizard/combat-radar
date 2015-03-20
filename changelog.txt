@@ -1,3 +1,10 @@
+ 1.2 (March XX, 2015)
+======================
+Added getCurrentSightRadius() to BaseRadar interface
+New combat radar element: MapBorderRenderer
+ - Displays retreat zone in yellow
+ - Displays gravity barrier line in red
+
  1.1f (March 06, 2015)
 =======================
 Fixed a bug that caused intermittent radar corruption in the campaign
