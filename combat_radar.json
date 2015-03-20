@@ -24,6 +24,7 @@
     "showMissiles":true,            # Default: true, performance impact low
     "showMissileLockIcon":true,     # Default: true, performance impact very low
     "showObjectives":true,          # Default: true, performance impact very low
+    "showMapBorder":true,           # Default: true, performance impact very low
     "showBattleProgress":true,      # Default: true, performance impact low
     "showCombatReadiness":true,     # Default: true, performance impact very low
 
