@@ -15,6 +15,7 @@ import static org.lwjgl.opengl.GL11.*;
 
 public class MapBorderRenderer implements CombatRenderer
 {
+    private static final float RETREAT_AREA_SIZE = 2000f;
     private static boolean SHOW_BORDERS;
     private static Color RETREAT_AREA_COLOR, GRAVITY_BARRIER_COLOR;
     private Vector2f rawLL, rawUR;
@@ -51,7 +52,7 @@ public class MapBorderRenderer implements CombatRenderer
 
             final Vector2f ll = radar.getPointOnRadar(rawLL),
                     ur = radar.getPointOnRadar(rawUR);
-            final float retreatDistance = 2000f * radar.getCurrentPixelsPerSU();
+            final float retreatDistance = RETREAT_AREA_SIZE * radar.getCurrentPixelsPerSU();
 
             // Draw retreat areas
             glColor(RETREAT_AREA_COLOR, radar.getRadarAlpha(), false);
