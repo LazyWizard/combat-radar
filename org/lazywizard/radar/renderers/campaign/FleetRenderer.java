@@ -7,6 +7,7 @@ import com.fs.starfarer.api.impl.campaign.ids.FleetTypes;
 import com.fs.starfarer.api.impl.campaign.ids.MemFlags;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.lazywizard.lazylib.JSONUtils;
 import org.lazywizard.lazylib.VectorUtils;
 import org.lazywizard.lazylib.opengl.DrawUtils;
 import org.lazywizard.radar.CampaignRadar;
@@ -18,13 +19,17 @@ import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
 public class FleetRenderer implements CampaignRenderer
 {
     private static boolean SHOW_FLEETS;
+    private static Color BOUNTY_COLOR;
     private CampaignRadar radar;
-    private float lastFacing;
+    private float lastFacing, flashTimer = 0f;
 
     @Override
     public void reloadSettings(JSONObject settings) throws JSONException
     {
         SHOW_FLEETS = settings.getBoolean("showFleets");
+
+        settings = settings.getJSONObject("fleetRenderer");
+        BOUNTY_COLOR = JSONUtils.toColor(settings.getJSONArray("bountyColor"));
     }
 
     @Override
@@ -39,6 +44,12 @@ public class FleetRenderer implements CampaignRenderer
     {
         if (SHOW_FLEETS)
         {
+            flashTimer += amount;
+            if (flashTimer > 1f)
+            {
+                flashTimer -= 1f;
+            }
+
             List<CampaignFleetAPI> fleets = radar.filterVisible(
                     player.getContainingLocation().getFleets(), 1_000);
             if (!fleets.isEmpty())
@@ -50,9 +61,9 @@ public class FleetRenderer implements CampaignRenderer
                     // Calculate color of fleet
                     if (FleetTypes.PERSON_BOUNTY_FLEET.equals(
                             fleet.getMemoryWithoutUpdate().getString(
-                            MemFlags.MEMORY_KEY_FLEET_TYPE)))
+                                    MemFlags.MEMORY_KEY_FLEET_TYPE)))
                     {
-                        glColor(Color.ORANGE);
+                        glColor(BOUNTY_COLOR, radar.getContactAlpha(), false);
                     }
                     else if (fleet.getFaction().isHostileTo(player.getFaction()))
                     {

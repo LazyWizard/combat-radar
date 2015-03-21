@@ -1,6 +1,7 @@
  1.2 (March XX, 2015)
 ======================
 Added getCurrentSightRadius() to BaseRadar interface
+Fleets with a bounty on their head are now shown as gold on the campaign radar
 New combat radar element: MapBorderRenderer
  - Displays retreat zone in yellow
  - Displays gravity barrier line in red
