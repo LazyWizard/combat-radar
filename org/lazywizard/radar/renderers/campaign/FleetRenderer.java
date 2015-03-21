@@ -1,7 +1,10 @@
 package org.lazywizard.radar.renderers.campaign;
 
+import java.awt.Color;
 import java.util.List;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
+import com.fs.starfarer.api.impl.campaign.ids.FleetTypes;
+import com.fs.starfarer.api.impl.campaign.ids.MemFlags;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.lazywizard.lazylib.VectorUtils;
@@ -10,9 +13,8 @@ import org.lazywizard.radar.CampaignRadar;
 import org.lazywizard.radar.renderers.CampaignRenderer;
 import org.lwjgl.util.vector.Vector2f;
 import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
-import static org.lwjgl.opengl.GL11.glLineWidth;
 
-// TODO: Properly color these
+// TODO: Show bounties in gold
 public class FleetRenderer implements CampaignRenderer
 {
     private static boolean SHOW_FLEETS;
@@ -43,11 +45,16 @@ public class FleetRenderer implements CampaignRenderer
             {
                 radar.enableStencilTest();
 
-                glLineWidth(1f);
                 for (CampaignFleetAPI fleet : fleets)
                 {
                     // Calculate color of fleet
-                    if (fleet.getFaction().isHostileTo(player.getFaction()))
+                    if (FleetTypes.PERSON_BOUNTY_FLEET.equals(
+                            fleet.getMemoryWithoutUpdate().getString(
+                            MemFlags.MEMORY_KEY_FLEET_TYPE)))
+                    {
+                        glColor(Color.ORANGE);
+                    }
+                    else if (fleet.getFaction().isHostileTo(player.getFaction()))
                     {
                         glColor(radar.getEnemyContactColor(), radar.getContactAlpha(), false);
                     }
