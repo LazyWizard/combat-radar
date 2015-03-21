@@ -55,6 +55,12 @@
         "radarEdgeAlpha":0.33, # Default: 0.33
     },
 
+    "fleetRenderer":
+    {
+        # What color fleets with a bounty on their head show up as
+        "bountyColor":[255,215,0,255],
+    },
+
     "stationRenderer":
     {
         #"maxShown":250,
