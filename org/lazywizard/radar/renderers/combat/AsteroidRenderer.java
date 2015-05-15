@@ -23,6 +23,7 @@ public class AsteroidRenderer implements CombatRenderer
     private static int MAX_ASTEROIDS_SHOWN;
     private static Color ASTEROID_COLOR;
     private CombatRadar radar;
+    private FloatBuffer vertexMap;
 
     @Override
     public void reloadSettings(JSONObject settings) throws JSONException
@@ -38,44 +39,61 @@ public class AsteroidRenderer implements CombatRenderer
     public void init(CombatRadar radar)
     {
         this.radar = radar;
+        vertexMap = BufferUtils.createFloatBuffer(MAX_ASTEROIDS_SHOWN * 2);
     }
 
     @Override
-    public void render(ShipAPI player, float amount)
+    public void render(ShipAPI player, float amount, boolean isUpdateFrame)
     {
         if (SHOW_ASTEROIDS && player.isAlive())
         {
-            List<CombatEntityAPI> asteroids = radar.filterVisible(
-                    Global.getCombatEngine().getAsteroids(), MAX_ASTEROIDS_SHOWN);
-            if (!asteroids.isEmpty())
+            // Update frame = regenerate all vertex data
+            if (isUpdateFrame)
             {
-                radar.enableStencilTest();
-
-                // Calculate raw vertices
-                float[] vertices = new float[asteroids.size() * 2];
-                Iterator<? extends CombatEntityAPI> iter = asteroids.iterator();
-                for (int v = 0; v < asteroids.size() * 2; v += 2)
+                final List<CombatEntityAPI> asteroids = radar.filterVisible(
+                        Global.getCombatEngine().getAsteroids(), MAX_ASTEROIDS_SHOWN);
+                if (asteroids.isEmpty())
                 {
-                    CombatEntityAPI asteroid = iter.next();
-                    Vector2f radarLoc = radar.getPointOnRadar(asteroid.getLocation());
-                    vertices[v] = radarLoc.x;
-                    vertices[v + 1] = radarLoc.y;
+                    vertexMap.clear();
+                    vertexMap.flip();
                 }
+                else
+                {
+                    // Calculate raw vertices
+                    final float[] vertices = new float[asteroids.size() * 2];
+                    final Iterator<? extends CombatEntityAPI> iter = asteroids.iterator();
+                    for (int v = 0; v < asteroids.size() * 2; v += 2)
+                    {
+                        CombatEntityAPI asteroid = iter.next();
+                        Vector2f radarLoc = radar.getPointOnRadar(asteroid.getLocation());
+                        vertices[v] = radarLoc.x;
+                        vertices[v + 1] = radarLoc.y;
+                    }
 
-                // Generate vertex map
-                FloatBuffer vertexMap = BufferUtils.createFloatBuffer(vertices.length).put(vertices);
-                vertexMap.flip();
-
-                // Draw asteroids
-                glColor(ASTEROID_COLOR, radar.getContactAlpha(), false);
-                glPointSize(2f * radar.getCurrentZoomLevel());
-                glEnableClientState(GL_VERTEX_ARRAY);
-                glVertexPointer(2, 0, vertexMap);
-                glDrawArrays(GL_POINTS, 0, vertices.length / 2);
-                glDisableClientState(GL_VERTEX_ARRAY);
-
-                radar.disableStencilTest();
+                    // Generate vertex map
+                    vertexMap.clear();
+                    vertexMap.put(vertices);
+                    vertexMap.flip();
+                }
             }
+
+            // Don't draw if there's nothing to render!
+            if (vertexMap.limit() == 0)
+            {
+                return;
+            }
+
+            radar.enableStencilTest();
+
+            // Draw asteroids
+            glColor(ASTEROID_COLOR, radar.getContactAlpha(), false);
+            glPointSize(2f * radar.getCurrentZoomLevel());
+            glEnableClientState(GL_VERTEX_ARRAY);
+            glVertexPointer(2, 0, vertexMap);
+            glDrawArrays(GL_POINTS, 0, vertexMap.remaining() / 2);
+            glDisableClientState(GL_VERTEX_ARRAY);
+
+            radar.disableStencilTest();
         }
     }
 }
