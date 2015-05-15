@@ -42,6 +42,7 @@ public class CombatRadarPlugin extends BaseEveryFrameCombatPlugin
     // == STATIC VARIABLES ==
     // Performance settings
     private static boolean RESPECT_FOG_OF_WAR = true;
+    private static float TIME_BETWEEN_UPDATE_FRAMES = 0.1f; // TODO: Add setting for this
     // Radar range settings
     private static float MAX_SIGHT_RANGE;
     private static int NUM_ZOOM_LEVELS;
@@ -54,6 +55,7 @@ public class CombatRadarPlugin extends BaseEveryFrameCombatPlugin
     // == LOCAL VARIABLES ==
     private final List<CombatRenderer> renderers = new ArrayList<>();
     private CombatRadarInfo radarInfo;
+    private float timeSinceLastUpdateFrame = 9999f;
     private Vector2f renderCenter;
     private float renderRadius, sightRadius, radarScaling, currentZoom, intendedZoom;
     private int zoomLevel;
@@ -279,6 +281,14 @@ public class CombatRadarPlugin extends BaseEveryFrameCombatPlugin
 
     private void render(float amount)
     {
+        boolean isUpdateFrame = false;
+        timeSinceLastUpdateFrame += amount;
+        if (timeSinceLastUpdateFrame > TIME_BETWEEN_UPDATE_FRAMES)
+        {
+            isUpdateFrame = true;
+            timeSinceLastUpdateFrame -= TIME_BETWEEN_UPDATE_FRAMES;
+        }
+
         // Retina display fix
         int width = (int) (Display.getWidth() * Display.getPixelScaleFactor()),
                 height = (int) (Display.getHeight() * Display.getPixelScaleFactor());
@@ -311,11 +321,11 @@ public class CombatRadarPlugin extends BaseEveryFrameCombatPlugin
         // Draw the radar elements individually
         for (CombatRenderer renderer : renderers)
         {
-            renderer.render(player, amount);
+            renderer.render(player, amount, isUpdateFrame);
         }
 
         // Finalize drawing
-        radarInfo.disableStencilTest(); // Minor idiot-proofing
+        //radarInfo.disableStencilTest(); // Minor idiot-proofing
         glDisable(GL_BLEND);
         glPopMatrix();
         glMatrixMode(GL_PROJECTION);
