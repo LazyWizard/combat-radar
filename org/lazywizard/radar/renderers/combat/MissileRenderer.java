@@ -2,7 +2,6 @@ package org.lazywizard.radar.renderers.combat;
 
 import java.awt.Color;
 import java.nio.FloatBuffer;
-import java.util.Iterator;
 import java.util.List;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.GuidedMissileAI;
@@ -61,6 +60,61 @@ public class MissileRenderer implements CombatRenderer
         }
     }
 
+    private void generateMaps(ShipAPI player, List<MissileAPI> missiles)
+    {
+        vertexMap.clear();
+        colorMap.clear();
+
+        for (MissileAPI missile : missiles)
+        {
+            // Calculate vertices
+            Vector2f radarLoc = radar.getPointOnRadar(missile.getLocation());
+            vertexMap.put(radarLoc.x).put(radarLoc.y);
+
+            // Calculate color
+            float alphaMod = Math.min(1f, Math.max(0.3f,
+                    missile.getDamageAmount() / 750f));
+            alphaMod *= (missile.isFading() ? .5f : 1f);
+
+            // Burnt-out missiles count as hostile
+            Color color;
+            if (missile.isFizzling())
+            {
+                color = radar.getEnemyContactColor();
+            }
+            // Enemy missiles
+            else if (missile.getOwner() + player.getOwner() == 1)
+            {
+                // Color missiles locked onto us differently
+                MissileAIPlugin ai = missile.getMissileAI();
+                if (ai != null && ai instanceof GuidedMissileAI
+                        && player == ((GuidedMissileAI) ai).getTarget())
+                {
+                    playerLock = true;
+                    highestThreatAlpha = alphaMod;
+                    color = MISSILE_LOCKED_COLOR;
+                }
+                else
+                {
+                    color = radar.getEnemyContactColor();
+                }
+            }
+            // Allied missiles
+            else
+            {
+                color = radar.getFriendlyContactColor();
+            }
+
+            colorMap.put(color.getRed() / 255f);
+            colorMap.put(color.getGreen() / 255f);
+            colorMap.put(color.getBlue() / 255f);
+            colorMap.put(color.getAlpha() / 255f * alphaMod);
+        }
+
+        vertexMap.flip();
+        colorMap.flip();
+    }
+
     @Override
     public void render(ShipAPI player, float amount, boolean isUpdateFrame)
     {
@@ -71,78 +125,7 @@ public class MissileRenderer implements CombatRenderer
             {
                 playerLock = false;
                 highestThreatAlpha = 0f;
-
-                final List<MissileAPI> missiles = radar.filterVisible(
-                        Global.getCombatEngine().getMissiles(), MAX_MISSILES_SHOWN);
-                if (missiles.isEmpty())
-                {
-                    vertexMap.clear();
-                    vertexMap.flip();
-                }
-                else
-                {
-                    final float[] vertices = new float[missiles.size() * 2];
-                    final float[] colors = new float[missiles.size() * 4];
-                    final Iterator<MissileAPI> iter = missiles.iterator();
-                    for (int v = 0, c = 0; v < missiles.size() * 2; v += 2, c += 4)
-                    {
-                        MissileAPI missile = iter.next();
-
-                        // Calculate vertices
-                        Vector2f radarLoc = radar.getPointOnRadar(missile.getLocation());
-                        vertices[v] = radarLoc.x;
-                        vertices[v + 1] = radarLoc.y;
-
-                        // Calculate color
-                        float alphaMod = Math.min(1f, Math.max(0.3f,
-                                missile.getDamageAmount() / 750f));
-                        alphaMod *= (missile.isFading() ? .5f : 1f);
-
-                        // Burnt-out missiles count as hostile
-                        Color color;
-                        if (missile.isFizzling())
-                        {
-                            color = radar.getEnemyContactColor();
-                        }
-                        // Enemy missiles
-                        else if (missile.getOwner() + player.getOwner() == 1)
-                        {
-                            // Color missiles locked onto us differently
-                            MissileAIPlugin ai = missile.getMissileAI();
-                            if (ai != null && ai instanceof GuidedMissileAI
-                                    && player == ((GuidedMissileAI) ai).getTarget())
-                            {
-                                playerLock = true;
-                                highestThreatAlpha = alphaMod;
-                                color = MISSILE_LOCKED_COLOR;
-                            }
-                            else
-                            {
-                                color = radar.getEnemyContactColor();
-                            }
-                        }
-                        // Allied missiles
-                        else
-                        {
-                            color = radar.getFriendlyContactColor();
-                        }
-
-                        colors[c] = color.getRed() / 255f;
-                        colors[c + 1] = color.getGreen() / 255f;
-                        colors[c + 2] = color.getBlue() / 255f;
-                        colors[c + 3] = color.getAlpha() / 255f * alphaMod;
-                    }
-
-                    // Generate vertex map
-                    vertexMap.clear();
-                    vertexMap.put(vertices);
-                    vertexMap.flip();
-
-                    // Generate color map
-                    colorMap.clear();
-                    colorMap.put(colors);
-                    colorMap.flip();
-                }
+                generateMaps(player, radar.filterVisible(Global.getCombatEngine().getMissiles(), MAX_MISSILES_SHOWN));
             }
 
             // Don't draw if there's nothing to render!

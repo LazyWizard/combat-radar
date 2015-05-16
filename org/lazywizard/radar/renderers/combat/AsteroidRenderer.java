@@ -2,7 +2,6 @@ package org.lazywizard.radar.renderers.combat;
 
 import java.awt.Color;
 import java.nio.FloatBuffer;
-import java.util.Iterator;
 import java.util.List;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.CombatEntityAPI;
@@ -42,6 +41,20 @@ public class AsteroidRenderer implements CombatRenderer
         vertexMap = BufferUtils.createFloatBuffer(MAX_ASTEROIDS_SHOWN * 2);
     }
 
+    private void generateMaps(List<CombatEntityAPI> asteroids)
+    {
+        vertexMap.clear();
+
+        // Calculate vertices
+        for (CombatEntityAPI asteroid : asteroids)
+        {
+            Vector2f radarLoc = radar.getPointOnRadar(asteroid.getLocation());
+            vertexMap.put(radarLoc.x).put(radarLoc.y);
+        }
+
+        vertexMap.flip();
+    }
+
     @Override
     public void render(ShipAPI player, float amount, boolean isUpdateFrame)
     {
@@ -50,31 +63,7 @@ public class AsteroidRenderer implements CombatRenderer
             // Update frame = regenerate all vertex data
             if (isUpdateFrame)
             {
-                final List<CombatEntityAPI> asteroids = radar.filterVisible(
-                        Global.getCombatEngine().getAsteroids(), MAX_ASTEROIDS_SHOWN);
-                if (asteroids.isEmpty())
-                {
-                    vertexMap.clear();
-                    vertexMap.flip();
-                }
-                else
-                {
-                    // Calculate raw vertices
-                    final float[] vertices = new float[asteroids.size() * 2];
-                    final Iterator<? extends CombatEntityAPI> iter = asteroids.iterator();
-                    for (int v = 0; v < asteroids.size() * 2; v += 2)
-                    {
-                        CombatEntityAPI asteroid = iter.next();
-                        Vector2f radarLoc = radar.getPointOnRadar(asteroid.getLocation());
-                        vertices[v] = radarLoc.x;
-                        vertices[v + 1] = radarLoc.y;
-                    }
-
-                    // Generate vertex map
-                    vertexMap.clear();
-                    vertexMap.put(vertices);
-                    vertexMap.flip();
-                }
+                generateMaps(radar.filterVisible(Global.getCombatEngine().getAsteroids(), MAX_ASTEROIDS_SHOWN));
             }
 
             // Don't draw if there's nothing to render!
