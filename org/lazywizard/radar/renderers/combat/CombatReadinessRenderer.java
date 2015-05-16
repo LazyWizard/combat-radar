@@ -20,6 +20,7 @@ import static org.lwjgl.opengl.GL11.*;
 // Shows combat readineess max/current/at start of battle
 // Only registers between 0-100% CR (sorry Starsector+)
 // Bar subtly flashes if CR is currently draining
+// TODO: Update to use isUpdateFrame
 public class CombatReadinessRenderer implements CombatRenderer
 {
     private static boolean SHOW_COMBAT_READINESS;
@@ -98,7 +99,7 @@ public class CombatReadinessRenderer implements CombatRenderer
     }
 
     @Override
-    public void render(ShipAPI player, float amount)
+    public void render(ShipAPI player, float amount, boolean isUpdateFrame)
     {
         if (SHOW_COMBAT_READINESS && player.isAlive())
         {

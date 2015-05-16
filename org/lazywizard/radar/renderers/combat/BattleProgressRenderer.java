@@ -20,11 +20,12 @@ import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
 import static org.lwjgl.opengl.GL11.*;
 
 // TODO: Draw part of bar that's yet to be filled slightly darker
+// TODO: Update to use isUpdateFrame
 public class BattleProgressRenderer implements CombatRenderer
 {
     private static boolean SHOW_BATTLE_PROGRESS, ANIMATE_BAR;
     private static float ANIMATION_SPEED;
-    private static final float TIME_BETWEEN_CHECKS = .2f;
+    private static final float TIME_BETWEEN_CHECKS = .25f;
     private CombatRadar radar;
     private Vector2f barLocation;
     private FloatBuffer vertexMap, colorMap;
@@ -137,7 +138,7 @@ public class BattleProgressRenderer implements CombatRenderer
     }
 
     @Override
-    public void render(ShipAPI player, float amount)
+    public void render(ShipAPI player, float amount, boolean isUpdateFrame)
     {
         if (SHOW_BATTLE_PROGRESS)
         {

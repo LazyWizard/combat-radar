@@ -29,6 +29,7 @@ import static org.lwjgl.opengl.GL31.GL_PRIMITIVE_RESTART;
 
 // TODO: Switch to pre-calculated rotations for ships
 // TODO: This needs a huge cleanup after new rendering code was added!
+// TODO: Update to use isUpdateFrame
 public class ShipPolygonRenderer implements CombatRenderer
 {
     private static boolean SHOW_SHIPS, SHOW_SHIELDS, SHOW_TARGET_MARKER;
@@ -227,7 +228,7 @@ public class ShipPolygonRenderer implements CombatRenderer
     }
 
     @Override
-    public void render(ShipAPI player, float amount)
+    public void render(ShipAPI player, float amount, boolean isUpdateFrame)
     {
         if (SHOW_SHIPS && player.isAlive())
         {

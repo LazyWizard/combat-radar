@@ -47,14 +47,14 @@ public class RadarBoxRenderer implements CombatRenderer
     }
 
     @Override
-    public void render(ShipAPI player, float amount)
+    public void render(ShipAPI player, float amount, boolean isUpdateFrame)
     {
         Vector2f radarCenter = radar.getRenderCenter();
         float radarRadius = radar.getRenderRadius();
         float radarAlpha = radar.getRadarAlpha();
 
         // Cache OpenGL commands for faster execution
-        if (firstFrame || player.isAlive() != wasAliveLastFrame)
+        if (firstFrame || (isUpdateFrame && (player.isAlive() != wasAliveLastFrame)))
         {
             firstFrame = false;
             wasAliveLastFrame = player.isAlive();

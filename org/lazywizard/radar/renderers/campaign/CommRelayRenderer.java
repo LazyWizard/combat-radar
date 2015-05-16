@@ -15,6 +15,7 @@ import org.lazywizard.radar.renderers.CampaignRenderer;
 import org.lwjgl.util.vector.Vector2f;
 import static org.lwjgl.opengl.GL11.*;
 
+// TODO: Update to use isUpdateFrame
 public class CommRelayRenderer implements CampaignRenderer
 {
     private static boolean SHOW_RELAYS;
@@ -61,7 +62,7 @@ public class CommRelayRenderer implements CampaignRenderer
     }
 
     @Override
-    public void render(CampaignFleetAPI player, float amount)
+    public void render(CampaignFleetAPI player, float amount, boolean isUpdateFrame)
     {
         if (SHOW_RELAYS)
         {

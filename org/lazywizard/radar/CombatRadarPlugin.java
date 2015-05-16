@@ -42,7 +42,7 @@ public class CombatRadarPlugin extends BaseEveryFrameCombatPlugin
     // == STATIC VARIABLES ==
     // Performance settings
     private static boolean RESPECT_FOG_OF_WAR = true;
-    private static float TIME_BETWEEN_UPDATE_FRAMES = 0.1f; // TODO: Add setting for this
+    private static float TIME_BETWEEN_UPDATE_FRAMES;
     // Radar range settings
     private static float MAX_SIGHT_RANGE;
     private static int NUM_ZOOM_LEVELS;
@@ -65,6 +65,9 @@ public class CombatRadarPlugin extends BaseEveryFrameCombatPlugin
     static void reloadSettings() throws IOException, JSONException
     {
         final JSONObject settings = Global.getSettings().loadJSON(SETTINGS_FILE);
+
+        // Radar framerate limiter
+        TIME_BETWEEN_UPDATE_FRAMES = 1f / (float) settings.getDouble("radarFPS");
 
         // Key bindings
         RADAR_TOGGLE_KEY = settings.getInt("toggleKey");

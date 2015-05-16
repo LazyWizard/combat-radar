@@ -16,6 +16,7 @@ import org.lwjgl.util.vector.Vector2f;
 import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
 import static org.lwjgl.opengl.GL11.*;
 
+// TODO: Update to use isUpdateFrame
 public class AsteroidRenderer implements CampaignRenderer
 {
     private static boolean SHOW_ASTEROIDS;
@@ -40,7 +41,7 @@ public class AsteroidRenderer implements CampaignRenderer
     }
 
     @Override
-    public void render(CampaignFleetAPI player, float amount)
+    public void render(CampaignFleetAPI player, float amount, boolean isUpdateFrame)
     {
         if (SHOW_ASTEROIDS)
         {
