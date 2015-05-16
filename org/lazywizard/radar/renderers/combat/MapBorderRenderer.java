@@ -13,6 +13,7 @@ import org.lwjgl.util.vector.Vector2f;
 import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
 import static org.lwjgl.opengl.GL11.*;
 
+// TODO: Update to use isUpdateFrame
 public class MapBorderRenderer implements CombatRenderer
 {
     private static final float RETREAT_AREA_SIZE = 2000f;
@@ -44,7 +45,7 @@ public class MapBorderRenderer implements CombatRenderer
     }
 
     @Override
-    public void render(ShipAPI player, float amount)
+    public void render(ShipAPI player, float amount, boolean isUpdateFrame)
     {
         if (SHOW_BORDERS)
         {

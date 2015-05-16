@@ -54,12 +54,15 @@ public interface CampaignRenderer
      * you should call {@link CombatRadar#resetView()} at the end of this
      * method.
      * <p>
-     * @param player The player's fleet; also the center of the radar. Will
-     *               never be null.
-     * @param amount How long since the last frame, useful for animated radar
-     *               elements.
+     * @param player        The player's fleet; also the center of the radar.
+     *                      Will never be null.
+     * @param amount        How long since the last frame, useful for animated
+     *                      radar elements.
+     * @param isUpdateFrame Whether the radar should update components this
+     *                      frame, used so the radar can run at a different
+     *                      framerate than Starsector.
      * <p>
      * @since 1.0
      */
-    public void render(CampaignFleetAPI player, float amount);
+    public void render(CampaignFleetAPI player, float amount, boolean isUpdateFrame);
 }

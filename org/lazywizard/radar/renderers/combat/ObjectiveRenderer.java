@@ -12,6 +12,7 @@ import org.lwjgl.util.vector.Vector2f;
 import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
 import static org.lwjgl.opengl.GL11.*;
 
+// TODO: Update to use isUpdateFrame
 public class ObjectiveRenderer implements CombatRenderer
 {
     private static boolean SHOW_OBJECTIVES;
@@ -30,7 +31,7 @@ public class ObjectiveRenderer implements CombatRenderer
     }
 
     @Override
-    public void render(ShipAPI player, float amount)
+    public void render(ShipAPI player, float amount, boolean isUpdateFrame)
     {
         if (SHOW_OBJECTIVES && player.isAlive())
         {

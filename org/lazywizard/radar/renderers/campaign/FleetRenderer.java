@@ -15,6 +15,7 @@ import org.lazywizard.radar.renderers.CampaignRenderer;
 import org.lwjgl.util.vector.Vector2f;
 import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
 
+// TODO: Update to use isUpdateFrame
 // TODO: Show bounties in gold
 public class FleetRenderer implements CampaignRenderer
 {
@@ -40,7 +41,7 @@ public class FleetRenderer implements CampaignRenderer
     }
 
     @Override
-    public void render(CampaignFleetAPI player, float amount)
+    public void render(CampaignFleetAPI player, float amount, boolean isUpdateFrame)
     {
         if (SHOW_FLEETS)
         {

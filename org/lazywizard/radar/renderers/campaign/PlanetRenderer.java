@@ -12,6 +12,7 @@ import org.lwjgl.util.vector.Vector2f;
 import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
 import static org.lwjgl.opengl.GL11.*;
 
+// TODO: Update to use isUpdateFrame
 public class PlanetRenderer implements CampaignRenderer
 {
     private static boolean SHOW_PLANETS;
@@ -30,7 +31,7 @@ public class PlanetRenderer implements CampaignRenderer
     }
 
     @Override
-    public void render(CampaignFleetAPI player, float amount)
+    public void render(CampaignFleetAPI player, float amount, boolean isUpdateFrame)
     {
         if (SHOW_PLANETS)
         {
