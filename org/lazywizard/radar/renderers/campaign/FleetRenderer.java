@@ -12,7 +12,6 @@ import org.lazywizard.lazylib.VectorUtils;
 import org.lazywizard.lazylib.opengl.DrawUtils;
 import org.lazywizard.radar.CampaignRadar;
 import org.lazywizard.radar.renderers.CampaignRenderer;
-import org.lwjgl.util.vector.Vector2f;
 import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
 
 // TODO: Update to use isUpdateFrame
@@ -88,12 +87,12 @@ public class FleetRenderer implements CampaignRenderer
                     }
 
                     // Draw fleet on radar as angled triangle
-                    Vector2f center = radar.getPointOnRadar(fleet.getLocation());
+                    float[] center = radar.getRawPointOnRadar(fleet.getLocation());
                     float size = Math.max(60f, fleet.getRadius())
                             * radar.getCurrentPixelsPerSU();
                     size *= 2f; // Scale upwards for better visibility
-                    DrawUtils.drawEllipse(center.x, center.y, size, size * .65f,
-                            facing, 3, true);
+                    DrawUtils.drawEllipse(center[0], center[1],
+                            size, size * .65f, facing, 3, true);
                 }
 
                 radar.disableStencilTest();

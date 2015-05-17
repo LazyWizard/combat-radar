@@ -28,5 +28,6 @@ interface BaseRadar
     public float getCurrentPixelsPerSU();
     public float getCurrentZoomLevel();
     public float getCurrentSightRadius();
-    public Vector2f getPointOnRadar(Vector2f worldLoc);
+    @Deprecated public Vector2f getPointOnRadar(Vector2f worldLoc);
+    public float[] getRawPointOnRadar(Vector2f worldLoc);
 }

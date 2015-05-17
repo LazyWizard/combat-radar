@@ -12,7 +12,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.lazywizard.radar.CampaignRadar;
 import org.lazywizard.radar.renderers.CampaignRenderer;
-import org.lwjgl.util.vector.Vector2f;
 import static org.lwjgl.opengl.GL11.*;
 
 // TODO: Update to use isUpdateFrame
@@ -93,12 +92,12 @@ public class CommRelayRenderer implements CampaignRenderer
                     }
 
                     // Resize and draw station on radar
-                    Vector2f center = radar.getPointOnRadar(relay.getLocation());
+                    float[] center = radar.getRawPointOnRadar(relay.getLocation());
                     float size = relay.getRadius() * 2f * radar.getCurrentPixelsPerSU();
                     size *= 2f; // Scale upwards for better visibility
                     icon.setSize(size, size);
                     icon.setAlphaMult(radar.getContactAlpha());
-                    icon.renderAtCenter(center.x, center.y);
+                    icon.renderAtCenter(center[0], center[1]);
                 }
 
                 glDisable(GL_TEXTURE_2D);

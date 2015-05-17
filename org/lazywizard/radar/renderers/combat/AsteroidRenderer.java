@@ -12,7 +12,6 @@ import org.lazywizard.lazylib.JSONUtils;
 import org.lazywizard.radar.CombatRadar;
 import org.lazywizard.radar.renderers.CombatRenderer;
 import org.lwjgl.BufferUtils;
-import org.lwjgl.util.vector.Vector2f;
 import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
 import static org.lwjgl.opengl.GL11.*;
 
@@ -48,8 +47,8 @@ public class AsteroidRenderer implements CombatRenderer
         // Calculate vertices
         for (CombatEntityAPI asteroid : asteroids)
         {
-            Vector2f radarLoc = radar.getPointOnRadar(asteroid.getLocation());
-            vertexMap.put(radarLoc.x).put(radarLoc.y);
+            float[] radarLoc = radar.getRawPointOnRadar(asteroid.getLocation());
+            vertexMap.put(radarLoc[0]).put(radarLoc[1]);
         }
 
         vertexMap.flip();

@@ -52,8 +52,8 @@ public class MissileRenderer implements CombatRenderer
 
         if (SHOW_MISSILE_LOCK_ICON)
         {
-            Vector2f radarCenter = radar.getRenderCenter();
-            float radarRadius = radar.getRenderRadius();
+            final Vector2f radarCenter = radar.getRenderCenter();
+            final float radarRadius = radar.getRenderRadius();
             icon = Global.getSettings().getSprite("radar", MISSILE_ICON);
             iconLocation = new Vector2f(radarCenter.x - (radarRadius * 0.9f),
                     radarCenter.y + (radarRadius * 0.9f));
@@ -68,8 +68,8 @@ public class MissileRenderer implements CombatRenderer
         for (MissileAPI missile : missiles)
         {
             // Calculate vertices
-            Vector2f radarLoc = radar.getPointOnRadar(missile.getLocation());
-            vertexMap.put(radarLoc.x).put(radarLoc.y);
+            float[] radarLoc = radar.getRawPointOnRadar(missile.getLocation());
+            vertexMap.put(radarLoc[0]).put(radarLoc[1]);
 
             // Calculate color
             float alphaMod = Math.min(1f, Math.max(0.3f,

@@ -8,7 +8,6 @@ import org.json.JSONObject;
 import org.lazywizard.lazylib.opengl.DrawUtils;
 import org.lazywizard.radar.CampaignRadar;
 import org.lazywizard.radar.renderers.CampaignRenderer;
-import org.lwjgl.util.vector.Vector2f;
 import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
 import static org.lwjgl.opengl.GL11.*;
 
@@ -45,10 +44,10 @@ public class PlanetRenderer implements CampaignRenderer
                 // TODO: make planets look better
                 for (PlanetAPI planet : planets)
                 {
-                    Vector2f center = radar.getPointOnRadar(planet.getLocation());
+                    float[] center = radar.getRawPointOnRadar(planet.getLocation());
                     float radius = planet.getRadius() * radar.getCurrentPixelsPerSU();
                     glColor(planet.getSpec().getIconColor(), radar.getContactAlpha(), false);
-                    DrawUtils.drawCircle(center.x, center.y, radius, 64, true);
+                    DrawUtils.drawCircle(center[0], center[1], radius, 64, true);
                 }
 
                 glDisable(GL_LINE_SMOOTH);

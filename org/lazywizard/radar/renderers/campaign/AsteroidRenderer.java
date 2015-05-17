@@ -12,7 +12,6 @@ import org.lazywizard.lazylib.JSONUtils;
 import org.lazywizard.radar.CampaignRadar;
 import org.lazywizard.radar.renderers.CampaignRenderer;
 import org.lwjgl.BufferUtils;
-import org.lwjgl.util.vector.Vector2f;
 import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
 import static org.lwjgl.opengl.GL11.*;
 
@@ -57,9 +56,9 @@ public class AsteroidRenderer implements CampaignRenderer
                 for (int v = 0; v < asteroids.size() * 2; v += 2)
                 {
                     SectorEntityToken asteroid = iter.next();
-                    Vector2f radarLoc = radar.getPointOnRadar(asteroid.getLocation());
-                    vertices[v] = radarLoc.x;
-                    vertices[v + 1] = radarLoc.y;
+                    float[] radarLoc = radar.getRawPointOnRadar(asteroid.getLocation());
+                    vertices[v] = radarLoc[0];
+                    vertices[v + 1] = radarLoc[1];
                 }
 
                 // Generate vertex map

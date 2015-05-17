@@ -8,7 +8,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.lazywizard.radar.CombatRadar;
 import org.lazywizard.radar.renderers.CombatRenderer;
-import org.lwjgl.util.vector.Vector2f;
 import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
 import static org.lwjgl.opengl.GL11.*;
 
@@ -41,7 +40,7 @@ public class ObjectiveRenderer implements CombatRenderer
             {
                 radar.enableStencilTest();
 
-                Vector2f radarLoc;
+                float[] radarLoc;
                 float size = 250f * radar.getCurrentPixelsPerSU();
                 glEnable(GL_LINE_SMOOTH);
                 glLineWidth(size / 5f);
@@ -66,13 +65,13 @@ public class ObjectiveRenderer implements CombatRenderer
                                 radar.getContactAlpha(), false);
                     }
 
-                    radarLoc = radar.getPointOnRadar(objective.getLocation());
+                    radarLoc = radar.getRawPointOnRadar(objective.getLocation());
 
                     glBegin(GL_LINE_LOOP);
-                    glVertex2f(radarLoc.x, radarLoc.y + size);
-                    glVertex2f(radarLoc.x + size, radarLoc.y);
-                    glVertex2f(radarLoc.x, radarLoc.y - size);
-                    glVertex2f(radarLoc.x - size, radarLoc.y);
+                    glVertex2f(radarLoc[0], radarLoc[1] + size);
+                    glVertex2f(radarLoc[0] + size, radarLoc[1]);
+                    glVertex2f(radarLoc[0], radarLoc[1] - size);
+                    glVertex2f(radarLoc[0] - size, radarLoc[1]);
                     glEnd();
                 }
 

@@ -466,13 +466,27 @@ public class CombatRadarPlugin extends BaseEveryFrameCombatPlugin
         @Override
         public Vector2f getPointOnRadar(Vector2f worldLoc)
         {
-            Vector2f loc = new Vector2f();
+            float[] loc = getRawPointOnRadar(worldLoc);
+            return new Vector2f(loc[0], loc[1]);
+        }
+
+        @Override
+        public float[] getRawPointOnRadar(Vector2f worldLoc)
+        {
+            float[] loc = new float[2];
+
             // Get position relative to {0,0}
-            Vector2f.sub(worldLoc, player.getLocation(), loc);
+            loc[0] = worldLoc.x - player.getLocation().x;
+            loc[1] = worldLoc.y - player.getLocation().y;
+
             // Scale point to fit within the radar properly
-            loc.scale(radarScaling);
+            loc[0] *= radarScaling;
+            loc[1] *= radarScaling;
+
             // Translate point to inside the radar box
-            Vector2f.add(loc, renderCenter, loc);
+            loc[0] += renderCenter.x;
+            loc[1] += renderCenter.y;
+
             return loc;
         }
 
