@@ -51,8 +51,8 @@ public class MapBorderRenderer implements CombatRenderer
         {
             radar.enableStencilTest();
 
-            final Vector2f ll = radar.getPointOnRadar(rawLL),
-                    ur = radar.getPointOnRadar(rawUR);
+            final float[] ll = radar.getRawPointOnRadar(rawLL),
+                    ur = radar.getRawPointOnRadar(rawUR);
             final float retreatDistance = RETREAT_AREA_SIZE * radar.getCurrentPixelsPerSU();
 
             // Draw retreat areas
@@ -60,26 +60,26 @@ public class MapBorderRenderer implements CombatRenderer
             glBegin(GL_QUADS);
 
             // Player retreat area
-            glVertex2f(ll.x, ll.y);
-            glVertex2f(ll.x, ll.y + retreatDistance);
-            glVertex2f(ur.x, ll.y + retreatDistance);
-            glVertex2f(ur.x, ll.y);
+            glVertex2f(ll[0], ll[1]);
+            glVertex2f(ll[0], ll[1] + retreatDistance);
+            glVertex2f(ur[0], ll[1] + retreatDistance);
+            glVertex2f(ur[0], ll[1]);
 
             // Enemy retreat area
-            glVertex2f(ll.x, ur.y);
-            glVertex2f(ll.x, ur.y - retreatDistance);
-            glVertex2f(ur.x, ur.y - retreatDistance);
-            glVertex2f(ur.x, ur.y);
+            glVertex2f(ll[0], ur[1]);
+            glVertex2f(ll[0], ur[1] - retreatDistance);
+            glVertex2f(ur[0], ur[1] - retreatDistance);
+            glVertex2f(ur[0], ur[1]);
             glEnd();
 
             // Draw gravity barrier
             glLineWidth(50f * radar.getCurrentPixelsPerSU());
             glColor(GRAVITY_BARRIER_COLOR, radar.getRadarAlpha(), false);
             glBegin(GL_LINE_LOOP);
-            glVertex2f(ll.x, ll.y);
-            glVertex2f(ll.x, ur.y);
-            glVertex2f(ur.x, ur.y);
-            glVertex2f(ur.x, ll.y);
+            glVertex2f(ll[0], ll[1]);
+            glVertex2f(ll[0], ur[1]);
+            glVertex2f(ur[0], ur[1]);
+            glVertex2f(ur[0], ll[1]);
             glEnd();
 
             radar.disableStencilTest();
