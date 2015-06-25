@@ -30,4 +30,6 @@ interface BaseRadar
     public float getCurrentSightRadius();
     @Deprecated public Vector2f getPointOnRadar(Vector2f worldLoc);
     public float[] getRawPointOnRadar(Vector2f worldLoc);
+    public float[] getRawPointOnRadar(float worldX, float worldY);
+    public float[] getRawPointsOnRadar(float[] worldCoords);
 }

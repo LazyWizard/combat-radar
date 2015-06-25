@@ -6,6 +6,7 @@ import com.fs.starfarer.api.Global;
 import org.json.JSONException;
 
 // TODO: Unify combat and campaign codebases
+// TODO: Add csv to prevent certain ships from being drawn
 public class RadarModPlugin extends BaseModPlugin
 {
     public static void reloadSettings() throws IOException, JSONException
