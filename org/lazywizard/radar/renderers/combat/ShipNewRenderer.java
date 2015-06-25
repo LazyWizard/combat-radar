@@ -3,6 +3,7 @@ package org.lazywizard.radar.renderers.combat;
 import java.awt.Color;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,7 +35,7 @@ public class ShipNewRenderer implements CombatRenderer
     private static int MAX_SHIPS_SHOWN;
     private static Color SHIELD_COLOR, MARKER_COLOR;
     private static float PHASE_ALPHA_MULT;
-    private Map<String, Renderer> cachedRenderData = new HashMap<>();
+    private Map<String, Renderer> cachedRenderData;
     private FloatBuffer markerVertexMap;
     private IntBuffer markerIndexMap;
     private CombatRadar radar;
@@ -57,6 +58,7 @@ public class ShipNewRenderer implements CombatRenderer
     public void init(CombatRadar radar)
     {
         this.radar = radar;
+        cachedRenderData = new HashMap<>();
 
         if (SHOW_TARGET_MARKER)
         {
@@ -119,8 +121,7 @@ public class ShipNewRenderer implements CombatRenderer
             radarLoc.x + size, radarLoc.y - margin  // 11
         };
 
-        markerVertexMap.put(vertices);
-        markerVertexMap.flip();
+        markerVertexMap.put(vertices).flip();
 
         // Draw the target marker
         glColor(MARKER_COLOR, radar.getContactAlpha(), false);
@@ -135,20 +136,20 @@ public class ShipNewRenderer implements CombatRenderer
         return (ship.getPhaseCloak() != null && ship.getPhaseCloak().isOn()) ? PHASE_ALPHA_MULT : 1f;
     }
 
-    private Color getColor(ShipAPI contact, int playerSide)
+    private Color getColor(ShipAPI ship, int playerSide)
     {
         // Hulks
-        if (contact.isHulk())
+        if (ship.isHulk())
         {
             return radar.getNeutralContactColor();
         }
         // Allies
-        else if (contact.getOwner() == playerSide)
+        else if (ship.getOwner() == playerSide)
         {
             return radar.getFriendlyContactColor();
         }
         // Enemies
-        else if (contact.getOwner() + playerSide == 1)
+        else if (ship.getOwner() + playerSide == 1)
         {
             return radar.getEnemyContactColor();
         }
@@ -224,14 +225,31 @@ public class ShipNewRenderer implements CombatRenderer
         private Renderer(ShipAPI ship)
         {
             final BoundsAPI bounds = ship.getExactBounds();
+            final List<SegmentAPI> segments = bounds.getSegments();
+
+            // Ship has less than three segments - not a drawable shape!
+            if (segments.size() < 3)
+            {
+                points = null;
+                drawMode = -1;
+                return;
+            }
+
+            // Store bounds as if ship were at {0, 0}, facing 0
+            // When drawing we will translate them to the proper position/facing
             bounds.update(new Vector2f(0f, 0f), 0f);
 
+            // tmpPoints will be used as a fallback if triangulation fails
             final Triangulator triangles = new NeatTriangulator();
-            for (SegmentAPI segment : bounds.getSegments())
+            final List<Vector2f> tmpPoints = new ArrayList<>(segments.size() + 2);
+            tmpPoints.add(new Vector2f(0f, 0f));
+            for (SegmentAPI segment : segments)
             {
                 final Vector2f point = segment.getP1();
+                tmpPoints.add(point);
                 triangles.addPolyPoint(point.x, point.y);
             }
+            tmpPoints.add(tmpPoints.get(1));
 
             // Triangulation successful, can draw as a proper polygon
             if (triangles.triangulate())
@@ -244,17 +262,14 @@ public class ShipNewRenderer implements CombatRenderer
                     float[] point = triangles.getTrianglePoint(x, 0);
                     points[y] = point[0];
                     points[y + 1] = point[1];
-                    System.out.println("Point 1: {" + point[0] + "," + point[1] + "}");
 
                     point = triangles.getTrianglePoint(x, 1);
                     points[y + 2] = point[0];
                     points[y + 3] = point[1];
-                    System.out.println("Point 2: {" + point[0] + "," + point[1] + "}");
 
                     point = triangles.getTrianglePoint(x, 2);
                     points[y + 4] = point[0];
                     points[y + 5] = point[1];
-                    System.out.println("Point 3: {" + point[0] + "," + point[1] + "}");
                 }
 
                 Global.getLogger(ShipNewRenderer.class).log(Level.DEBUG,
@@ -265,9 +280,15 @@ public class ShipNewRenderer implements CombatRenderer
             else
             {
                 drawMode = GL_TRIANGLE_FAN;
-                points = null;
+                points = new float[tmpPoints.size() * 2];
 
-                // TODO: Use triangle fan from center instead
+                for (int x = 0, y = 0; x < tmpPoints.size(); x++, y += 2)
+                {
+                    Vector2f point = tmpPoints.get(x);
+                    points[y] = point.x;
+                    points[y + 1] = point.y;
+                }
+
                 Global.getLogger(ShipNewRenderer.class).log(Level.DEBUG,
                         "Failed to triangulate hull '" + ship.getHullSpec().getHullId()
                         + "', defaulting to triangle fan");
@@ -281,30 +302,28 @@ public class ShipNewRenderer implements CombatRenderer
         private void drawShip(CombatRadar radar, Vector2f shipWorldLoc, float shipFacing,
                 Color drawColor, float alphaMod)
         {
+            // Invalid ship bounds
+            if (drawMode == -1)
+            {
+                return;
+            }
+
             glColor(drawColor, alphaMod, false);
             Transform transform = Transform.createTranslateTransform(shipWorldLoc.x, shipWorldLoc.y)
                     .concatenate(Transform.createRotateTransform((float) Math.toRadians(shipFacing)));
 
+            // First translate bounds to their position in world space, then convert to radar space
             float[] pointsTransformed = new float[points.length];
             transform.transform(points, 0, pointsTransformed, 0, points.length / 2);
             pointsTransformed = radar.getRawPointsOnRadar(pointsTransformed);
 
-            switch (drawMode)
+            // Draw bounds at position in radar space
+            glBegin(drawMode);
+            for (int x = 0; x < pointsTransformed.length; x += 2)
             {
-                case GL_TRIANGLES:
-                    glBegin(GL_TRIANGLES);
-                    for (int x = 0; x < pointsTransformed.length; x += 2)
-                    {
-                        glVertex2f(pointsTransformed[x], pointsTransformed[x + 1]);
-                    }
-                    glEnd();
-                    break;
-                case GL_TRIANGLE_FAN:
-                    // TODO
-                    break;
-                default:
-                    throw new RuntimeException("Unknown draw mode: " + drawMode);
+                glVertex2f(pointsTransformed[x], pointsTransformed[x + 1]);
             }
+            glEnd();
         }
     }
 }
