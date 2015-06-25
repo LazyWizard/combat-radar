@@ -23,6 +23,7 @@ import org.lazywizard.lazylib.MathUtils;
 import org.lazywizard.lazylib.combat.CombatUtils;
 import org.lazywizard.lazylib.opengl.DrawUtils;
 import org.lazywizard.radar.renderers.CombatRenderer;
+import org.lazywizard.radar.renderers.NullRenderer;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.util.vector.Vector2f;
@@ -124,6 +125,12 @@ public class CombatRadarPlugin extends BaseEveryFrameCombatPlugin
             catch (ClassNotFoundException ex)
             {
                 throw new RuntimeException(ex);
+            }
+
+            // Don't even bother loading NullRenderers
+            if (renderClass == NullRenderer.class)
+            {
+                continue;
             }
 
             // Ensure this is actually a valid renderer

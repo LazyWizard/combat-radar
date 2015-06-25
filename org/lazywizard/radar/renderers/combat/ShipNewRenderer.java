@@ -1,23 +1,30 @@
 package org.lazywizard.radar.renderers.combat;
 
 import java.awt.Color;
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.BoundsAPI;
 import com.fs.starfarer.api.combat.BoundsAPI.SegmentAPI;
+import com.fs.starfarer.api.combat.CombatEntityAPI;
+import com.fs.starfarer.api.combat.ShieldAPI;
 import com.fs.starfarer.api.combat.ShipAPI;
 import org.apache.log4j.Level;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.lazywizard.lazylib.JSONUtils;
+import org.lazywizard.lazylib.opengl.DrawUtils;
 import org.lazywizard.radar.CombatRadar;
 import org.lazywizard.radar.renderers.CombatRenderer;
+import org.lwjgl.BufferUtils;
 import org.lwjgl.util.vector.Vector2f;
 import org.newdawn.slick.geom.NeatTriangulator;
 import org.newdawn.slick.geom.Transform;
 import org.newdawn.slick.geom.Triangulator;
+import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
 import static org.lwjgl.opengl.GL11.*;
 
 public class ShipNewRenderer implements CombatRenderer
@@ -28,6 +35,8 @@ public class ShipNewRenderer implements CombatRenderer
     private static Color SHIELD_COLOR, MARKER_COLOR;
     private static float PHASE_ALPHA_MULT;
     private Map<String, Renderer> cachedRenderData = new HashMap<>();
+    private FloatBuffer markerVertexMap;
+    private IntBuffer markerIndexMap;
     private CombatRadar radar;
 
     @Override
@@ -48,6 +57,106 @@ public class ShipNewRenderer implements CombatRenderer
     public void init(CombatRadar radar)
     {
         this.radar = radar;
+
+        if (SHOW_TARGET_MARKER)
+        {
+            int[] indices = new int[]
+            {
+                // Upper left corner
+                0, 1, 0, 2,
+                // Upper right corner
+                3, 4, 3, 5,
+                // Lower left corner
+                6, 7, 6, 8,
+                // Lower right corner
+                9, 10, 9, 11
+            };
+
+            markerIndexMap = BufferUtils.createIntBuffer(indices.length).put(indices);
+            markerIndexMap.flip();
+
+            markerVertexMap = BufferUtils.createFloatBuffer(24);
+        }
+    }
+
+    private void drawShield(ShipAPI contact)
+    {
+        ShieldAPI shield = contact.getShield();
+        if (shield != null && shield.isOn())
+        {
+            Vector2f radarLoc = radar.getPointOnRadar(contact.getLocation());
+            float size = shield.getRadius() * radar.getCurrentPixelsPerSU();
+            DrawUtils.drawArc(radarLoc.x, radarLoc.y, size,
+                    shield.getFacing() - (shield.getActiveArc() / 2f),
+                    shield.getActiveArc(),
+                    (int) (shield.getActiveArc() / 18f) + 1, false);
+        }
+    }
+
+    private void drawTargetMarker(ShipAPI target)
+    {
+        // Generate vertices
+        float size = target.getCollisionRadius() * radar.getCurrentPixelsPerSU();;
+        Vector2f radarLoc = radar.getPointOnRadar(target.getLocation());
+        float margin = size * .5f;
+        float[] vertices = new float[]
+        {
+            // Upper left corner
+            radarLoc.x - size, radarLoc.y + size, // 0
+            radarLoc.x - margin, radarLoc.y + size, // 1
+            radarLoc.x - size, radarLoc.y + margin, // 2
+            // Upper right corner
+            radarLoc.x + size, radarLoc.y + size, // 3
+            radarLoc.x + margin, radarLoc.y + size, // 4
+            radarLoc.x + size, radarLoc.y + margin, // 5
+            // Lower left corner
+            radarLoc.x - size, radarLoc.y - size, // 6
+            radarLoc.x - margin, radarLoc.y - size, // 7
+            radarLoc.x - size, radarLoc.y - margin, // 8
+            // Lower right corner
+            radarLoc.x + size, radarLoc.y - size, // 9
+            radarLoc.x + margin, radarLoc.y - size, // 10
+            radarLoc.x + size, radarLoc.y - margin  // 11
+        };
+
+        markerVertexMap.put(vertices);
+        markerVertexMap.flip();
+
+        // Draw the target marker
+        glColor(MARKER_COLOR, radar.getContactAlpha(), false);
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glVertexPointer(2, 0, markerVertexMap);
+        glDrawElements(GL_LINES, markerIndexMap);
+        glDisableClientState(GL_VERTEX_ARRAY);
+    }
+
+    private float getAlphaMod(ShipAPI ship)
+    {
+        return (ship.getPhaseCloak() != null && ship.getPhaseCloak().isOn()) ? PHASE_ALPHA_MULT : 1f;
+    }
+
+    private Color getColor(ShipAPI contact, int playerSide)
+    {
+        // Hulks
+        if (contact.isHulk())
+        {
+            return radar.getNeutralContactColor();
+        }
+        // Allies
+        else if (contact.getOwner() == playerSide)
+        {
+            return radar.getFriendlyContactColor();
+        }
+        // Enemies
+        else if (contact.getOwner() + playerSide == 1)
+        {
+            return radar.getEnemyContactColor();
+        }
+        // Neutral (doesn't show up in vanilla)
+        else
+        {
+            return radar.getNeutralContactColor();
+        }
     }
 
     @Override
@@ -59,10 +168,16 @@ public class ShipNewRenderer implements CombatRenderer
                     Global.getCombatEngine().getShips(), MAX_SHIPS_SHOWN);
             if (!contacts.isEmpty())
             {
-                //radar.enableStencilTest();
+                radar.enableStencilTest();
 
+                ShipAPI target = null;
                 for (ShipAPI contact : contacts)
                 {
+                    // Check for current ship target
+                    if (player.getShipTarget() == contact)
+                    {
+                        target = contact;
+                    }
 
                     // Only calculate bounds data once per battle
                     final String baseHullId = contact.getHullSpec().getBaseHullId();
@@ -73,10 +188,30 @@ public class ShipNewRenderer implements CombatRenderer
 
                     // Call renderer to draw ship
                     cachedRenderData.get(contact.getHullSpec().getBaseHullId())
-                            .drawShip(radar, contact.getLocation(), contact.getFacing());
+                            .drawShip(radar, contact.getLocation(), contact.getFacing(),
+                                    getColor(contact, player.getOwner()), getAlphaMod(contact));
                 }
 
-                //radar.disableStencilTest();
+                // Draw shields
+                if (SHOW_SHIELDS)
+                {
+                    glLineWidth(1f);
+                    glEnable(GL_LINE_SMOOTH);
+                    glColor(SHIELD_COLOR, radar.getContactAlpha(), false);
+                    for (CombatEntityAPI entity : contacts)
+                    {
+                        drawShield((ShipAPI) entity);
+                    }
+                    glDisable(GL_LINE_SMOOTH);
+                }
+
+                // Draw marker around current ship target
+                if (SHOW_TARGET_MARKER && target != null)
+                {
+                    drawTargetMarker(target);
+                }
+
+                radar.disableStencilTest();
             }
         }
     }
@@ -143,9 +278,10 @@ public class ShipNewRenderer implements CombatRenderer
         }
 
         // TODO: change to add to a buffer instead for faster drawing
-        private void drawShip(CombatRadar radar, Vector2f shipWorldLoc, float shipFacing)
+        private void drawShip(CombatRadar radar, Vector2f shipWorldLoc, float shipFacing,
+                Color drawColor, float alphaMod)
         {
-            glColor4f(0f, 1f, 1f, 1f);
+            glColor(drawColor, alphaMod, false);
             Transform transform = Transform.createTranslateTransform(shipWorldLoc.x, shipWorldLoc.y)
                     .concatenate(Transform.createRotateTransform((float) Math.toRadians(shipFacing)));
 
