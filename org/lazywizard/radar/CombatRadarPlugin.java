@@ -473,21 +473,43 @@ public class CombatRadarPlugin extends BaseEveryFrameCombatPlugin
         @Override
         public float[] getRawPointOnRadar(Vector2f worldLoc)
         {
+            return getRawPointOnRadar(worldLoc.x, worldLoc.y);
+        }
+
+        @Override
+        public float[] getRawPointOnRadar(float worldX, float worldY)
+        {
             float[] loc = new float[2];
 
             // Get position relative to {0,0}
-            loc[0] = worldLoc.x - player.getLocation().x;
-            loc[1] = worldLoc.y - player.getLocation().y;
-
             // Scale point to fit within the radar properly
-            loc[0] *= radarScaling;
-            loc[1] *= radarScaling;
-
             // Translate point to inside the radar box
-            loc[0] += renderCenter.x;
-            loc[1] += renderCenter.y;
+            loc[0] = ((worldX - player.getLocation().x) * radarScaling) + renderCenter.x;
+            loc[1] = ((worldY - player.getLocation().y) * radarScaling) + renderCenter.y;
 
             return loc;
+        }
+
+        @Override
+        public float[] getRawPointsOnRadar(float[] worldCoords)
+        {
+            if ((worldCoords.length & 1) != 0)
+            {
+                throw new RuntimeException("Coordinates must be in x,y pairs!");
+            }
+
+            float[] coords = new float[worldCoords.length];
+            float playerX = player.getLocation().x, playerY = player.getLocation().y;
+            for (int x = 0; x < worldCoords.length; x += 2)
+            {
+                // Get position relative to {0,0}
+                // Scale point to fit within the radar properly
+                // Translate point to inside the radar box
+                coords[x] = ((worldCoords[x] - playerX) * radarScaling) + renderCenter.x;
+                coords[x + 1] = ((worldCoords[x + 1] - playerY) * radarScaling) + renderCenter.y;
+            }
+
+            return coords;
         }
 
         @Override
