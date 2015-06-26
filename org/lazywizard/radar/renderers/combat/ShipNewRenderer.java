@@ -58,6 +58,7 @@ public class ShipNewRenderer implements CombatRenderer
     public void init(CombatRadar radar)
     {
         this.radar = radar;
+        // TODO: This should be static, local for debugging purposes (reset between battles)
         cachedRenderData = new HashMap<>();
 
         if (SHOW_TARGET_MARKER)
@@ -83,25 +84,25 @@ public class ShipNewRenderer implements CombatRenderer
 
     private void drawShield(ShipAPI contact)
     {
-        ShieldAPI shield = contact.getShield();
+        final ShieldAPI shield = contact.getShield();
         if (shield != null && shield.isOn())
         {
-            Vector2f radarLoc = radar.getPointOnRadar(contact.getLocation());
-            float size = shield.getRadius() * radar.getCurrentPixelsPerSU();
-            DrawUtils.drawArc(radarLoc.x, radarLoc.y, size,
+            final float[] radarLoc = radar.getRawPointOnRadar(shield.getLocation());
+            final float size = shield.getRadius() * radar.getCurrentPixelsPerSU();
+            DrawUtils.drawArc(radarLoc[0], radarLoc[1], size,
                     shield.getFacing() - (shield.getActiveArc() / 2f),
                     shield.getActiveArc(),
-                    (int) (shield.getActiveArc() / 18f) + 1, false);
+                    (int) (shield.getActiveArc() / 18f) + 1, true);
         }
     }
 
     private void drawTargetMarker(ShipAPI target)
     {
         // Generate vertices
-        float size = target.getCollisionRadius() * radar.getCurrentPixelsPerSU();;
-        Vector2f radarLoc = radar.getPointOnRadar(target.getLocation());
-        float margin = size * .5f;
-        float[] vertices = new float[]
+        final float size = target.getCollisionRadius() * radar.getCurrentPixelsPerSU();
+        final Vector2f radarLoc = radar.getPointOnRadar(target.getLocation());
+        final float margin = size * .5f;
+        final float[] vertices = new float[]
         {
             // Upper left corner
             radarLoc.x - size, radarLoc.y + size, // 0
@@ -181,16 +182,19 @@ public class ShipNewRenderer implements CombatRenderer
                     }
 
                     // Only calculate bounds data once per battle
+                    boolean isNew = false;
                     final String baseHullId = contact.getHullSpec().getBaseHullId();
                     if (!cachedRenderData.containsKey(baseHullId))
                     {
+                        isNew = true;
                         cachedRenderData.put(baseHullId, new Renderer(contact));
                     }
 
                     // Call renderer to draw ship
                     cachedRenderData.get(contact.getHullSpec().getBaseHullId())
                             .drawShip(radar, contact.getLocation(), contact.getFacing(),
-                                    getColor(contact, player.getOwner()), getAlphaMod(contact));
+                                    getColor(contact, player.getOwner()),
+                                    getAlphaMod(contact), (isUpdateFrame || isNew));
                 }
 
                 // Draw shields
@@ -198,7 +202,7 @@ public class ShipNewRenderer implements CombatRenderer
                 {
                     glLineWidth(1f);
                     glEnable(GL_LINE_SMOOTH);
-                    glColor(SHIELD_COLOR, radar.getContactAlpha(), false);
+                    glColor(SHIELD_COLOR, radar.getContactAlpha() * 0.5f, false);
                     for (CombatEntityAPI entity : contacts)
                     {
                         drawShield((ShipAPI) entity);
@@ -219,7 +223,8 @@ public class ShipNewRenderer implements CombatRenderer
 
     private class Renderer
     {
-        private final float[] points;
+        private final FloatBuffer vertexMap;
+        private final float[] rawPoints;
         private final int drawMode;
 
         private Renderer(ShipAPI ship)
@@ -230,7 +235,8 @@ public class ShipNewRenderer implements CombatRenderer
             // Ship has less than three segments - not a drawable shape!
             if (segments.size() < 3)
             {
-                points = null;
+                vertexMap = null;
+                rawPoints = null;
                 drawMode = -1;
                 return;
             }
@@ -255,21 +261,21 @@ public class ShipNewRenderer implements CombatRenderer
             if (triangles.triangulate())
             {
                 drawMode = GL_TRIANGLES;
-                points = new float[triangles.getTriangleCount() * 6];
+                rawPoints = new float[triangles.getTriangleCount() * 6];
 
                 for (int x = 0, y = 0; x < triangles.getTriangleCount(); x++, y += 6)
                 {
                     float[] point = triangles.getTrianglePoint(x, 0);
-                    points[y] = point[0];
-                    points[y + 1] = point[1];
+                    rawPoints[y] = point[0];
+                    rawPoints[y + 1] = point[1];
 
                     point = triangles.getTrianglePoint(x, 1);
-                    points[y + 2] = point[0];
-                    points[y + 3] = point[1];
+                    rawPoints[y + 2] = point[0];
+                    rawPoints[y + 3] = point[1];
 
                     point = triangles.getTrianglePoint(x, 2);
-                    points[y + 4] = point[0];
-                    points[y + 5] = point[1];
+                    rawPoints[y + 4] = point[0];
+                    rawPoints[y + 5] = point[1];
                 }
 
                 Global.getLogger(ShipNewRenderer.class).log(Level.DEBUG,
@@ -280,13 +286,13 @@ public class ShipNewRenderer implements CombatRenderer
             else
             {
                 drawMode = GL_TRIANGLE_FAN;
-                points = new float[tmpPoints.size() * 2];
+                rawPoints = new float[tmpPoints.size() * 2];
 
                 for (int x = 0, y = 0; x < tmpPoints.size(); x++, y += 2)
                 {
                     Vector2f point = tmpPoints.get(x);
-                    points[y] = point.x;
-                    points[y + 1] = point.y;
+                    rawPoints[y] = point.x;
+                    rawPoints[y + 1] = point.y;
                 }
 
                 Global.getLogger(ShipNewRenderer.class).log(Level.DEBUG,
@@ -294,13 +300,15 @@ public class ShipNewRenderer implements CombatRenderer
                         + "', defaulting to triangle fan");
             }
 
+            vertexMap = BufferUtils.createFloatBuffer(rawPoints.length);
+
             // Reset bounds to real facing
             bounds.update(ship.getLocation(), ship.getFacing());
         }
 
         // TODO: change to add to a buffer instead for faster drawing
         private void drawShip(CombatRadar radar, Vector2f shipWorldLoc, float shipFacing,
-                Color drawColor, float alphaMod)
+                Color drawColor, float alphaMod, boolean isUpdateFrame)
         {
             // Invalid ship bounds
             if (drawMode == -1)
@@ -308,22 +316,23 @@ public class ShipNewRenderer implements CombatRenderer
                 return;
             }
 
-            glColor(drawColor, alphaMod, false);
-            Transform transform = Transform.createTranslateTransform(shipWorldLoc.x, shipWorldLoc.y)
-                    .concatenate(Transform.createRotateTransform((float) Math.toRadians(shipFacing)));
-
-            // First translate bounds to their position in world space, then convert to radar space
-            float[] pointsTransformed = new float[points.length];
-            transform.transform(points, 0, pointsTransformed, 0, points.length / 2);
-            pointsTransformed = radar.getRawPointsOnRadar(pointsTransformed);
+            if (isUpdateFrame)
+            {
+                // First translate bounds to their position in world space, then convert to radar space
+                float[] points = new float[rawPoints.length];
+                Transform.createTranslateTransform(shipWorldLoc.x, shipWorldLoc.y)
+                        .concatenate(Transform.createRotateTransform((float) Math.toRadians(shipFacing)))
+                        .transform(rawPoints, 0, points, 0, rawPoints.length / 2);
+                points = radar.getRawPointsOnRadar(points);
+                vertexMap.put(points).flip();
+            }
 
             // Draw bounds at position in radar space
-            glBegin(drawMode);
-            for (int x = 0; x < pointsTransformed.length; x += 2)
-            {
-                glVertex2f(pointsTransformed[x], pointsTransformed[x + 1]);
-            }
-            glEnd();
+            glColor(drawColor, alphaMod, false);
+            glEnableClientState(GL_VERTEX_ARRAY);
+            glVertexPointer(2, 0, vertexMap);
+            glDrawArrays(drawMode, 0, vertexMap.remaining() / 2);
+            glDisableClientState(GL_VERTEX_ARRAY);
         }
     }
 }
