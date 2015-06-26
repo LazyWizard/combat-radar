@@ -296,7 +296,7 @@ public class CombatRadarPlugin extends BaseEveryFrameCombatPlugin
         if (timeSinceLastUpdateFrame > TIME_BETWEEN_UPDATE_FRAMES)
         {
             isUpdateFrame = true;
-            timeSinceLastUpdateFrame -= TIME_BETWEEN_UPDATE_FRAMES;
+            timeSinceLastUpdateFrame = 0;
         }
 
         // Retina display fix
