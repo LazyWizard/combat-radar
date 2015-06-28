@@ -133,6 +133,26 @@ public class DrawQueue
     }
 
     /**
+     * Sets the color of any vertices added after this method is called.
+     * <p>
+     * @param color The color array of the next shape. All vertices added until
+     *              this method is called again will use this color. If only
+     *              three values are passed in the alpha level will be set to 1.
+     */
+    public void setNextColor(float[] color)
+    {
+        if (color.length < 3)
+        {
+            throw new RuntimeException("Color array must hold at least 3 values!");
+        }
+
+        currentColor[0] = color[0];
+        currentColor[1] = color[1];
+        currentColor[2] = color[2];
+        currentColor[3] = (color.length > 3 ? color[3] : 1f);
+    }
+
+    /**
      * Add vertex data to the current shape. If called on a finished DrawQueue,
      * this will reset it and start a new set of vertex data.
      * <p>
@@ -150,10 +170,13 @@ public class DrawQueue
             clear();
         }
 
-        final int requiredCapacity = vertices.length + vertexMap.position();
-        if (allowResize && requiredCapacity > vertexMap.capacity())
+        if (allowResize)
         {
-            resize((int) (requiredCapacity * 1.5f / SIZEOF_VERTEX));
+            final int requiredCapacity = vertices.length + vertexMap.position();
+            if (requiredCapacity > vertexMap.capacity())
+            {
+                resize((int) (requiredCapacity * 1.5f / SIZEOF_VERTEX));
+            }
         }
 
         // Individual puts are much faster, but won't check limitations on bounds
