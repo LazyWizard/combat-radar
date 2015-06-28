@@ -11,8 +11,8 @@ import org.lwjgl.opengl.GL11;
 import static org.lwjgl.opengl.GL11.*;
 
 /**
- * A class to simplify multi-shape rendering by keeping track of vertex and
- * color buffers for you.
+ * A class to simplify multi-shape rendering by keeping track of draw modes and
+ * vertex/color buffers for you, using nothing higher than {@link GL11} methods.
  * <p>
  * Usage instructions:
  * <p>
@@ -53,11 +53,31 @@ public class DrawQueue
     private FloatBuffer vertexMap, colorMap;
     private boolean finished = false;
 
+    /**
+     * Creates a new fixed-size DrawQueue.
+     *
+     * @param maxVertices The maximum number of vertices this DrawQueue should
+     *                    hold, used for allocating native buffers of the proper
+     *                    size.
+     */
     public DrawQueue(int maxVertices)
     {
         this(maxVertices, false);
     }
 
+    /**
+     * Creates a new DrawQueue, with the option of making it auto-resize when
+     * data overflows.
+     *
+     * @param maxVertices The maximum number of vertices this DrawQueue should
+     *                    hold, used for allocating native buffers of the proper
+     *                    size.
+     * @param allowResize Whether the DrawQueue will allocate larger buffers if
+     *                    you exceed {@code maxVertices} vertices. Reallocating
+     *                    is relatively expensive, so this flag should only be
+     *                    used when you don't know how much data you will be
+     *                    passing in.
+     */
     public DrawQueue(int maxVertices, boolean allowResize)
     {
         vertexMap = BufferUtils.createFloatBuffer(maxVertices * SIZEOF_VERTEX);
@@ -93,6 +113,15 @@ public class DrawQueue
         finished = false;
     }
 
+    /**
+     * Sets the color of any vertices added after this method is called.
+     * <p>
+     * @param color    The color of the next shape. All vertices added until
+     *                 this method is called again will use this color.
+     * @param alphaMod Multiplies {@code color}'s alpha channel by this number
+     *                 (should be between 0 and 1). Useful to avoid creating a
+     *                 new Color object every frame just to add fade effects.
+     */
     public void setNextColor(Color color, float alphaMod)
     {
         currentColor[0] = color.getRed() / 255f;
@@ -101,6 +130,12 @@ public class DrawQueue
         currentColor[3] = color.getAlpha() / 255f * alphaMod;
     }
 
+    /**
+     * Add vertex data to the current shape. If called on a finished DrawQueue,
+     * this will reset it and start a new set of vertex data.
+     * <p>
+     * @param vertices The vertex x,y pairs to be added.
+     */
     public void addVertices(float[] vertices)
     {
         if ((vertices.length & 1) != 0)
@@ -137,6 +172,13 @@ public class DrawQueue
         finished = false;
     }
 
+    /**
+     * Finalizes the current shape. You <i>must</i> call this after every shape,
+     * otherwise rendering errors will occur.
+     * <p>
+     * @param shapeDrawMode The draw mode for this shape (what you would
+     *                      normally call with {@link GL11#glBegin(int)}).
+     */
     public void finishShape(int shapeDrawMode)
     {
         resetIndices.add(new BatchMarker(vertexMap.position() / 2, shapeDrawMode));
@@ -163,8 +205,9 @@ public class DrawQueue
     }
 
     /**
-     * Requires OpenGL client states GL_VERTEX_ARRAY and GL_COLOR_ARRAY to be
-     * enabled.
+     * Renders all data in the DrawQueue. {@link DrawQueue#finish()} must be
+     * called before using this. This method requires OpenGL client states
+     * GL_VERTEX_ARRAY and GL_COLOR_ARRAY to be enabled.
      */
     public void draw()
     {
