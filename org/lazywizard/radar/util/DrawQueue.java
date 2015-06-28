@@ -6,8 +6,10 @@ import java.util.ArrayList;
 import java.util.List;
 import com.fs.starfarer.api.Global;
 import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.util.vector.Vector2f;
 import static org.lwjgl.opengl.GL11.*;
 
 /**
@@ -18,38 +20,41 @@ import static org.lwjgl.opengl.GL11.*;
  * <p>
  * Step 1: Call {@link DrawQueue#setNextColor(java.awt.Color, float)} to set the
  * color of the following vertices. If you don't call this the DrawQueue will
- * use a default color of solid white, or whatever was used previously if
- * reusing an existing DrawQueue.
+ * use a default color of solid white, or whatever was used previously if you
+ * are reusing an existing DrawQueue.
  * <p>
  * Step 2: Add the vertices of your shape with
  * {@link DrawQueue#addVertices(float[])}. You can change the color again
- * between sets of vertices. Once you are done setting up that shape call
- * {@link DrawQueue#finishShape()}. You <i>must</i> finish a shape after adding
- * all vertices or you will encounter graphical errors! Repeat step 1 and 2 for
- * all shapes you wish to draw.
+ * between sets of vertices.
  * <p>
- * Step 3: Once all shapes have been added to the DrawQueue, call
- * {@link DrawQueue#finish()} to finalize the contents and ready it for drawing.
+ * Step 3: Once you are done setting up a shape call
+ * {@link DrawQueue#finishShape(int)}. You <i>must</i> finish a shape after
+ * adding all vertices or you will encounter graphical errors!
  * <p>
- * Step 4: Call {@link DrawQueue#draw()} to draw the DrawQueue's contents. The
+ * Step 4: Repeat steps 1-3 for each shape you wish to draw. Once all shapes
+ * have been added to the DrawQueue, call {@link DrawQueue#finish()} to
+ * finalize the contents and ready it for drawing.
+ * <p>
+ * Step 5: Call {@link DrawQueue#draw()} to draw the DrawQueue's contents. The
  * OpenGL client states {@link GL11#GL_VERTEX_ARRAY} and
  * {@link GL11#GL_COLOR_ARRAY} must be enabled for this method to function
  * correctly. You can call this method as many times as you want.
  * <p>
- * Step 5: When you need to recreate a DrawQueue, just return to Step 1. After
+ * Step 6: When you need to recreate a DrawQueue, just return to Step 1. After
  * finishing a DrawQueue it is ready for writing again.
  *
  * @author LazyWizard
  */
 public class DrawQueue
 {
+    private static final Logger LOG = Global.getLogger(DrawQueue.class);
     private static final int SIZEOF_VERTEX = 2, SIZEOF_COLOR = 4;
     private final boolean allowResize;
     private final float[] currentColor = new float[]
     {
         1f, 1f, 1f, 1f
     };
-    private final List<BatchMarker> resetIndices = new ArrayList<>();
+    private final List<BatchMarker> batchMarkers = new ArrayList<>();
     private FloatBuffer vertexMap, colorMap;
     private boolean finished = false;
 
@@ -92,8 +97,7 @@ public class DrawQueue
             finish();
         }
 
-        Global.getLogger(DrawQueue.class).log(Level.DEBUG,
-                "Resizing to " + newCapacity);
+        LOG.log(Level.DEBUG, "Resizing to " + newCapacity);
         FloatBuffer newVertexMap = BufferUtils.createFloatBuffer(newCapacity * SIZEOF_VERTEX),
                 newColorMap = BufferUtils.createFloatBuffer(newCapacity * SIZEOF_COLOR);
 
@@ -105,11 +109,14 @@ public class DrawQueue
         finished = false;
     }
 
-    private void clear()
+    /**
+     * Clears all data from the DrawQueue.
+     */
+    public void clear()
     {
         vertexMap.clear();
         colorMap.clear();
-        resetIndices.clear();
+        batchMarkers.clear();
         finished = false;
     }
 
@@ -173,6 +180,40 @@ public class DrawQueue
     }
 
     /**
+     * Add vertex data to the current shape. If called on a finished DrawQueue,
+     * this will reset it and start a new set of vertex data.
+     * <p>
+     * @param vertices The vertices to be added.
+     */
+    public void addVertices(List<Vector2f> vertices)
+    {
+        if (finished)
+        {
+            clear();
+        }
+
+        final int requiredCapacity = (vertices.size() * 2) + vertexMap.position();
+        if (allowResize && requiredCapacity > vertexMap.capacity())
+        {
+            resize((int) (requiredCapacity * 1.5f / SIZEOF_VERTEX));
+        }
+
+        // Individual puts are much faster, but won't check limitations on bounds
+        for (Vector2f vertex : vertices)
+        {
+            vertexMap.put(vertex.x).put(vertex.y);
+
+            // Keep color map updated
+            for (int y = 0; y < currentColor.length; y++)
+            {
+                colorMap.put(currentColor[y]);
+            }
+        }
+
+        finished = false;
+    }
+
+    /**
      * Finalizes the current shape. You <i>must</i> call this after every shape,
      * otherwise rendering errors will occur.
      * <p>
@@ -181,7 +222,7 @@ public class DrawQueue
      */
     public void finishShape(int shapeDrawMode)
     {
-        resetIndices.add(new BatchMarker(vertexMap.position() / 2, shapeDrawMode));
+        batchMarkers.add(new BatchMarker(vertexMap.position() / 2, shapeDrawMode));
     }
 
     /**
@@ -207,7 +248,8 @@ public class DrawQueue
     /**
      * Renders all data in the DrawQueue. {@link DrawQueue#finish()} must be
      * called before using this. This method requires OpenGL client states
-     * GL_VERTEX_ARRAY and GL_COLOR_ARRAY to be enabled.
+     * {@link GL11#GL_VERTEX_ARRAY} and {@link GL11#GL_COLOR_ARRAY} to be
+     * enabled.
      */
     public void draw()
     {
@@ -226,14 +268,14 @@ public class DrawQueue
         glColorPointer(SIZEOF_COLOR, 0, colorMap);
 
         int lastIndex = 0;
-        for (BatchMarker marker : resetIndices)
+        for (BatchMarker marker : batchMarkers)
         {
             glDrawArrays(marker.drawMode, lastIndex, marker.resetIndex - lastIndex);
             lastIndex = marker.resetIndex;
         }
     }
 
-    private class BatchMarker
+    private static class BatchMarker
     {
         private final int resetIndex, drawMode;
 

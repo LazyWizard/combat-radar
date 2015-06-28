@@ -4,7 +4,7 @@
     ################################
 
     # The framerate the radar should update at, lower fps = better performance
-    "radarFPS":12.0,  # Default: 12.0
+    "radarFPS":2.0,  # Default: 12.0
 
     # What buttons to press to change the radar zoom level or toggle radar on/off
     # Key IDs are integers, and can be found in the LWJGL documentation here:
@@ -75,6 +75,8 @@
     {
         #"maxShown":150,
         "shieldColor":[0,255,255,255],
+        "showSolidShields":true,
+        "maxShieldSegments":18,
         "targetMarkerColor":[255,255,255,255],
         "phasedShipAlphaMult":0.5,
     },
