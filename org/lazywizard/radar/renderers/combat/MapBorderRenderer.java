@@ -9,17 +9,17 @@ import org.json.JSONObject;
 import org.lazywizard.lazylib.JSONUtils;
 import org.lazywizard.radar.CombatRadar;
 import org.lazywizard.radar.renderers.CombatRenderer;
+import org.lazywizard.radar.util.DrawQueue;
 import org.lwjgl.util.vector.Vector2f;
-import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
 import static org.lwjgl.opengl.GL11.*;
 
-// TODO: Update to use isUpdateFrame
 public class MapBorderRenderer implements CombatRenderer
 {
     private static final float RETREAT_AREA_SIZE = 2000f;
     private static boolean SHOW_BORDERS;
     private static Color RETREAT_AREA_COLOR, GRAVITY_BARRIER_COLOR;
     private Vector2f rawLL, rawUR;
+    private DrawQueue drawQueue;
     private CombatRadar radar;
 
     @Override
@@ -35,7 +35,13 @@ public class MapBorderRenderer implements CombatRenderer
     @Override
     public void init(CombatRadar radar)
     {
+        if (!SHOW_BORDERS)
+        {
+            return;
+        }
+
         this.radar = radar;
+        drawQueue = new DrawQueue(12);
 
         CombatEngineAPI engine = Global.getCombatEngine();
         final float mapWidth = engine.getMapWidth() / 2f,
@@ -47,42 +53,55 @@ public class MapBorderRenderer implements CombatRenderer
     @Override
     public void render(ShipAPI player, float amount, boolean isUpdateFrame)
     {
-        if (SHOW_BORDERS)
+        if (!SHOW_BORDERS)
         {
-            radar.enableStencilTest();
+            return;
+        }
 
+        if (isUpdateFrame)
+        {
+            drawQueue.clear();
             final float[] ll = radar.getRawPointOnRadar(rawLL),
                     ur = radar.getRawPointOnRadar(rawUR);
             final float retreatDistance = RETREAT_AREA_SIZE * radar.getCurrentPixelsPerSU();
 
-            // Draw retreat areas
-            glColor(RETREAT_AREA_COLOR, radar.getRadarAlpha(), false);
-            glBegin(GL_QUADS);
+            // Retreat areas
+            drawQueue.setNextColor(RETREAT_AREA_COLOR, radar.getRadarAlpha());
+            drawQueue.addVertices(new float[]
+            {
+                // Player retreat
+                ll[0], ll[1],
+                ll[0], ll[1] + retreatDistance,
+                ur[0], ll[1] + retreatDistance,
+                ur[0], ll[1],
+                // Enemy retreat
+                ll[0], ur[1],
+                ll[0], ur[1] - retreatDistance,
+                ur[0], ur[1] - retreatDistance,
+                ur[0], ur[1]
+            });
+            drawQueue.finishShape(GL_QUADS);
 
-            // Player retreat area
-            glVertex2f(ll[0], ll[1]);
-            glVertex2f(ll[0], ll[1] + retreatDistance);
-            glVertex2f(ur[0], ll[1] + retreatDistance);
-            glVertex2f(ur[0], ll[1]);
-
-            // Enemy retreat area
-            glVertex2f(ll[0], ur[1]);
-            glVertex2f(ll[0], ur[1] - retreatDistance);
-            glVertex2f(ur[0], ur[1] - retreatDistance);
-            glVertex2f(ur[0], ur[1]);
-            glEnd();
-
-            // Draw gravity barrier
-            glLineWidth(50f * radar.getCurrentPixelsPerSU());
-            glColor(GRAVITY_BARRIER_COLOR, radar.getRadarAlpha(), false);
-            glBegin(GL_LINE_LOOP);
-            glVertex2f(ll[0], ll[1]);
-            glVertex2f(ll[0], ur[1]);
-            glVertex2f(ur[0], ur[1]);
-            glVertex2f(ur[0], ll[1]);
-            glEnd();
-
-            radar.disableStencilTest();
+            // Gravity barriers
+            drawQueue.setNextColor(GRAVITY_BARRIER_COLOR, radar.getRadarAlpha());
+            drawQueue.addVertices(new float[]
+            {
+                ll[0], ll[1],
+                ll[0], ur[1],
+                ur[0], ur[1],
+                ur[0], ll[1]
+            });
+            drawQueue.finishShape(GL_LINE_LOOP);
+            drawQueue.finish();
         }
+
+        // Draw retreat areas and gravity barriers
+        radar.enableStencilTest();
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glEnableClientState(GL_COLOR_ARRAY);
+        drawQueue.draw();
+        glDisableClientState(GL_COLOR_ARRAY);
+        glDisableClientState(GL_VERTEX_ARRAY);
+        radar.disableStencilTest();
     }
 }

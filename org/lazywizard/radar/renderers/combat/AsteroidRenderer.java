@@ -1,7 +1,6 @@
 package org.lazywizard.radar.renderers.combat;
 
 import java.awt.Color;
-import java.nio.FloatBuffer;
 import java.util.List;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.CombatEntityAPI;
@@ -11,8 +10,7 @@ import org.json.JSONObject;
 import org.lazywizard.lazylib.JSONUtils;
 import org.lazywizard.radar.CombatRadar;
 import org.lazywizard.radar.renderers.CombatRenderer;
-import org.lwjgl.BufferUtils;
-import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
+import org.lazywizard.radar.util.DrawQueue;
 import static org.lwjgl.opengl.GL11.*;
 
 public class AsteroidRenderer implements CombatRenderer
@@ -21,7 +19,7 @@ public class AsteroidRenderer implements CombatRenderer
     private static int MAX_ASTEROIDS_SHOWN;
     private static Color ASTEROID_COLOR;
     private CombatRadar radar;
-    private FloatBuffer vertexMap;
+    private DrawQueue drawQueue;
 
     @Override
     public void reloadSettings(JSONObject settings) throws JSONException
@@ -36,52 +34,49 @@ public class AsteroidRenderer implements CombatRenderer
     @Override
     public void init(CombatRadar radar)
     {
-        this.radar = radar;
-        vertexMap = BufferUtils.createFloatBuffer(MAX_ASTEROIDS_SHOWN * 2);
-    }
-
-    private void generateMaps(List<CombatEntityAPI> asteroids)
-    {
-        vertexMap.clear();
-
-        // Calculate vertices
-        for (CombatEntityAPI asteroid : asteroids)
+        if (!SHOW_ASTEROIDS)
         {
-            float[] radarLoc = radar.getRawPointOnRadar(asteroid.getLocation());
-            vertexMap.put(radarLoc[0]).put(radarLoc[1]);
+            return;
         }
 
-        vertexMap.flip();
+        this.radar = radar;
+        drawQueue = new DrawQueue(MAX_ASTEROIDS_SHOWN);
+        drawQueue.setNextColor(ASTEROID_COLOR, radar.getContactAlpha());
     }
 
     @Override
     public void render(ShipAPI player, float amount, boolean isUpdateFrame)
     {
-        if (SHOW_ASTEROIDS && player.isAlive())
+        if (!SHOW_ASTEROIDS || !player.isAlive())
         {
-            // Update frame = regenerate all vertex data
-            if (isUpdateFrame)
-            {
-                generateMaps(radar.filterVisible(Global.getCombatEngine().getAsteroids(), MAX_ASTEROIDS_SHOWN));
-            }
-
-            // Don't draw if there's nothing to render!
-            if (vertexMap.limit() == 0)
-            {
-                return;
-            }
-
-            radar.enableStencilTest();
-
-            // Draw asteroids
-            glColor(ASTEROID_COLOR, radar.getContactAlpha(), false);
-            glPointSize(2f * radar.getCurrentZoomLevel());
-            glEnableClientState(GL_VERTEX_ARRAY);
-            glVertexPointer(2, 0, vertexMap);
-            glDrawArrays(GL_POINTS, 0, vertexMap.remaining() / 2);
-            glDisableClientState(GL_VERTEX_ARRAY);
-
-            radar.disableStencilTest();
+            return;
         }
+
+        // Update frame = regenerate all vertex data
+        if (isUpdateFrame)
+        {
+            drawQueue.clear();
+            final List<CombatEntityAPI> asteroids = radar.filterVisible(
+                    Global.getCombatEngine().getAsteroids(), MAX_ASTEROIDS_SHOWN);
+            if (!asteroids.isEmpty())
+            {
+                for (CombatEntityAPI asteroid : asteroids)
+                {
+                    drawQueue.addVertices(radar.getRawPointOnRadar(asteroid.getLocation()));
+                }
+                drawQueue.finishShape(GL_POINTS);
+            }
+            drawQueue.finish();
+        }
+
+        // Draw asteroids
+        radar.enableStencilTest();
+        glPointSize(2f * radar.getCurrentZoomLevel());
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glEnableClientState(GL_COLOR_ARRAY);
+        drawQueue.draw();
+        glDisableClientState(GL_COLOR_ARRAY);
+        glDisableClientState(GL_VERTEX_ARRAY);
+        radar.disableStencilTest();
     }
 }

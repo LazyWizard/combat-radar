@@ -75,7 +75,7 @@
     {
         #"maxShown":150,
         "fighterSizeMod":1.75,
-        "simpleMode":true, # If true, draw all ships as triangles
+        "simpleMode":false, # If true, draw all ships as triangles
         "shieldColor":[0,255,255,255],
         "showSolidShields":true,
         "maxShieldSegments":18,
