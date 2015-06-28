@@ -4,39 +4,85 @@ import java.awt.Color;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import com.fs.starfarer.api.Global;
+import org.apache.log4j.Level;
 import org.lwjgl.BufferUtils;
-import org.lwjgl.LWJGLException;
-import org.lwjgl.input.Keyboard;
-import org.lwjgl.opengl.Display;
-import org.lwjgl.opengl.DisplayMode;
 import org.lwjgl.opengl.GL11;
 import static org.lwjgl.opengl.GL11.*;
 
 /**
- * Step 1: Call {@link DrawQueue#setNextColor(java.awt.Color, float)} to set the color of the following vertices. Not calling this will use a default color of solid white.
- * Step 2: Add the vertices of your shape with {@link DrawQueue#addVertices(float[])}. Once you are done setting up that shape, call {@link DrawQueue#finishShape()}. You <i>must</i> finish a shape after adding all vertices or graphical errors will result!
- * Step 3: Once all shapes have been added to the DrawQueue, call {@link DrawQueue#finish()} to finalize the contents and ready it for drawing.
- * Step 4: Call {@link DrawQueue#draw()} to draw the DrawQueue's contents. The OpenGL client states {@link GL11#GL_VERTEX_ARRAY} and {@link GL11#GL_COLOR_ARRAY} must be enabled for this method to function correctly.
- * Step 5: When you need to recreate a DrawQueue, just return to Step 1. After finishing a DrawQueue it is ready for writing again.
+ * A class to simplify multi-shape rendering by keeping track of vertex and
+ * color buffers for you.
+ * <p>
+ * Usage instructions:
+ * <p>
+ * Step 1: Call {@link DrawQueue#setNextColor(java.awt.Color, float)} to set the
+ * color of the following vertices. If you don't call this the DrawQueue will
+ * use a default color of solid white, or whatever was used previously if
+ * reusing an existing DrawQueue.
+ * <p>
+ * Step 2: Add the vertices of your shape with
+ * {@link DrawQueue#addVertices(float[])}. You can change the color again
+ * between sets of vertices. Once you are done setting up that shape call
+ * {@link DrawQueue#finishShape()}. You <i>must</i> finish a shape after adding
+ * all vertices or you will encounter graphical errors! Repeat step 1 and 2 for
+ * all shapes you wish to draw.
+ * <p>
+ * Step 3: Once all shapes have been added to the DrawQueue, call
+ * {@link DrawQueue#finish()} to finalize the contents and ready it for drawing.
+ * <p>
+ * Step 4: Call {@link DrawQueue#draw()} to draw the DrawQueue's contents. The
+ * OpenGL client states {@link GL11#GL_VERTEX_ARRAY} and
+ * {@link GL11#GL_COLOR_ARRAY} must be enabled for this method to function
+ * correctly. You can call this method as many times as you want.
+ * <p>
+ * Step 5: When you need to recreate a DrawQueue, just return to Step 1. After
+ * finishing a DrawQueue it is ready for writing again.
  *
  * @author LazyWizard
  */
 public class DrawQueue
 {
-    private final int drawMode;
-    private final FloatBuffer vertexMap, colorMap;
+    private static final int SIZEOF_VERTEX = 2, SIZEOF_COLOR = 4;
+    private final boolean allowResize;
     private final float[] currentColor = new float[]
     {
         1f, 1f, 1f, 1f
     };
-    private final List<Integer> resetIndices = new ArrayList<>();
+    private final List<BatchMarker> resetIndices = new ArrayList<>();
+    private FloatBuffer vertexMap, colorMap;
     private boolean finished = false;
 
-    public DrawQueue(int drawMode, int maxVertices)
+    public DrawQueue(int maxVertices)
     {
-        this.drawMode = drawMode;
-        vertexMap = BufferUtils.createFloatBuffer(maxVertices * 2);
-        colorMap = BufferUtils.createFloatBuffer(maxVertices * 4);
+        this(maxVertices, false);
+    }
+
+    public DrawQueue(int maxVertices, boolean allowResize)
+    {
+        vertexMap = BufferUtils.createFloatBuffer(maxVertices * SIZEOF_VERTEX);
+        colorMap = BufferUtils.createFloatBuffer(maxVertices * SIZEOF_COLOR);
+        this.allowResize = allowResize;
+    }
+
+    private void resize(int newCapacity)
+    {
+        if (!finished)
+        {
+            finish();
+        }
+
+        Global.getLogger(DrawQueue.class).log(Level.DEBUG,
+                "Resizing to " + newCapacity);
+        FloatBuffer newVertexMap = BufferUtils.createFloatBuffer(newCapacity * SIZEOF_VERTEX),
+                newColorMap = BufferUtils.createFloatBuffer(newCapacity * SIZEOF_COLOR);
+
+        newVertexMap.put(vertexMap);
+        newColorMap.put(colorMap);
+        vertexMap = newVertexMap;
+        colorMap = newColorMap;
+
+        finished = false;
     }
 
     private void clear()
@@ -57,9 +103,20 @@ public class DrawQueue
 
     public void addVertices(float[] vertices)
     {
+        if ((vertices.length & 1) != 0)
+        {
+            throw new RuntimeException("Vertices must be added in pairs!");
+        }
+
         if (finished)
         {
             clear();
+        }
+
+        final int requiredCapacity = vertices.length + vertexMap.position();
+        if (allowResize && requiredCapacity > vertexMap.capacity())
+        {
+            resize((int) (requiredCapacity * 1.5f / SIZEOF_VERTEX));
         }
 
         // Individual puts are much faster, but won't check limitations on bounds
@@ -80,9 +137,9 @@ public class DrawQueue
         finished = false;
     }
 
-    public void finishShape()
+    public void finishShape(int shapeDrawMode)
     {
-        resetIndices.add(vertexMap.position() / 2);
+        resetIndices.add(new BatchMarker(vertexMap.position() / 2, shapeDrawMode));
     }
 
     /**
@@ -122,98 +179,25 @@ public class DrawQueue
             return;
         }
 
-        glVertexPointer(2, 0, vertexMap);
-        glColorPointer(4, 0, colorMap);
+        glVertexPointer(SIZEOF_VERTEX, 0, vertexMap);
+        glColorPointer(SIZEOF_COLOR, 0, colorMap);
 
         int lastIndex = 0;
-        for (Integer resetIndex : resetIndices)
+        for (BatchMarker marker : resetIndices)
         {
-            glDrawArrays(drawMode, lastIndex, resetIndex - lastIndex);
-            lastIndex = resetIndex;
+            glDrawArrays(marker.drawMode, lastIndex, marker.resetIndex - lastIndex);
+            lastIndex = marker.resetIndex;
         }
     }
 
-    private static void resetDrawQueue(DrawQueue testQueue)
+    private class BatchMarker
     {
-        testQueue.setNextColor(new Color((int) (Math.random() * 255),
-                (int) (Math.random() * 255), (int) (Math.random() * 255)),
-                (float) Math.random());
-        testQueue.addVertices(new float[]
-        {
-            0f, 0f,
-            -100f, -100f,
-            -100f, 100f,
-            100f, 100f,
-            100f, -100f,
-            -100f, -100f
-        });
-        testQueue.finishShape();
+        private final int resetIndex, drawMode;
 
-        testQueue.setNextColor(new Color((int) (Math.random() * 255),
-                (int) (Math.random() * 255), (int) (Math.random() * 255)),
-                (float) Math.random());
-        testQueue.addVertices(new float[]
+        private BatchMarker(int resetIndex, int drawMode)
         {
-            150f, 50f,
-            50f, -50f,
-            50f, 150f,
-            250f, 150f,
-            250f, -50f,
-            50f, -50f
-        });
-        testQueue.finishShape();
-        testQueue.finish();
-    }
-
-    public static void main(String[] args)
-    {
-        final int SCREEN_WIDTH = 800, SCREEN_HEIGHT = 600;
-        try
-        {
-            Display.setDisplayMode(new DisplayMode(SCREEN_WIDTH, SCREEN_HEIGHT));
-            Display.create();
+            this.resetIndex = resetIndex;
+            this.drawMode = drawMode;
         }
-        catch (LWJGLException e)
-        {
-            e.printStackTrace();
-            System.exit(1);
-        }
-
-        int halfWidth = SCREEN_WIDTH / 2, halfHeight = SCREEN_HEIGHT / 2;
-
-        // init OpenGL
-        glMatrixMode(GL_PROJECTION);
-        glLoadIdentity();
-        glOrtho(-halfWidth, halfWidth, -halfHeight, halfHeight, 1, -1);
-        glMatrixMode(GL_MODELVIEW);
-
-        DrawQueue testQueue = new DrawQueue(GL_TRIANGLE_FAN, 12);
-        resetDrawQueue(testQueue);
-
-        while (!Display.isCloseRequested())
-        {
-            // Clear the screen and depth buffer
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            glClearColor(.1f, .1f, .1f, 0f);
-
-            glEnable(GL_BLEND);
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-            if (Keyboard.isKeyDown(Keyboard.KEY_SPACE))
-            {
-                resetDrawQueue(testQueue);
-            }
-
-            glEnableClientState(GL_VERTEX_ARRAY);
-            glEnableClientState(GL_COLOR_ARRAY);
-            testQueue.draw();
-            glDisableClientState(GL_VERTEX_ARRAY);
-            glDisableClientState(GL_COLOR_ARRAY);
-
-            Display.update();
-            Display.sync(60);
-        }
-
-        Display.destroy();
     }
 }
