@@ -45,6 +45,7 @@ import static org.lwjgl.opengl.GL11.*;
  *
  * @author LazyWizard
  */
+// TODO: Create subimplementation that uses VAO/VBO if machine supports OpenGL version
 public class DrawQueue
 {
     private static final Logger LOG = Global.getLogger(DrawQueue.class);
@@ -98,14 +99,8 @@ public class DrawQueue
         }
 
         LOG.log(Level.DEBUG, "Resizing to " + newCapacity);
-        FloatBuffer newVertexMap = BufferUtils.createFloatBuffer(newCapacity * SIZEOF_VERTEX),
-                newColorMap = BufferUtils.createFloatBuffer(newCapacity * SIZEOF_COLOR);
-
-        newVertexMap.put(vertexMap);
-        newColorMap.put(colorMap);
-        vertexMap = newVertexMap;
-        colorMap = newColorMap;
-
+        vertexMap = BufferUtils.createFloatBuffer(newCapacity * SIZEOF_VERTEX).put(vertexMap);
+        colorMap = BufferUtils.createFloatBuffer(newCapacity * SIZEOF_COLOR).put(colorMap);
         finished = false;
     }
 
@@ -255,7 +250,7 @@ public class DrawQueue
     {
         if (!finished)
         {
-            throw new RuntimeException("DrawQueue must call finish() before drawing!");
+            throw new RuntimeException("Must call finish() before drawing!");
         }
 
         // Don't draw if there's nothing to render!

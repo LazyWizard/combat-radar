@@ -30,14 +30,14 @@ import org.newdawn.slick.geom.Triangulator;
 import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
 import static org.lwjgl.opengl.GL11.*;
 
-public class ShipNewRenderer implements CombatRenderer
+public class ShipRenderer implements CombatRenderer
 {
-    private static final Logger LOG = Global.getLogger(ShipNewRenderer.class);
+    private static final Logger LOG = Global.getLogger(ShipRenderer.class);
     private static final Map<String, Renderer> cachedRenderData = new HashMap<>();
-    private static boolean SHOW_SHIPS, SHOW_SHIELDS, SHOW_TARGET_MARKER, DRAW_SOLID_SHIELDS;
+    private static boolean SHOW_SHIPS, SHOW_SHIELDS, SHOW_TARGET_MARKER, DRAW_SOLID_SHIELDS, SIMPLE_SHIPS;
     private static int MAX_SHIPS_SHOWN, MAX_SHIELD_SEGMENTS;
     private static Color SHIELD_COLOR, MARKER_COLOR;
-    private static float PHASE_ALPHA_MULT;
+    private static float FIGHTER_SIZE_MOD, PHASE_ALPHA_MULT;
     private DrawQueue drawQueue;
     private FloatBuffer markerVertexMap;
     private IntBuffer markerIndexMap;
@@ -52,6 +52,8 @@ public class ShipNewRenderer implements CombatRenderer
 
         settings = settings.getJSONObject("shipRenderer");
         MAX_SHIPS_SHOWN = settings.optInt("maxShown", 1_000);
+        SIMPLE_SHIPS = settings.getBoolean("simpleMode");
+        FIGHTER_SIZE_MOD = (float) settings.getDouble("fighterSizeMod");
         SHIELD_COLOR = JSONUtils.toColor(settings.getJSONArray("shieldColor"));
         MARKER_COLOR = JSONUtils.toColor(settings.getJSONArray("targetMarkerColor"));
         DRAW_SOLID_SHIELDS = settings.getBoolean("showSolidShields");
@@ -68,7 +70,8 @@ public class ShipNewRenderer implements CombatRenderer
             return;
         }
 
-        int initialVertexCapacity = MAX_SHIPS_SHOWN * 25;
+        // Let's just hope more than this isn't needed. A resize would be expensive
+        int initialVertexCapacity = MAX_SHIPS_SHOWN * (SIMPLE_SHIPS ? 3 : 25);
         if (SHOW_SHIELDS)
         {
             initialVertexCapacity += MAX_SHIPS_SHOWN * 2
@@ -289,17 +292,21 @@ public class ShipNewRenderer implements CombatRenderer
 
         private Renderer(ShipAPI ship)
         {
+            final boolean isFighter = (ship.getHullSize() == HullSize.FIGHTER);
+
             // Fighters and boundless ships are drawn as simple triangles
+            // If "simpleShips" is true, all ships are drawn this way
             final BoundsAPI bounds = ship.getExactBounds();
-            if (ship.getHullSize() == HullSize.FIGHTER || bounds == null)
+            if (isFighter || SIMPLE_SHIPS || bounds == null)
             {
                 drawMode = GL_TRIANGLES;
                 float size = ship.getCollisionRadius();
-                if (ship.isFighter() || ship.isDrone())
+
+                // Bump fighter contact size for better visibility on the radar
+                if (isFighter)
                 {
-                    // TODO: Add fighter size multiplier setting
                     // TODO: Eventually move to icons for fighters based on role
-                    size *= 1.5f;
+                    size *= FIGHTER_SIZE_MOD;
                 }
 
                 // Triangle based on collision radius
@@ -313,8 +320,8 @@ public class ShipNewRenderer implements CombatRenderer
                     -size / 1.5f, size / 1.75f
                 };
 
-                LOG.log(Level.DEBUG, "Using fallback contact shape for hull '"
-                        + ship.getHullSpec().getHullId() + "' (wing, drone or lacks bounds)");
+                LOG.log(Level.DEBUG, "Using simple contact shape for hull '"
+                        + ship.getHullSpec().getHullId() + "'");
                 return;
             }
 
