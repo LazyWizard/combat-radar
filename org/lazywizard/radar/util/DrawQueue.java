@@ -1,7 +1,9 @@
 package org.lazywizard.radar.util;
 
 import java.awt.Color;
+import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import com.fs.starfarer.api.Global;
@@ -11,6 +13,7 @@ import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.vector.Vector2f;
 import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL15.*;
 
 /**
  * A class to simplify multi-shape rendering by keeping track of draw modes and
@@ -44,19 +47,23 @@ import static org.lwjgl.opengl.GL11.*;
  * finishing a DrawQueue it is ready for writing again.
  *
  * @author LazyWizard
+ * @since 2.0
  */
-// TODO: Create subimplementation that uses VAO/VBO if machine supports OpenGL version
+// TODO: Implement interleavened VBO for maximum efficiency
+// TODO: Automatically generate index map based on draw mode
 public class DrawQueue
 {
     private static final Logger LOG = Global.getLogger(DrawQueue.class);
     private static final int SIZEOF_VERTEX = 2, SIZEOF_COLOR = 4;
     private final boolean allowResize;
-    private final float[] currentColor = new float[]
+    private final byte[] currentColor = new byte[]
     {
-        1f, 1f, 1f, 1f
+        Byte.MAX_VALUE, Byte.MAX_VALUE, Byte.MAX_VALUE, Byte.MAX_VALUE
     };
     private final List<BatchMarker> batchMarkers = new ArrayList<>();
-    private FloatBuffer vertexMap, colorMap;
+    private final int vertexId, colorId;
+    private FloatBuffer vertexMap;
+    private ByteBuffer colorMap;
     private boolean finished = false;
 
     /**
@@ -86,8 +93,13 @@ public class DrawQueue
      */
     public DrawQueue(int maxVertices, boolean allowResize)
     {
+        final IntBuffer ids = BufferUtils.createIntBuffer(2);
+        glGenBuffers(ids);
+        vertexId = ids.get(0);
+        colorId = ids.get(1);
+
         vertexMap = BufferUtils.createFloatBuffer(maxVertices * SIZEOF_VERTEX);
-        colorMap = BufferUtils.createFloatBuffer(maxVertices * SIZEOF_COLOR);
+        colorMap = BufferUtils.createByteBuffer(maxVertices * SIZEOF_COLOR);
         this.allowResize = allowResize;
     }
 
@@ -95,12 +107,13 @@ public class DrawQueue
     {
         if (!finished)
         {
-            finish();
+            vertexMap.flip();
+            colorMap.flip();
         }
 
         LOG.log(Level.DEBUG, "Resizing to " + newCapacity);
         vertexMap = BufferUtils.createFloatBuffer(newCapacity * SIZEOF_VERTEX).put(vertexMap);
-        colorMap = BufferUtils.createFloatBuffer(newCapacity * SIZEOF_COLOR).put(colorMap);
+        colorMap = BufferUtils.createByteBuffer(newCapacity * SIZEOF_COLOR).put(colorMap);
         finished = false;
     }
 
@@ -126,30 +139,10 @@ public class DrawQueue
      */
     public void setNextColor(Color color, float alphaMod)
     {
-        currentColor[0] = color.getRed() / 255f;
-        currentColor[1] = color.getGreen() / 255f;
-        currentColor[2] = color.getBlue() / 255f;
-        currentColor[3] = color.getAlpha() / 255f * alphaMod;
-    }
-
-    /**
-     * Sets the color of any vertices added after this method is called.
-     * <p>
-     * @param color The color array of the next shape. All vertices added until
-     *              this method is called again will use this color. If only
-     *              three values are passed in the alpha level will be set to 1.
-     */
-    public void setNextColor(float[] color)
-    {
-        if (color.length < 3)
-        {
-            throw new RuntimeException("Color array must hold at least 3 values!");
-        }
-
-        currentColor[0] = color[0];
-        currentColor[1] = color[1];
-        currentColor[2] = color[2];
-        currentColor[3] = (color.length > 3 ? color[3] : 1f);
+        currentColor[0] = (byte) color.getRed();
+        currentColor[1] = (byte) color.getGreen();
+        currentColor[2] = (byte) color.getBlue();
+        currentColor[3] = (byte) (color.getAlpha() * alphaMod);
     }
 
     /**
@@ -258,9 +251,16 @@ public class DrawQueue
             throw new RuntimeException("DrawQueue is already finished!");
         }
 
-        finished = true;
         vertexMap.flip();
+        glBindBuffer(GL_ARRAY_BUFFER, vertexId);
+        glBufferData(GL_ARRAY_BUFFER, vertexMap, GL_STATIC_DRAW);
+
         colorMap.flip();
+        glBindBuffer(GL_ARRAY_BUFFER, colorId);
+        glBufferData(GL_ARRAY_BUFFER, colorMap, GL_STATIC_DRAW);
+
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        finished = true;
     }
 
     /**
@@ -282,8 +282,10 @@ public class DrawQueue
             return;
         }
 
-        glVertexPointer(SIZEOF_VERTEX, 0, vertexMap);
-        glColorPointer(SIZEOF_COLOR, 0, colorMap);
+        glBindBuffer(GL_ARRAY_BUFFER, vertexId);
+        glVertexPointer(SIZEOF_VERTEX, GL_FLOAT, 8, 0);
+        glBindBuffer(GL_ARRAY_BUFFER, colorId);
+        glColorPointer(SIZEOF_COLOR, GL_UNSIGNED_BYTE, 4, 0);
 
         int lastIndex = 0;
         for (BatchMarker marker : batchMarkers)
@@ -291,6 +293,8 @@ public class DrawQueue
             glDrawArrays(marker.drawMode, lastIndex, marker.resetIndex - lastIndex);
             lastIndex = marker.resetIndex;
         }
+
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
 
     private static class BatchMarker
