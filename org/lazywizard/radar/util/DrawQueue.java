@@ -11,7 +11,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import com.fs.starfarer.api.Global;
-import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
@@ -76,8 +75,17 @@ public class DrawQueue
     static
     {
         USE_VBO = GLContext.getCapabilities().OpenGL15;
+        LOG.info("Using vertex buffer objects: " + USE_VBO);
     }
 
+    /**
+     * Releases the vertex and color buffers of all DrawQueues that have been
+     * garbage collected. Necessary due to a lack of callbacks at the end of a
+     * combat/campaign scenario. This is called internally by the mod, so you
+     * should never need to call it yourself.
+     * <p>
+     * @since 2.0
+     */
     public static void releaseDeadQueues()
     {
         int totalReleased = 0;
@@ -93,7 +101,10 @@ public class DrawQueue
             }
         }
 
-        LOG.info("Released buffers of " + totalReleased + " dead DrawQueues");
+        if (totalReleased > 0)
+        {
+            LOG.debug("Released buffers of " + totalReleased + " dead DrawQueues");
+        }
     }
 
     /**
@@ -154,7 +165,7 @@ public class DrawQueue
             colorMap.flip();
         }
 
-        LOG.log(Level.DEBUG, "Resizing to " + newCapacity);
+        LOG.debug("Resizing to " + newCapacity);
         vertexMap = BufferUtils.createFloatBuffer(newCapacity * SIZEOF_VERTEX).put(vertexMap);
         colorMap = BufferUtils.createByteBuffer(newCapacity * SIZEOF_COLOR).put(colorMap);
         finished = false;
