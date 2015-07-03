@@ -3,7 +3,6 @@ package org.lazywizard.radar.util;
 import java.awt.Color;
 import java.lang.ref.WeakReference;
 import java.nio.ByteBuffer;
-import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -68,8 +67,7 @@ public class DrawQueue
     };
     private final List<BatchMarker> batchMarkers = new ArrayList<>();
     private final int vertexId, colorId;
-    private FloatBuffer vertexMap;
-    private ByteBuffer colorMap;
+    private ByteBuffer vertexMap, colorMap;
     private boolean finished = false;
 
     static
@@ -152,7 +150,7 @@ public class DrawQueue
             colorId = 0;
         }
 
-        vertexMap = BufferUtils.createFloatBuffer(maxVertices * SIZEOF_VERTEX);
+        vertexMap = BufferUtils.createByteBuffer(maxVertices * SIZEOF_VERTEX * 4);
         colorMap = BufferUtils.createByteBuffer(maxVertices * SIZEOF_COLOR);
         this.allowResize = allowResize;
     }
@@ -166,7 +164,7 @@ public class DrawQueue
         }
 
         LOG.debug("Resizing to " + newCapacity);
-        vertexMap = BufferUtils.createFloatBuffer(newCapacity * SIZEOF_VERTEX).put(vertexMap);
+        vertexMap = BufferUtils.createByteBuffer(newCapacity * SIZEOF_VERTEX * 4).put(vertexMap);
         colorMap = BufferUtils.createByteBuffer(newCapacity * SIZEOF_COLOR).put(colorMap);
         finished = false;
     }
@@ -225,7 +223,7 @@ public class DrawQueue
 
         if (allowResize)
         {
-            final int requiredCapacity = vertices.length + vertexMap.position();
+            final int requiredCapacity = (vertices.length * 4) + vertexMap.position();
             if (requiredCapacity > vertexMap.capacity())
             {
                 resize((int) (requiredCapacity * 1.5f / SIZEOF_VERTEX));
@@ -235,7 +233,7 @@ public class DrawQueue
         // Individual puts are much faster, but won't check limitations on bounds
         for (int x = 0; x < vertices.length; x++)
         {
-            vertexMap.put(vertices[x]);
+            vertexMap.putFloat(vertices[x]);
 
             // Keep color map updated
             if ((x & 1) == 0)
@@ -260,30 +258,15 @@ public class DrawQueue
      */
     public void addVertices(List<Vector2f> vertices)
     {
-        if (finished)
+        float[] rawVertices = new float[vertices.size() * 2];
+        for (int x = 0; x < vertices.size()*2;x+=2)
         {
-            clear();
+            final Vector2f vertex = vertices.get(x/2);
+            rawVertices[x] = vertex.x;
+            rawVertices[x+1] = vertex.y;
         }
 
-        final int requiredCapacity = (vertices.size() * 2) + vertexMap.position();
-        if (allowResize && requiredCapacity > vertexMap.capacity())
-        {
-            resize((int) (requiredCapacity * 1.5f / SIZEOF_VERTEX));
-        }
-
-        // Individual puts are much faster, but won't check limitations on bounds
-        for (Vector2f vertex : vertices)
-        {
-            vertexMap.put(vertex.x).put(vertex.y);
-
-            // Keep color map updated
-            for (int y = 0; y < currentColor.length; y++)
-            {
-                colorMap.put(currentColor[y]);
-            }
-        }
-
-        finished = false;
+        addVertices(rawVertices);
     }
 
     /**
@@ -297,7 +280,7 @@ public class DrawQueue
      */
     public void finishShape(int shapeDrawMode)
     {
-        batchMarkers.add(new BatchMarker(vertexMap.position() / 2, shapeDrawMode));
+        batchMarkers.add(new BatchMarker(vertexMap.position() / 8, shapeDrawMode));
     }
 
     /**
@@ -364,7 +347,7 @@ public class DrawQueue
         }
         else
         {
-            glVertexPointer(SIZEOF_VERTEX, 0, vertexMap);
+            glVertexPointer(SIZEOF_VERTEX, GL_FLOAT, 8, vertexMap);
             glColorPointer(SIZEOF_COLOR, GL_UNSIGNED_BYTE, 4, colorMap);
         }
 
