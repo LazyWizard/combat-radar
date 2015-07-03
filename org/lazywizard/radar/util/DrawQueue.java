@@ -11,6 +11,7 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GLContext;
 import org.lwjgl.util.vector.Vector2f;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL15.*;
@@ -54,6 +55,7 @@ import static org.lwjgl.opengl.GL15.*;
 public class DrawQueue
 {
     private static final Logger LOG = Global.getLogger(DrawQueue.class);
+    private static final boolean USE_VBO;
     private static final int SIZEOF_VERTEX = 2, SIZEOF_COLOR = 4;
     private final boolean allowResize;
     private final byte[] currentColor = new byte[]
@@ -65,6 +67,11 @@ public class DrawQueue
     private FloatBuffer vertexMap;
     private ByteBuffer colorMap;
     private boolean finished = false;
+
+    static
+    {
+        USE_VBO = GLContext.getCapabilities().OpenGL15;
+    }
 
     /**
      * Creates a new fixed-size DrawQueue.
@@ -93,10 +100,18 @@ public class DrawQueue
      */
     public DrawQueue(int maxVertices, boolean allowResize)
     {
-        final IntBuffer ids = BufferUtils.createIntBuffer(2);
-        glGenBuffers(ids);
-        vertexId = ids.get(0);
-        colorId = ids.get(1);
+        if (USE_VBO)
+        {
+            final IntBuffer ids = BufferUtils.createIntBuffer(2);
+            glGenBuffers(ids);
+            vertexId = ids.get(0);
+            colorId = ids.get(1);
+        }
+        else
+        {
+            vertexId = 0;
+            colorId = 0;
+        }
 
         vertexMap = BufferUtils.createFloatBuffer(maxVertices * SIZEOF_VERTEX);
         colorMap = BufferUtils.createByteBuffer(maxVertices * SIZEOF_COLOR);
@@ -142,7 +157,7 @@ public class DrawQueue
         currentColor[0] = (byte) color.getRed();
         currentColor[1] = (byte) color.getGreen();
         currentColor[2] = (byte) color.getBlue();
-        currentColor[3] = (byte) (color.getAlpha() * alphaMod);
+        currentColor[3] = (byte) Math.round(color.getAlpha() * alphaMod);
     }
 
     /**
@@ -252,14 +267,19 @@ public class DrawQueue
         }
 
         vertexMap.flip();
-        glBindBuffer(GL_ARRAY_BUFFER, vertexId);
-        glBufferData(GL_ARRAY_BUFFER, vertexMap, GL_STATIC_DRAW);
-
         colorMap.flip();
-        glBindBuffer(GL_ARRAY_BUFFER, colorId);
-        glBufferData(GL_ARRAY_BUFFER, colorMap, GL_STATIC_DRAW);
 
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        if (USE_VBO)
+        {
+            glBindBuffer(GL_ARRAY_BUFFER, vertexId);
+            glBufferData(GL_ARRAY_BUFFER, vertexMap, GL_STATIC_DRAW);
+
+            glBindBuffer(GL_ARRAY_BUFFER, colorId);
+            glBufferData(GL_ARRAY_BUFFER, colorMap, GL_STATIC_DRAW);
+
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+        }
+
         finished = true;
     }
 
@@ -282,10 +302,18 @@ public class DrawQueue
             return;
         }
 
-        glBindBuffer(GL_ARRAY_BUFFER, vertexId);
-        glVertexPointer(SIZEOF_VERTEX, GL_FLOAT, 8, 0);
-        glBindBuffer(GL_ARRAY_BUFFER, colorId);
-        glColorPointer(SIZEOF_COLOR, GL_UNSIGNED_BYTE, 4, 0);
+        if (USE_VBO)
+        {
+            glBindBuffer(GL_ARRAY_BUFFER, vertexId);
+            glVertexPointer(SIZEOF_VERTEX, GL_FLOAT, 8, 0);
+            glBindBuffer(GL_ARRAY_BUFFER, colorId);
+            glColorPointer(SIZEOF_COLOR, GL_UNSIGNED_BYTE, 4, 0);
+        }
+        else
+        {
+            glVertexPointer(SIZEOF_VERTEX, 0, vertexMap);
+            glColorPointer(SIZEOF_COLOR, GL_UNSIGNED_BYTE, 4, colorMap);
+        }
 
         int lastIndex = 0;
         for (BatchMarker marker : batchMarkers)
@@ -294,7 +322,10 @@ public class DrawQueue
             lastIndex = marker.resetIndex;
         }
 
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        if (USE_VBO)
+        {
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+        }
     }
 
     private static class BatchMarker
