@@ -22,6 +22,7 @@ import org.lazywizard.lazylib.MathUtils;
 import org.lazywizard.lazylib.opengl.DrawUtils;
 import org.lazywizard.radar.renderers.CampaignRenderer;
 import org.lazywizard.radar.renderers.NullRenderer;
+import org.lazywizard.radar.util.DrawQueue;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.util.vector.Vector2f;
@@ -208,6 +209,7 @@ public class CampaignRadarPlugin implements EveryFrameScript
             setZoomLevel(NUM_ZOOM_LEVELS);
             currentZoom = intendedZoom;
 
+            DrawQueue.releaseDeadQueues();
             renderers.clear(); // Needed due to a .6.2a bug
             radarInfo = new CampaignRadarInfo();
             for (Class<? extends CampaignRenderer> rendererClass : RENDERER_CLASSES)

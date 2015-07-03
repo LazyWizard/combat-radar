@@ -1,11 +1,15 @@
 package org.lazywizard.radar.util;
 
 import java.awt.Color;
+import java.lang.ref.WeakReference;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import com.fs.starfarer.api.Global;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -57,6 +61,7 @@ public class DrawQueue
     private static final Logger LOG = Global.getLogger(DrawQueue.class);
     private static final boolean USE_VBO;
     private static final int SIZEOF_VERTEX = 2, SIZEOF_COLOR = 4;
+    private static final Map<WeakReference<DrawQueue>, IntBuffer> refs = new LinkedHashMap<>();
     private final boolean allowResize;
     private final byte[] currentColor = new byte[]
     {
@@ -73,12 +78,32 @@ public class DrawQueue
         USE_VBO = GLContext.getCapabilities().OpenGL15;
     }
 
+    public static void releaseDeadQueues()
+    {
+        int totalReleased = 0;
+        for (Iterator<Map.Entry<WeakReference<DrawQueue>, IntBuffer>> iter
+                = refs.entrySet().iterator(); iter.hasNext();)
+        {
+            Map.Entry<WeakReference<DrawQueue>, IntBuffer> entry = iter.next();
+            if (entry.getKey().get() == null)
+            {
+                totalReleased++;
+                glDeleteBuffers(entry.getValue());
+                iter.remove();
+            }
+        }
+
+        LOG.info("Released buffers of " + totalReleased + " dead DrawQueues");
+    }
+
     /**
      * Creates a new fixed-size DrawQueue.
      *
      * @param maxVertices The maximum number of vertices this DrawQueue should
      *                    hold, used for allocating native buffers of the proper
      *                    size.
+     * <p>
+     * @since 2.0
      */
     public DrawQueue(int maxVertices)
     {
@@ -97,6 +122,8 @@ public class DrawQueue
      *                    is relatively expensive, so this flag should only be
      *                    used when you don't know how much data you will be
      *                    passing in.
+     * <p>
+     * @since 2.0
      */
     public DrawQueue(int maxVertices, boolean allowResize)
     {
@@ -106,6 +133,7 @@ public class DrawQueue
             glGenBuffers(ids);
             vertexId = ids.get(0);
             colorId = ids.get(1);
+            refs.put(new WeakReference(this), ids);
         }
         else
         {
@@ -134,6 +162,8 @@ public class DrawQueue
 
     /**
      * Clears all data from the DrawQueue.
+     * <p>
+     * @since 2.0
      */
     public void clear()
     {
@@ -151,6 +181,8 @@ public class DrawQueue
      * @param alphaMod Multiplies {@code color}'s alpha channel by this number
      *                 (should be between 0 and 1). Useful to avoid creating a
      *                 new Color object every frame just to add fade effects.
+     * <p>
+     * @since 2.0
      */
     public void setNextColor(Color color, float alphaMod)
     {
@@ -165,6 +197,8 @@ public class DrawQueue
      * this will reset it and start a new set of vertex data.
      * <p>
      * @param vertices The vertex x,y pairs to be added.
+     * <p>
+     * @since 2.0
      */
     public void addVertices(float[] vertices)
     {
@@ -210,6 +244,8 @@ public class DrawQueue
      * this will reset it and start a new set of vertex data.
      * <p>
      * @param vertices The vertices to be added.
+     * <p>
+     * @since 2.0
      */
     public void addVertices(List<Vector2f> vertices)
     {
@@ -245,6 +281,8 @@ public class DrawQueue
      * <p>
      * @param shapeDrawMode The draw mode for this shape (what you would
      *                      normally call with {@link GL11#glBegin(int)}).
+     * <p>
+     * @since 2.0
      */
     public void finishShape(int shapeDrawMode)
     {
@@ -258,6 +296,8 @@ public class DrawQueue
      * Once this method has been called, any further calls to
      * {@link DrawQueue#addVertices(float[])} will <i>replace</i> the
      * DrawQueue's existing contents, not add to them.
+     * <p>
+     * @since 2.0
      */
     public void finish()
     {
@@ -288,6 +328,8 @@ public class DrawQueue
      * called before using this. This method requires OpenGL client states
      * {@link GL11#GL_VERTEX_ARRAY} and {@link GL11#GL_COLOR_ARRAY} to be
      * enabled.
+     * <p>
+     * @since 2.0
      */
     public void draw()
     {

@@ -25,6 +25,7 @@ import org.lazywizard.lazylib.combat.CombatUtils;
 import org.lazywizard.lazylib.opengl.DrawUtils;
 import org.lazywizard.radar.renderers.CombatRenderer;
 import org.lazywizard.radar.renderers.NullRenderer;
+import org.lazywizard.radar.util.DrawQueue;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.util.vector.Vector2f;
@@ -206,6 +207,7 @@ public class CombatRadarPlugin extends BaseEveryFrameCombatPlugin
             setZoomLevel(NUM_ZOOM_LEVELS);
             currentZoom = intendedZoom;
 
+            DrawQueue.releaseDeadQueues();
             renderers.clear(); // Needed due to a .6.2a bug
             radarInfo = new CombatRadarInfo();
             for (Class<? extends CombatRenderer> rendererClass : RENDERER_CLASSES)
