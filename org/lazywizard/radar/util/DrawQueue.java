@@ -53,7 +53,6 @@ import static org.lwjgl.opengl.GL15.*;
  * @since 2.0
  */
 // TODO: Implement interleavened VBO for maximum efficiency
-// TODO: Automatically generate index map based on draw mode
 public class DrawQueue
 {
     private static final Logger LOG = Global.getLogger(DrawQueue.class);
@@ -72,13 +71,14 @@ public class DrawQueue
 
     static
     {
+        // Only use vertex buffer objects if the graphics card supports them
         USE_VBO = GLContext.getCapabilities().OpenGL15;
         LOG.info("Using vertex buffer objects: " + USE_VBO);
     }
 
     /**
      * Releases the vertex and color buffers of all DrawQueues that have been
-     * garbage collected. Necessary due to a lack of callbacks at the end of a
+     * garbage collected. Necessary due to a lack of a callback at the end of a
      * combat/campaign scenario. This is called internally by the mod, so you
      * should never need to call it yourself.
      * <p>
@@ -86,6 +86,8 @@ public class DrawQueue
      */
     public static void releaseDeadQueues()
     {
+        // Check if any of our old DrawQueues are ready for garbage collection
+        // If so, ensure we release their allocated buffers from the graphics card
         int totalReleased = 0;
         for (Iterator<Map.Entry<WeakReference<DrawQueue>, IntBuffer>> iter
                 = refs.entrySet().iterator(); iter.hasNext();)
@@ -136,6 +138,7 @@ public class DrawQueue
      */
     public DrawQueue(int maxVertices, boolean allowResize)
     {
+        // If using vertex buffer objects, allocate buffer space on the graphics card
         if (USE_VBO)
         {
             final IntBuffer ids = BufferUtils.createIntBuffer(2);
@@ -150,6 +153,7 @@ public class DrawQueue
             colorId = 0;
         }
 
+        // Allocate native buffers
         vertexMap = BufferUtils.createByteBuffer(maxVertices * SIZEOF_VERTEX * 4);
         colorMap = BufferUtils.createByteBuffer(maxVertices * SIZEOF_COLOR);
         this.allowResize = allowResize;
@@ -157,6 +161,7 @@ public class DrawQueue
 
     private void resize(int newCapacity)
     {
+        // Ensure that the data is ready for writing again
         if (!finished)
         {
             vertexMap.flip();
@@ -195,6 +200,7 @@ public class DrawQueue
      */
     public void setNextColor(Color color, float alphaMod)
     {
+        // Convert the color data to a byte array
         currentColor[0] = (byte) color.getRed();
         currentColor[1] = (byte) color.getGreen();
         currentColor[2] = (byte) color.getBlue();
@@ -211,22 +217,25 @@ public class DrawQueue
      */
     public void addVertices(float[] vertices)
     {
+        // Ensure the vertex array has an even number of floats
         if ((vertices.length & 1) != 0)
         {
             throw new RuntimeException("Vertices must be added in pairs!");
         }
 
+        // If this is a new set of data, clear out the old data first
         if (finished)
         {
             clear();
         }
 
+        // Ensure we have space remaining (or just allow it to fail if allowResize is false)
         if (allowResize)
         {
             final int requiredCapacity = (vertices.length * 4) + vertexMap.position();
             if (requiredCapacity > vertexMap.capacity())
             {
-                resize((int) (requiredCapacity * 1.5f / SIZEOF_VERTEX));
+                resize((int) ((requiredCapacity * 1.5f) / SIZEOF_VERTEX));
             }
         }
 
@@ -258,12 +267,14 @@ public class DrawQueue
      */
     public void addVertices(List<Vector2f> vertices)
     {
+        // Convert to a raw float array and pass to the real implementation
+        // Lazy and inefficient, yes, but much easier to maintain
         float[] rawVertices = new float[vertices.size() * 2];
-        for (int x = 0; x < vertices.size()*2;x+=2)
+        for (int x = 0; x < vertices.size() * 2; x += 2)
         {
-            final Vector2f vertex = vertices.get(x/2);
+            final Vector2f vertex = vertices.get(x / 2);
             rawVertices[x] = vertex.x;
-            rawVertices[x+1] = vertex.y;
+            rawVertices[x + 1] = vertex.y;
         }
 
         addVertices(rawVertices);
@@ -280,6 +291,7 @@ public class DrawQueue
      */
     public void finishShape(int shapeDrawMode)
     {
+        // Keep track of the start/end indices of each shape and how it should be drawn
         batchMarkers.add(new BatchMarker(vertexMap.position() / 8, shapeDrawMode));
     }
 
@@ -300,9 +312,11 @@ public class DrawQueue
             throw new RuntimeException("DrawQueue is already finished!");
         }
 
+        // Prepare our data for reading/later rewriting
         vertexMap.flip();
         colorMap.flip();
 
+        // If we're using vertex buffer objects, send the data to the card now
         if (USE_VBO)
         {
             glBindBuffer(GL_ARRAY_BUFFER, vertexId);
@@ -338,29 +352,28 @@ public class DrawQueue
             return;
         }
 
+        // If using vertex buffer objects, draw using the data we already sent to the card
         if (USE_VBO)
         {
             glBindBuffer(GL_ARRAY_BUFFER, vertexId);
             glVertexPointer(SIZEOF_VERTEX, GL_FLOAT, 8, 0);
             glBindBuffer(GL_ARRAY_BUFFER, colorId);
             glColorPointer(SIZEOF_COLOR, GL_UNSIGNED_BYTE, 4, 0);
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
         }
+        // Otherwise, send the data to the card from main memory every frame :(
         else
         {
             glVertexPointer(SIZEOF_VERTEX, GL_FLOAT, 8, vertexMap);
             glColorPointer(SIZEOF_COLOR, GL_UNSIGNED_BYTE, 4, colorMap);
         }
 
+        // Hacky solution for drawing multiple shapes from one buffer
         int lastIndex = 0;
         for (BatchMarker marker : batchMarkers)
         {
             glDrawArrays(marker.drawMode, lastIndex, marker.resetIndex - lastIndex);
             lastIndex = marker.resetIndex;
-        }
-
-        if (USE_VBO)
-        {
-            glBindBuffer(GL_ARRAY_BUFFER, 0);
         }
     }
 
