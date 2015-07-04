@@ -20,33 +20,47 @@ import static org.lwjgl.opengl.GL15.*;
 
 /**
  * A class to simplify multi-shape rendering by keeping track of draw modes and
- * vertex/color buffers for you, using nothing higher than {@link GL11} methods.
+ * vertex/color buffers for you and drawing in an efficient way. It uses vertex
+ * buffer objects (VBOs), but will fall back to passing in the data from main
+ * memory every frame in the unlikely event that the user's card doesn't support
+ * OpenGL 1.5.
  * <p>
  * Usage instructions:
  * <p>
- * Step 1: Call {@link DrawQueue#setNextColor(java.awt.Color, float)} to set the
+ * Step 1: Create a DrawQueue. This only has to be done once, as the same
+ * DrawQueue can be reused an infinite amount of times. If you know how many
+ * vertices your DrawQueue will hold use the constructor
+ * {@link DrawQueue#DrawQueue(int)}. This will create a fixed-size DrawQueue
+ * that will throw an exception if its capacity is ever exceeded. If you don't
+ * know how many vertices your DrawQueue will hold, use
+ * {@link DrawQueue#DrawQueue(int, boolean)} with {@code true} as the second
+ * argument. This creates a variable-sized DrawQueue that will allocate larger
+ * buffers whenever its capacity is exceeded.
+ * <p>
+ * Step 2: Call {@link DrawQueue#setNextColor(java.awt.Color, float)} to set the
  * color of the following vertices. If you don't call this the DrawQueue will
  * use a default color of solid white, or whatever was used previously if you
  * are reusing an existing DrawQueue.
  * <p>
- * Step 2: Add the vertices of your shape with
+ * Step 3: Add the vertices of your shape with
  * {@link DrawQueue#addVertices(float[])}. You can change the color again
  * between sets of vertices.
  * <p>
- * Step 3: Once you are done setting up a shape call
- * {@link DrawQueue#finishShape(int)}. You <i>must</i> finish a shape after
- * adding all vertices or you will encounter graphical errors!
+ * Step 4: Once you are done setting up a shape call
+ * {@link DrawQueue#finishShape(int)} with the draw mode that shape should use.
+ * You <i>must</i> finish a shape after adding all vertices or you will
+ * encounter graphical errors!
  * <p>
- * Step 4: Repeat steps 1-3 for each shape you wish to draw. Once all shapes
+ * Step 5: Repeat steps 2-4 for each shape you wish to draw. Once all shapes
  * have been added to the DrawQueue, call {@link DrawQueue#finish()} to
  * finalize the contents and ready it for drawing.
  * <p>
- * Step 5: Call {@link DrawQueue#draw()} to draw the DrawQueue's contents. The
+ * Step 6: Call {@link DrawQueue#draw()} to draw the DrawQueue's contents. The
  * OpenGL client states {@link GL11#GL_VERTEX_ARRAY} and
  * {@link GL11#GL_COLOR_ARRAY} must be enabled for this method to function
  * correctly. You can call this method as many times as you want.
  * <p>
- * Step 6: When you need to recreate a DrawQueue, just return to Step 1. After
+ * Step 7: When you need to reuse a DrawQueue, just return to Step 2. After
  * finishing a DrawQueue it is ready for writing again.
  *
  * @author LazyWizard
@@ -57,7 +71,8 @@ public class DrawQueue
 {
     private static final Logger LOG = Global.getLogger(DrawQueue.class);
     private static final boolean USE_VBO;
-    private static final int SIZEOF_VERTEX = 2, SIZEOF_COLOR = 4;
+    private static final int SIZEOF_VERTEX = 2, SIZEOF_COLOR = 4,
+            STRIDE_VERTEX = 8, STRIDE_COLOR = 4;
     private static final Map<WeakReference<DrawQueue>, IntBuffer> refs = new LinkedHashMap<>();
     private final boolean allowResize;
     private final byte[] currentColor = new byte[]
@@ -72,14 +87,15 @@ public class DrawQueue
     static
     {
         // Only use vertex buffer objects if the graphics card supports them
+        // Every graphics card that's still in use should, but just in case...
         USE_VBO = GLContext.getCapabilities().OpenGL15;
         LOG.info("Using vertex buffer objects: " + USE_VBO);
     }
 
     /**
      * Releases the vertex and color buffers of all DrawQueues that have been
-     * garbage collected. Necessary due to a lack of a callback at the end of a
-     * combat/campaign scenario. This is called internally by the mod, so you
+     * garbage collected. Necessary due to the lack of a callback at the end of
+     * a combat/campaign scenario. This is called internally by the mod, so you
      * should never need to call it yourself.
      * <p>
      * @since 2.0
@@ -209,6 +225,52 @@ public class DrawQueue
     }
 
     /**
+     * Sets the color of any vertices added after this method is called. Color
+     * values must be in the [0..1] range.
+     * <p>
+     * @param red   The red channel value of the color you wish to use (should
+     *              be between 0 and 1).
+     * @param green The green channel value of the color you wish to use (should
+     *              be between 0 and 1).
+     * @param blue  The blue channel value of the color you wish to use (should
+     *              be between 0 and 1).
+     * @param alpha The alpha channel value of the color you wish to use (should
+     *              be between 0 and 1).
+     * <p>
+     * @since 2.0
+     */
+    public void setNextColor(float red, float green, float blue, float alpha)
+    {
+        currentColor[0] = (byte) Math.round(red * 255f);
+        currentColor[1] = (byte) Math.round(green * 255f);
+        currentColor[2] = (byte) Math.round(blue * 255f);
+        currentColor[3] = (byte) Math.round(alpha * 255f);
+    }
+
+    /**
+     * Sets the color of any vertices added after this method is called. Color
+     * values must be in the [0..255] range.
+     * <p>
+     * @param red   The red channel value of the color you wish to use (should
+     *              be between 0 and 255).
+     * @param green The green channel value of the color you wish to use (should
+     *              be between 0 and 255).
+     * @param blue  The blue channel value of the color you wish to use (should
+     *              be between 0 and 255).
+     * @param alpha The alpha channel value of the color you wish to use (should
+     *              be between 0 and 255).
+     * <p>
+     * @since 2.0
+     */
+    public void setNextColor(int red, int green, int blue, int alpha)
+    {
+        currentColor[0] = (byte) red;
+        currentColor[1] = (byte) green;
+        currentColor[2] = (byte) blue;
+        currentColor[3] = (byte) alpha;
+    }
+
+    /**
      * Add vertex data to the current shape. If called on a finished DrawQueue,
      * this will reset it and start a new set of vertex data.
      * <p>
@@ -322,12 +384,15 @@ public class DrawQueue
         // If we're using vertex buffer objects, send the data to the card now
         if (USE_VBO)
         {
+            // Vertex data
             glBindBuffer(GL_ARRAY_BUFFER, vertexId);
             glBufferData(GL_ARRAY_BUFFER, vertexMap, GL_STATIC_DRAW);
 
+            // Color data
             glBindBuffer(GL_ARRAY_BUFFER, colorId);
             glBufferData(GL_ARRAY_BUFFER, colorMap, GL_STATIC_DRAW);
 
+            // Release buffer binding
             glBindBuffer(GL_ARRAY_BUFFER, 0);
         }
 
@@ -358,17 +423,22 @@ public class DrawQueue
         // If using vertex buffer objects, draw using the data we already sent to the card
         if (USE_VBO)
         {
+            // Vertex data
             glBindBuffer(GL_ARRAY_BUFFER, vertexId);
-            glVertexPointer(SIZEOF_VERTEX, GL_FLOAT, 8, 0);
+            glVertexPointer(SIZEOF_VERTEX, GL_FLOAT, STRIDE_VERTEX, 0);
+
+            // Color data
             glBindBuffer(GL_ARRAY_BUFFER, colorId);
-            glColorPointer(SIZEOF_COLOR, GL_UNSIGNED_BYTE, 4, 0);
+            glColorPointer(SIZEOF_COLOR, GL_UNSIGNED_BYTE, STRIDE_COLOR, 0);
+
+            // Release buffer binding
             glBindBuffer(GL_ARRAY_BUFFER, 0);
         }
         // Otherwise, send the data to the card from main memory every frame :(
         else
         {
-            glVertexPointer(SIZEOF_VERTEX, GL_FLOAT, 8, vertexMap);
-            glColorPointer(SIZEOF_COLOR, GL_UNSIGNED_BYTE, 4, colorMap);
+            glVertexPointer(SIZEOF_VERTEX, GL_FLOAT, STRIDE_VERTEX, vertexMap);
+            glColorPointer(SIZEOF_COLOR, GL_UNSIGNED_BYTE, STRIDE_COLOR, colorMap);
         }
 
         // Hacky solution for drawing multiple shapes from one buffer
@@ -380,6 +450,8 @@ public class DrawQueue
         }
     }
 
+    // Stores miscellaneous data for each shape to be drawn, currently
+    // which draw mode to use and the position in the buffer to draw to
     private static class BatchMarker
     {
         private final int resetIndex, drawMode;

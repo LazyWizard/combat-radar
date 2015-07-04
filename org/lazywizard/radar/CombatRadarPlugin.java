@@ -14,7 +14,6 @@ import com.fs.starfarer.api.combat.CombatEntityAPI;
 import com.fs.starfarer.api.combat.ShipAPI;
 import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.input.InputEventAPI;
-import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -77,7 +76,7 @@ public class CombatRadarPlugin extends BaseEveryFrameCombatPlugin
         RADAR_TOGGLE_KEY = settings.getInt("toggleKey");
         ZOOM_IN_KEY = settings.getInt("zoomInKey");
         ZOOM_OUT_KEY = settings.getInt("zoomOutKey");
-        LOG.log(Level.INFO, "Radar toggle key set to " + Keyboard.getKeyName(RADAR_TOGGLE_KEY)
+        LOG.info("Radar toggle key set to " + Keyboard.getKeyName(RADAR_TOGGLE_KEY)
                 + " (" + RADAR_TOGGLE_KEY + ")");
 
         // Performance tweak settings
