@@ -237,7 +237,8 @@ public class DrawQueue
             if (requiredCapacity > vertexMap.capacity())
             {
                 // Resize to 150% of the newly required capacity
-                resize((int) ((requiredCapacity / 4) * (1.5f / SIZEOF_VERTEX)));
+                // Odd multiplier is to adjust for byte size and vertex pairs
+                resize((int) (requiredCapacity * .1875));
             }
         }
 
