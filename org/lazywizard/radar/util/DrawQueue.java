@@ -168,7 +168,8 @@ public class DrawQueue
             colorMap.flip();
         }
 
-        LOG.debug("Resizing to " + newCapacity);
+        // Allocate new buffers of the required size and transfer the existing data to them
+        LOG.debug("Resizing to " + newCapacity + " vertices");
         vertexMap = BufferUtils.createByteBuffer(newCapacity * SIZEOF_VERTEX * 4).put(vertexMap);
         colorMap = BufferUtils.createByteBuffer(newCapacity * SIZEOF_COLOR).put(colorMap);
         finished = false;
@@ -235,7 +236,8 @@ public class DrawQueue
             final int requiredCapacity = (vertices.length * 4) + vertexMap.position();
             if (requiredCapacity > vertexMap.capacity())
             {
-                resize((int) ((requiredCapacity * 1.5f) / SIZEOF_VERTEX));
+                // Resize to 150% of the newly required capacity
+                resize((int) ((requiredCapacity / 4) * (1.5f / SIZEOF_VERTEX)));
             }
         }
 
