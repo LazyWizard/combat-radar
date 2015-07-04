@@ -12,7 +12,6 @@ import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import com.fs.starfarer.api.campaign.SectorAPI;
 import com.fs.starfarer.api.campaign.SectorEntityToken;
-import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -70,7 +69,7 @@ public class CampaignRadarPlugin implements EveryFrameScript
         RADAR_TOGGLE_KEY = settings.getInt("toggleKey");
         ZOOM_IN_KEY = settings.getInt("zoomInKey");
         ZOOM_OUT_KEY = settings.getInt("zoomOutKey");
-        LOG.log(Level.INFO, "Radar toggle key set to " + Keyboard.getKeyName(RADAR_TOGGLE_KEY)
+        LOG.info("Radar toggle key set to " + Keyboard.getKeyName(RADAR_TOGGLE_KEY)
                 + " (" + RADAR_TOGGLE_KEY + ")");
 
         // Radar options

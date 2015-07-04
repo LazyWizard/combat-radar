@@ -11,7 +11,6 @@ import com.fs.starfarer.api.combat.BoundsAPI.SegmentAPI;
 import com.fs.starfarer.api.combat.ShieldAPI;
 import com.fs.starfarer.api.combat.ShipAPI;
 import com.fs.starfarer.api.combat.ShipAPI.HullSize;
-import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -75,7 +74,7 @@ public class ShipRenderer implements CombatRenderer
         {
             initialVertexCapacity += 8;
         }
-        
+
         this.radar = radar;
         drawQueue = new DrawQueue(initialVertexCapacity, true);
     }
@@ -304,7 +303,7 @@ public class ShipRenderer implements CombatRenderer
                     -size / 1.5f, size / 1.75f
                 };
 
-                LOG.log(Level.DEBUG, "Using simple contact shape for hull '"
+                LOG.debug("Using simple contact shape for hull '"
                         + ship.getHullSpec().getHullId() + "'");
                 return;
             }
@@ -316,7 +315,7 @@ public class ShipRenderer implements CombatRenderer
                 rawPoints = null;
                 drawMode = -1;
 
-                LOG.log(Level.ERROR, "Invalid bounds: " + ship.getHullSpec().getBaseHullId());
+                LOG.error("Invalid bounds: " + ship.getHullSpec().getBaseHullId());
                 return;
             }
 
@@ -357,7 +356,7 @@ public class ShipRenderer implements CombatRenderer
                     rawPoints[y + 5] = point[1];
                 }
 
-                LOG.log(Level.DEBUG, "Triangulated hull '" + ship.getHullSpec().getHullId()
+                LOG.debug("Triangulated hull '" + ship.getHullSpec().getHullId()
                         + "' successfully");
             }
             // Triangulation failed, fall back to a crappy approximation of ship's shape
@@ -373,7 +372,7 @@ public class ShipRenderer implements CombatRenderer
                     rawPoints[y + 1] = point.y;
                 }
 
-                LOG.log(Level.DEBUG, "Failed to triangulate hull '" + ship.getHullSpec().getHullId()
+                LOG.debug("Failed to triangulate hull '" + ship.getHullSpec().getHullId()
                         + "', defaulting to triangle fan");
             }
 
