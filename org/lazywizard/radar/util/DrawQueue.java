@@ -19,11 +19,11 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL15.*;
 
 /**
- * A class to simplify multi-shape rendering by keeping track of draw modes and
- * vertex/color buffers for you and drawing in an efficient way. It uses vertex
- * buffer objects (VBOs), but will fall back to passing in the data from main
- * memory every frame in the unlikely event that the user's card doesn't support
- * OpenGL 1.5.
+ * A class to simplify multi-shape primitive rendering by keeping track of draw
+ * modes and vertex/color buffers for you and drawing in an efficient way. It
+ * uses vertex buffer objects (VBOs), but will fall back to passing in the data
+ * from main memory every frame in the unlikely event that the user's card
+ * doesn't support OpenGL 1.5.
  * <p>
  * Usage instructions:
  * <p>
@@ -205,6 +205,19 @@ public class DrawQueue
     }
 
     /**
+     * Returns whether this DrawQueue contains any data.
+     *
+     * @return {@code true} if no vertices have been added to the DrawQueue,
+     *         {@code false} otherwise.
+     * <p>
+     * @since 2.0
+     */
+    public boolean isEmpty()
+    {
+        return vertexMap.limit() == 0;
+    }
+
+    /**
      * Sets the color of any vertices added after this method is called.
      * <p>
      * @param color    The color of the next shape. All vertices added until
@@ -357,7 +370,7 @@ public class DrawQueue
     public void finishShape(int shapeDrawMode)
     {
         // Keep track of the start/end indices of each shape and how it should be drawn
-        batchMarkers.add(new BatchMarker(vertexMap.position() / 8, shapeDrawMode));
+        batchMarkers.add(new BatchMarker(shapeDrawMode, vertexMap.position() / 8));
     }
 
     /**
@@ -415,7 +428,7 @@ public class DrawQueue
         }
 
         // Don't draw if there's nothing to render!
-        if (vertexMap.limit() == 0)
+        if (isEmpty())
         {
             return;
         }
@@ -454,12 +467,12 @@ public class DrawQueue
     // which draw mode to use and the position in the buffer to draw to
     private static class BatchMarker
     {
-        private final int resetIndex, drawMode;
+        private final int drawMode, resetIndex;
 
-        private BatchMarker(int resetIndex, int drawMode)
+        private BatchMarker(int drawMode, int resetIndex)
         {
-            this.resetIndex = resetIndex;
             this.drawMode = drawMode;
+            this.resetIndex = resetIndex;
         }
     }
 }

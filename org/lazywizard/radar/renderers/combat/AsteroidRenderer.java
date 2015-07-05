@@ -18,8 +18,8 @@ public class AsteroidRenderer implements CombatRenderer
     private static boolean SHOW_ASTEROIDS;
     private static int MAX_ASTEROIDS_SHOWN;
     private static Color ASTEROID_COLOR;
-    private CombatRadar radar;
     private DrawQueue drawQueue;
+    private CombatRadar radar;
 
     @Override
     public void reloadSettings(JSONObject settings) throws JSONException
@@ -67,6 +67,12 @@ public class AsteroidRenderer implements CombatRenderer
                 drawQueue.finishShape(GL_POINTS);
             }
             drawQueue.finish();
+        }
+
+        // Don't draw if there's nothing to render!
+        if (drawQueue.isEmpty())
+        {
+            return;
         }
 
         // Draw asteroids
