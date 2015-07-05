@@ -140,106 +140,108 @@ public class BattleProgressRenderer implements CombatRenderer
     @Override
     public void render(ShipAPI player, float amount, boolean isUpdateFrame)
     {
-        if (SHOW_BATTLE_PROGRESS)
+        if (!SHOW_BATTLE_PROGRESS)
         {
-            // The ships fielded don't change often, so don't check every frame
-            nextCheck -= amount;
-            if (nextCheck <= 0)
+            return;
+        }
+
+        // The ships fielded don't change often, so don't check every frame
+        nextCheck -= amount;
+        if (nextCheck <= 0)
+        {
+            relativeStrength = getRelativeStrength();
+            nextCheck = TIME_BETWEEN_CHECKS;
+        }
+
+        // If animated, gradually move to the current fleet balance
+        if (ANIMATE_BAR)
+        {
+            // Balance moved towards player, grow bar
+            if (displayedRelativeStrength < relativeStrength)
             {
-                relativeStrength = getRelativeStrength();
-                nextCheck = TIME_BETWEEN_CHECKS;
+                displayedRelativeStrength = Math.min(relativeStrength,
+                        displayedRelativeStrength + (ANIMATION_SPEED * amount));
             }
-
-            // If animated, gradually move to the current fleet balance
-            if (ANIMATE_BAR)
+            // Balance moved towards enemy, shrink bar
+            else if (displayedRelativeStrength > relativeStrength)
             {
-                // Balance moved towards player, grow bar
-                if (displayedRelativeStrength < relativeStrength)
-                {
-                    displayedRelativeStrength = Math.min(relativeStrength,
-                            displayedRelativeStrength + (ANIMATION_SPEED * amount));
-                }
-                // Balance moved towards enemy, shrink bar
-                else if (displayedRelativeStrength > relativeStrength)
-                {
-                    displayedRelativeStrength = Math.max(relativeStrength,
-                            displayedRelativeStrength - (ANIMATION_SPEED * amount));
-                }
+                displayedRelativeStrength = Math.max(relativeStrength,
+                        displayedRelativeStrength - (ANIMATION_SPEED * amount));
             }
-            // If not animated, instantly move to new fleet balance
-            else
+        }
+        // If not animated, instantly move to new fleet balance
+        else
+        {
+            displayedRelativeStrength = relativeStrength;
+        }
+
+        float relativeStrengthPos = barWidth * displayedRelativeStrength,
+                battleStartPos = barWidth * relativeStrengthAtBattleStart;
+
+        // Calculate current flash alpha
+        boolean playerRetreating = isRetreating(FleetSide.PLAYER),
+                enemyRetreating = isRetreating(FleetSide.ENEMY);
+        if (playerRetreating || enemyRetreating)
+        {
+            flashProgress -= amount * 2f;
+            if (flashProgress <= 0f)
             {
-                displayedRelativeStrength = relativeStrength;
+                flashProgress += 1f;
             }
+        }
+        else
+        {
+            flashProgress = 0.5f;
+        }
 
-            float relativeStrengthPos = barWidth * displayedRelativeStrength,
-                    battleStartPos = barWidth * relativeStrengthAtBattleStart;
+        float flashAlpha = (flashProgress / 2f) + .75f;
 
-            // Calculate current flash alpha
-            boolean playerRetreating = isRetreating(FleetSide.PLAYER),
-                    enemyRetreating = isRetreating(FleetSide.ENEMY);
-            if (playerRetreating || enemyRetreating)
-            {
-                flashProgress -= amount * 2f;
-                if (flashProgress <= 0f)
-                {
-                    flashProgress += 1f;
-                }
-            }
-            else
-            {
-                flashProgress = 0.5f;
-            }
+        // Generate OpenGL color mappings
+        float[] colors = new float[32];
+        System.arraycopy(getQuadColor(radar.getFriendlyContactColor(),
+                radar.getRadarAlpha() * (playerRetreating ? flashAlpha : 1f)),
+                0, colors, 0, 16);
+        System.arraycopy(getQuadColor(radar.getEnemyContactColor(),
+                radar.getRadarAlpha() * (enemyRetreating ? flashAlpha : 1f)),
+                0, colors, 16, 16);
+        colorMap.put(colors).flip();
 
-            float flashAlpha = (flashProgress / 2f) + .75f;
+        // Generate vertex mappings
+        float[] vertices = new float[]
+        {
+            // Player strength
+            barLocation.x, barLocation.y,
+            barLocation.x, barLocation.y + barHeight,
+            barLocation.x + relativeStrengthPos, barLocation.y + barHeight,
+            barLocation.x + relativeStrengthPos, barLocation.y,
+            // Enemy strength
+            barLocation.x + relativeStrengthPos, barLocation.y,
+            barLocation.x + relativeStrengthPos, barLocation.y + barHeight,
+            barLocation.x + barWidth, barLocation.y + barHeight,
+            barLocation.x + barWidth, barLocation.y
+        };
+        vertexMap.put(vertices).flip();
 
-            // Generate OpenGL color mappings
-            float[] colors = new float[32];
-            System.arraycopy(getQuadColor(radar.getFriendlyContactColor(),
-                    radar.getRadarAlpha() * (playerRetreating ? flashAlpha : 1f)),
-                    0, colors, 0, 16);
-            System.arraycopy(getQuadColor(radar.getEnemyContactColor(),
-                    radar.getRadarAlpha() * (enemyRetreating ? flashAlpha : 1f)),
-                    0, colors, 16, 16);
-            colorMap.put(colors).flip();
+        // Finally, we can actually draw the bar
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glEnableClientState(GL_COLOR_ARRAY);
+        glVertexPointer(2, 0, vertexMap);
+        glColorPointer(4, 0, colorMap);
+        glDrawElements(GL_TRIANGLES, indexMap);
+        glDisableClientState(GL_COLOR_ARRAY);
+        glDisableClientState(GL_VERTEX_ARRAY);
 
-            // Generate vertex mappings
-            float[] vertices = new float[]
-            {
-                // Player strength
-                barLocation.x, barLocation.y,
-                barLocation.x, barLocation.y + barHeight,
-                barLocation.x + relativeStrengthPos, barLocation.y + barHeight,
-                barLocation.x + relativeStrengthPos, barLocation.y,
-                // Enemy strength
-                barLocation.x + relativeStrengthPos, barLocation.y,
-                barLocation.x + relativeStrengthPos, barLocation.y + barHeight,
-                barLocation.x + barWidth, barLocation.y + barHeight,
-                barLocation.x + barWidth, barLocation.y
-            };
-            vertexMap.put(vertices).flip();
-
-            // Finally, we can actually draw the bar
-            glEnableClientState(GL_VERTEX_ARRAY);
-            glEnableClientState(GL_COLOR_ARRAY);
-            glVertexPointer(2, 0, vertexMap);
-            glColorPointer(4, 0, colorMap);
-            glDrawElements(GL_TRIANGLES, indexMap);
-            glDisableClientState(GL_COLOR_ARRAY);
-            glDisableClientState(GL_VERTEX_ARRAY);
-
-            // Show original relative strengths
-            if (!Global.getCombatEngine().isSimulation())
-            {
-                glLineWidth(1f);
-                glColor(Color.WHITE, radar.getRadarAlpha(), false);
-                glBegin(GL_LINES);
-                glVertex2f(barLocation.x + battleStartPos,
-                        barLocation.y + (barHeight * 1.5f));
-                glVertex2f(barLocation.x + battleStartPos,
-                        barLocation.y - (barHeight * 0.5f));
-                glEnd();
-            }
+        // Show original relative strengths
+        if (!Global.getCombatEngine().isSimulation())
+        {
+            glLineWidth(1f);
+            glColor(Color.WHITE, radar.getRadarAlpha(), false);
+            glBegin(GL_LINES);
+            glVertex2f(barLocation.x + battleStartPos,
+                    barLocation.y + (barHeight * 1.5f));
+            glVertex2f(barLocation.x + battleStartPos,
+                    barLocation.y - (barHeight * 0.5f));
+            glEnd();
         }
     }
 }

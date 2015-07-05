@@ -43,6 +43,7 @@ public class MapBorderRenderer implements CombatRenderer
         this.radar = radar;
         drawQueue = new DrawQueue(12);
 
+        // Calculate where the map borders are in raw engine coordinates
         CombatEngineAPI engine = Global.getCombatEngine();
         final float mapWidth = engine.getMapWidth() / 2f,
                 mapHeight = engine.getMapHeight() / 2f;
