@@ -8,13 +8,13 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.lazywizard.radar.CombatRadar;
 import org.lazywizard.radar.renderers.CombatRenderer;
-import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
+import org.lazywizard.radar.util.DrawQueue;
 import static org.lwjgl.opengl.GL11.*;
 
-// TODO: Update to use isUpdateFrame
 public class ObjectiveRenderer implements CombatRenderer
 {
     private static boolean SHOW_OBJECTIVES;
+    private DrawQueue drawQueue;
     private CombatRadar radar;
 
     @Override
@@ -26,58 +26,85 @@ public class ObjectiveRenderer implements CombatRenderer
     @Override
     public void init(CombatRadar radar)
     {
+        if (!SHOW_OBJECTIVES)
+        {
+            return;
+        }
+
         this.radar = radar;
+        drawQueue = new DrawQueue(12, true);
     }
 
     @Override
     public void render(ShipAPI player, float amount, boolean isUpdateFrame)
     {
-        if (SHOW_OBJECTIVES && player.isAlive())
+        if (!SHOW_OBJECTIVES || !player.isAlive())
         {
+            return;
+        }
+
+        if (isUpdateFrame)
+        {
+            drawQueue.clear();
             List<BattleObjectiveAPI> objectives = radar.filterVisible(
                     Global.getCombatEngine().getObjectives(), 1_000);
             if (!objectives.isEmpty())
             {
-                radar.enableStencilTest();
-
-                float[] radarLoc;
-                float size = 250f * radar.getCurrentPixelsPerSU();
-                glEnable(GL_LINE_SMOOTH);
-                glLineWidth(size / 5f);
                 for (BattleObjectiveAPI objective : objectives)
                 {
                     // Owned by player
                     if (objective.getOwner() == player.getOwner())
                     {
-                        glColor(radar.getFriendlyContactColor(),
-                                radar.getContactAlpha(), false);
+                        drawQueue.setNextColor(radar.getFriendlyContactColor(),
+                                radar.getContactAlpha());
                     }
                     // Owned by opposition
                     else if (objective.getOwner() + player.getOwner() == 1)
                     {
-                        glColor(radar.getEnemyContactColor(),
-                                radar.getContactAlpha(), false);
+                        drawQueue.setNextColor(radar.getEnemyContactColor(),
+                                radar.getContactAlpha());
                     }
                     // Not owned yet
                     else
                     {
-                        glColor(radar.getNeutralContactColor(),
-                                radar.getContactAlpha(), false);
+                        drawQueue.setNextColor(radar.getNeutralContactColor(),
+                                radar.getContactAlpha());
                     }
 
-                    radarLoc = radar.getRawPointOnRadar(objective.getLocation());
-
-                    glBegin(GL_LINE_LOOP);
-                    glVertex2f(radarLoc[0], radarLoc[1] + size);
-                    glVertex2f(radarLoc[0] + size, radarLoc[1]);
-                    glVertex2f(radarLoc[0], radarLoc[1] - size);
-                    glVertex2f(radarLoc[0] - size, radarLoc[1]);
-                    glEnd();
+                    final float[] radarLoc = radar.getRawPointOnRadar(objective.getLocation());
+                    final float size = 250f * radar.getCurrentPixelsPerSU();
+                    drawQueue.addVertices(new float[]
+                    {
+                        radarLoc[0], radarLoc[1] + size,
+                        radarLoc[0] + size, radarLoc[1],
+                        radarLoc[0], radarLoc[1] - size,
+                        radarLoc[0] - size, radarLoc[1]
+                    });
+                    drawQueue.finishShape(GL_LINE_LOOP);
                 }
-
-                glDisable(GL_LINE_SMOOTH);
-                radar.disableStencilTest();
             }
+
+            drawQueue.finish();
         }
+
+        // Don't draw if there's nothing to render!
+        if (drawQueue.isEmpty())
+        {
+            return;
+        }
+
+        radar.enableStencilTest();
+
+        // Draw objectives
+        glLineWidth(radar.getCurrentPixelsPerSU() * 50f);
+        glEnable(GL_LINE_SMOOTH);
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glEnableClientState(GL_COLOR_ARRAY);
+        drawQueue.draw();
+        glDisableClientState(GL_VERTEX_ARRAY);
+        glDisableClientState(GL_COLOR_ARRAY);
+        glDisable(GL_LINE_SMOOTH);
+
+        radar.disableStencilTest();
     }
 }
