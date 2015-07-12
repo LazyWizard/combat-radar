@@ -41,7 +41,7 @@ public class MapBorderRenderer implements CombatRenderer
         }
 
         this.radar = radar;
-        drawQueue = new DrawQueue(12);
+        drawQueue = new DrawQueue(28);
 
         // Calculate where the map borders are in raw engine coordinates
         CombatEngineAPI engine = Global.getCombatEngine();
@@ -65,6 +65,7 @@ public class MapBorderRenderer implements CombatRenderer
             final float[] ll = radar.getRawPointOnRadar(rawLL),
                     ur = radar.getRawPointOnRadar(rawUR);
             final float retreatDistance = RETREAT_AREA_SIZE * radar.getCurrentPixelsPerSU();
+            final float outerDistance = 1.5f * radar.getCurrentSightRadius() * radar.getCurrentPixelsPerSU();
 
             // Retreat areas
             drawQueue.setNextColor(RETREAT_AREA_COLOR, radar.getRadarAlpha());
@@ -80,6 +81,31 @@ public class MapBorderRenderer implements CombatRenderer
                 ll[0], ur[1] - retreatDistance,
                 ur[0], ur[1] - retreatDistance,
                 ur[0], ur[1]
+            });
+            // Out of bounds
+            drawQueue.setNextColor(Color.GRAY, radar.getRadarAlpha() * 0.3f);
+            drawQueue.addVertices(new float[]
+            {
+                // Top
+                ll[0] - outerDistance, ur[1],
+                ll[0] - outerDistance, ur[1] + outerDistance,
+                ur[0] + outerDistance, ur[1] + outerDistance,
+                ur[0] + outerDistance, ur[1],
+                // Bottom
+                ll[0] - outerDistance, ll[1],
+                ll[0] - outerDistance, ll[1] - outerDistance,
+                ur[0] + outerDistance, ll[1] - outerDistance,
+                ur[0] + outerDistance, ll[1],
+                // Right
+                ur[0], ur[1],
+                ur[0] + outerDistance, ur[1],
+                ur[0] + outerDistance, ll[1],
+                ur[0], ll[1],
+                // Left
+                ll[0], ll[1],
+                ll[0] - outerDistance, ll[1],
+                ll[0] - outerDistance, ur[1],
+                ll[0], ur[1]
             });
             drawQueue.finishShape(GL_QUADS);
 

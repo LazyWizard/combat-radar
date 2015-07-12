@@ -58,6 +58,7 @@ public class MissileRenderer implements CombatRenderer
             final Vector2f radarCenter = radar.getRenderCenter();
             final float radarRadius = radar.getRenderRadius();
             icon = Global.getSettings().getSprite("radar", MISSILE_ICON);
+            icon.setColor(MISSILE_LOCKED_COLOR);
             iconLocation = new Vector2f(radarCenter.x - (radarRadius * 0.9f),
                     radarCenter.y + (radarRadius * 0.9f));
         }
@@ -151,7 +152,6 @@ public class MissileRenderer implements CombatRenderer
         {
             glEnable(GL_TEXTURE_2D);
             icon.setAlphaMult(radar.getRadarAlpha() * highestThreatAlpha);
-            icon.setColor(MISSILE_LOCKED_COLOR);
             icon.renderAtCenter(iconLocation.x, iconLocation.y);
             glDisable(GL_TEXTURE_2D);
         }
