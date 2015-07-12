@@ -399,11 +399,11 @@ public class DrawQueue
         {
             // Vertex data
             glBindBuffer(GL_ARRAY_BUFFER, vertexId);
-            glBufferData(GL_ARRAY_BUFFER, vertexMap, GL_STATIC_DRAW);
+            glBufferData(GL_ARRAY_BUFFER, vertexMap, GL_DYNAMIC_DRAW);
 
             // Color data
             glBindBuffer(GL_ARRAY_BUFFER, colorId);
-            glBufferData(GL_ARRAY_BUFFER, colorMap, GL_STATIC_DRAW);
+            glBufferData(GL_ARRAY_BUFFER, colorMap, GL_DYNAMIC_DRAW);
 
             // Release buffer binding
             glBindBuffer(GL_ARRAY_BUFFER, 0);
