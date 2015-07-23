@@ -1,12 +1,8 @@
 package org.lazywizard.radar;
 
 import java.awt.Color;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin;
 import com.fs.starfarer.api.combat.CombatEngineAPI;
@@ -14,48 +10,17 @@ import com.fs.starfarer.api.combat.CombatEntityAPI;
 import com.fs.starfarer.api.combat.ShipAPI;
 import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.input.InputEventAPI;
-import org.apache.log4j.Logger;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.lazywizard.lazylib.JSONUtils;
 import org.lazywizard.lazylib.MathUtils;
 import org.lazywizard.lazylib.combat.CombatUtils;
 import org.lazywizard.lazylib.opengl.DrawUtils;
 import org.lazywizard.radar.renderers.CombatRenderer;
-import org.lazywizard.radar.renderers.NullRenderer;
 import org.lazywizard.radar.util.DrawQueue;
-import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.util.vector.Vector2f;
 import static org.lwjgl.opengl.GL11.*;
 
 public class CombatRadarPlugin extends BaseEveryFrameCombatPlugin
 {
-    // == CONSTANTS ==
-    // Path to master settings files, link to individual renderers + their settings
-    private static final String SETTINGS_FILE = "data/config/radar/common_radar.json";
-    private static final String CSV_PATH = "data/config/radar/combat_radar_plugins.csv";
-    // How fast the zoom animates
-    private static final float ZOOM_ANIMATION_DURATION = .4f;
-    // List of loaded rendering plugins
-    private static final List<Class<? extends CombatRenderer>> RENDERER_CLASSES = new ArrayList<>();
-    private static final Logger LOG = Global.getLogger(CombatRadarPlugin.class);
-
-    // == STATIC VARIABLES ==
-    // Performance settings
-    private static boolean RESPECT_FOG_OF_WAR = true;
-    private static float TIME_BETWEEN_UPDATE_FRAMES;
-    // Radar range settings
-    private static float MAX_SIGHT_RANGE;
-    private static int NUM_ZOOM_LEVELS;
-    // Radar color settings
-    private static float RADAR_ALPHA, CONTACT_ALPHA;
-    private static Color FRIENDLY_COLOR, ENEMY_COLOR, NEUTRAL_COLOR;
-    // Radar button LWJGL constants
-    private static int RADAR_TOGGLE_KEY, ZOOM_IN_KEY, ZOOM_OUT_KEY;
-
-    // == LOCAL VARIABLES ==
     private final List<CombatRenderer> renderers = new ArrayList<>();
     private CombatRadarInfo radarInfo;
     private float timeSinceLastUpdateFrame = 9999f;
@@ -65,127 +30,9 @@ public class CombatRadarPlugin extends BaseEveryFrameCombatPlugin
     private ShipAPI player;
     private boolean initialized = false, enabled = true;
 
-    static void reloadSettings() throws IOException, JSONException
-    {
-        final JSONObject settings = Global.getSettings().loadJSON(SETTINGS_FILE);
-
-        // Radar framerate limiter
-        TIME_BETWEEN_UPDATE_FRAMES = 1f / (float) settings.getDouble("radarFPS");
-
-        // Key bindings
-        RADAR_TOGGLE_KEY = settings.getInt("toggleKey");
-        ZOOM_IN_KEY = settings.getInt("zoomInKey");
-        ZOOM_OUT_KEY = settings.getInt("zoomOutKey");
-        LOG.info("Radar toggle key set to " + Keyboard.getKeyName(RADAR_TOGGLE_KEY)
-                + " (" + RADAR_TOGGLE_KEY + ")");
-
-        // Performance tweak settings
-        RESPECT_FOG_OF_WAR = settings.getBoolean("onlyShowVisibleContacts");
-
-        // Radar options
-        RADAR_ALPHA = (float) settings.getDouble("radarUIAlpha");
-
-        // Radar range
-        MAX_SIGHT_RANGE = (float) settings.getDouble("combatRadarRange");
-        NUM_ZOOM_LEVELS = settings.getInt("zoomLevels");
-
-        // Radar contact colors
-        final boolean useVanillaColors = settings.getBoolean("useVanillaColors");
-        CONTACT_ALPHA = (float) settings.getDouble("contactAlpha");
-        FRIENDLY_COLOR = useVanillaColors ? Global.getSettings().getColor("iconFriendColor")
-                : JSONUtils.toColor(settings.getJSONArray("friendlyColor"));
-        ENEMY_COLOR = useVanillaColors ? Global.getSettings().getColor("iconEnemyColor")
-                : JSONUtils.toColor(settings.getJSONArray("enemyColor"));
-        NEUTRAL_COLOR = useVanillaColors ? Global.getSettings().getColor("iconNeutralShipColor")
-                : JSONUtils.toColor(settings.getJSONArray("neutralColor"));
-
-        reloadRenderers();
-    }
-
-    private static void reloadRenderers() throws IOException, JSONException
-    {
-        // Load renderers from CSV
-        final JSONArray csv = Global.getSettings().getMergedSpreadsheetDataForMod(
-                "renderer id", CSV_PATH, "lw_radar");
-        final ClassLoader loader = Global.getSettings().getScriptClassLoader();
-        RENDERER_CLASSES.clear();
-        final List<RendererWrapper<CombatRenderer>> preSorted = new ArrayList<>();
-        final Map<String, JSONObject> loadedFiles = new HashMap<>();
-        for (int x = 0; x < csv.length(); x++)
-        {
-            JSONObject row = csv.getJSONObject(x);
-            String className = row.getString("script");
-            String settingsPath = row.optString("settings file (optional)", null);
-            int renderOrder = row.getInt("render order");
-            Class renderClass;
-
-            try
-            {
-                renderClass = loader.loadClass(className);
-            }
-            catch (ClassNotFoundException ex)
-            {
-                throw new RuntimeException(ex);
-            }
-
-            // Don't even bother loading NullRenderers
-            if (renderClass == NullRenderer.class)
-            {
-                continue;
-            }
-
-            // Ensure this is actually a valid renderer
-            if (!CombatRenderer.class.isAssignableFrom(renderClass))
-            {
-                throw new RuntimeException(renderClass.getCanonicalName()
-                        + " does not implement interface "
-                        + CombatRenderer.class.getCanonicalName());
-            }
-
-            // Wrap the renderer's class and rendering info to be used later
-            // This will be sorted using the "render order" column
-            preSorted.add(new RendererWrapper(renderClass, renderOrder));
-
-            // If a settings file was pointed to, tell the renderer to load it
-            if (settingsPath != null && !settingsPath.isEmpty())
-            {
-                // Keep track of already loaded files since some renderers use
-                // the same settings file; this helps lower the file I/O impact
-                JSONObject renderSettings;
-                if (loadedFiles.containsKey(settingsPath))
-                {
-                    renderSettings = loadedFiles.get(settingsPath);
-                }
-                else
-                {
-                    renderSettings = Global.getSettings().loadJSON(settingsPath);
-                    loadedFiles.put(settingsPath, renderSettings);
-                }
-
-                // Load settings for each individual renderer
-                try
-                {
-                    CombatRenderer tmp = ((CombatRenderer) renderClass.newInstance());
-                    tmp.reloadSettings(renderSettings);
-                }
-                catch (InstantiationException | IllegalAccessException ex)
-                {
-                    throw new RuntimeException(ex);
-                }
-            }
-        }
-
-        // Actually register the renderers with the radar, in the proper order
-        Collections.sort(preSorted);
-        for (RendererWrapper<CombatRenderer> wrapper : preSorted)
-        {
-            RENDERER_CLASSES.add(wrapper.getRendererClass());
-        }
-    }
-
     private void setZoomLevel(int zoom)
     {
-        intendedZoom = (zoom / (float) NUM_ZOOM_LEVELS);
+        intendedZoom = (zoom / (float) RadarSettings.getNumZoomLevels());
 
         if (zoomLevel == 0)
         {
@@ -203,13 +50,14 @@ public class CombatRadarPlugin extends BaseEveryFrameCombatPlugin
             renderRadius = Display.getHeight() / 10f;
             renderCenter = new Vector2f(Display.getWidth() - (renderRadius * 1.2f),
                     renderRadius * 1.2f);
-            setZoomLevel(NUM_ZOOM_LEVELS);
+            setZoomLevel(RadarSettings.getNumZoomLevels());
             currentZoom = intendedZoom;
 
             DrawQueue.releaseDeadQueues();
             renderers.clear(); // Needed due to a .6.2a bug
             radarInfo = new CombatRadarInfo();
-            for (Class<? extends CombatRenderer> rendererClass : RENDERER_CLASSES)
+            for (Class<? extends CombatRenderer> rendererClass
+                    : RadarSettings.getCombatRendererClasses())
             {
                 try
                 {
@@ -227,6 +75,9 @@ public class CombatRadarPlugin extends BaseEveryFrameCombatPlugin
 
     private void checkInput(List<InputEventAPI> events)
     {
+        final int toggleKey = RadarSettings.getRadarToggleKey(),
+                zoomInKey = RadarSettings.getZoomInKey(),
+                zoomOutKey = RadarSettings.getZoomOutKey();
         for (InputEventAPI event : events)
         {
             if (event.isConsumed())
@@ -237,28 +88,28 @@ public class CombatRadarPlugin extends BaseEveryFrameCombatPlugin
             if (event.isKeyDownEvent())
             {
                 // Radar on/off toggle
-                if (event.getEventValue() == RADAR_TOGGLE_KEY)
+                if (event.getEventValue() == toggleKey)
                 {
                     enabled = !enabled;
                     event.consume();
                 }
                 // Radar zoom levels
-                else if (event.getEventValue() == ZOOM_IN_KEY
-                        || event.getEventValue() == ZOOM_OUT_KEY)
+                else if (event.getEventValue() == zoomInKey
+                        || event.getEventValue() == zoomOutKey)
                 {
                     int newZoom = zoomLevel;
                     // Zoom in
-                    if (event.getEventValue() == ZOOM_IN_KEY)
+                    if (event.getEventValue() == zoomInKey)
                     {
                         if (--newZoom <= 0)
                         {
-                            newZoom = NUM_ZOOM_LEVELS;
+                            newZoom = RadarSettings.getNumZoomLevels();
                         }
                     }
                     // Zoom out
                     else
                     {
-                        if (++newZoom > NUM_ZOOM_LEVELS)
+                        if (++newZoom > RadarSettings.getNumZoomLevels())
                         {
                             newZoom = 1;
                         }
@@ -275,8 +126,8 @@ public class CombatRadarPlugin extends BaseEveryFrameCombatPlugin
     private void advanceZoom(float amount)
     {
         // Gradually zoom towards actual zoom level
-        final float animationSpeed = (ZOOM_ANIMATION_DURATION * amount)
-                * (float) NUM_ZOOM_LEVELS;
+        final float animationSpeed = (RadarSettings.getZoomAnimationDuration() * amount)
+                * (float) RadarSettings.getNumZoomLevels();
         if (currentZoom < intendedZoom)
         {
             currentZoom = Math.min(intendedZoom, currentZoom + animationSpeed);
@@ -287,7 +138,7 @@ public class CombatRadarPlugin extends BaseEveryFrameCombatPlugin
         }
 
         // Calculate zoom effect on radar elements
-        sightRadius = MAX_SIGHT_RANGE * currentZoom;
+        sightRadius = RadarSettings.getMaxCombatSightRange() * currentZoom;
         radarScaling = renderRadius / sightRadius;
     }
 
@@ -295,7 +146,7 @@ public class CombatRadarPlugin extends BaseEveryFrameCombatPlugin
     {
         boolean isUpdateFrame = false;
         timeSinceLastUpdateFrame += amount;
-        if (timeSinceLastUpdateFrame > TIME_BETWEEN_UPDATE_FRAMES)
+        if (timeSinceLastUpdateFrame > RadarSettings.getTimeBetweenUpdateFrames())
         {
             isUpdateFrame = true;
             timeSinceLastUpdateFrame = 0;
@@ -433,7 +284,7 @@ public class CombatRadarPlugin extends BaseEveryFrameCombatPlugin
         @Override
         public float getCurrentZoomLevel()
         {
-            return NUM_ZOOM_LEVELS / (float) zoomLevel;
+            return RadarSettings.getNumZoomLevels() / (float) zoomLevel;
         }
 
         @Override
@@ -445,31 +296,31 @@ public class CombatRadarPlugin extends BaseEveryFrameCombatPlugin
         @Override
         public float getRadarAlpha()
         {
-            return RADAR_ALPHA;
+            return RadarSettings.getRadarUIAlpha();
         }
 
         @Override
         public float getContactAlpha()
         {
-            return CONTACT_ALPHA;
+            return RadarSettings.getRadarContactAlpha();
         }
 
         @Override
         public Color getFriendlyContactColor()
         {
-            return FRIENDLY_COLOR;
+            return RadarSettings.getFriendlyContactColor();
         }
 
         @Override
         public Color getEnemyContactColor()
         {
-            return ENEMY_COLOR;
+            return RadarSettings.getEnemyContactColor();
         }
 
         @Override
         public Color getNeutralContactColor()
         {
-            return NEUTRAL_COLOR;
+            return RadarSettings.getNeutralContactColor();
         }
 
         @Override
@@ -538,7 +389,7 @@ public class CombatRadarPlugin extends BaseEveryFrameCombatPlugin
                 if (MathUtils.isWithinRange(contact, player.getLocation(),
                         sightRadius + contact.getCollisionRadius()))
                 {
-                    if (RESPECT_FOG_OF_WAR && !CombatUtils.isVisibleToSide(
+                    if (RadarSettings.isRespectingFogOfWar() && !CombatUtils.isVisibleToSide(
                             contact, player.getOwner()))
                     {
                         continue;
