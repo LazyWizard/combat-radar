@@ -16,9 +16,11 @@ import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
 
 // TODO: Update to use isUpdateFrame
 // TODO: Show bounties in gold
+// TODO: Implement transponder support after Starsector 0.7a is released
 public class FleetRenderer implements CampaignRenderer
 {
     private static boolean SHOW_FLEETS;
+    private static int MAX_FLEETS_SHOWN;
     private static Color BOUNTY_COLOR;
     private CampaignRadar radar;
     private float lastFacing, flashTimer = 0f;
@@ -30,6 +32,7 @@ public class FleetRenderer implements CampaignRenderer
 
         settings = settings.getJSONObject("campaignRenderers")
                 .getJSONObject("fleetRenderer");
+        MAX_FLEETS_SHOWN = settings.optInt("maxShown", 1_000);
         BOUNTY_COLOR = JSONUtils.toColor(settings.getJSONArray("bountyColor"));
     }
 
@@ -52,7 +55,7 @@ public class FleetRenderer implements CampaignRenderer
             }
 
             List<CampaignFleetAPI> fleets = radar.filterVisible(
-                    player.getContainingLocation().getFleets(), 1_000);
+                    player.getContainingLocation().getFleets(), MAX_FLEETS_SHOWN);
             if (!fleets.isEmpty())
             {
                 radar.enableStencilTest();

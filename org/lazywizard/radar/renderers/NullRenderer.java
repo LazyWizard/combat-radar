@@ -7,10 +7,15 @@ import org.json.JSONObject;
 import org.lazywizard.radar.CampaignRadar;
 import org.lazywizard.radar.CombatRadar;
 
-// A dummy implementation of CampaignRenderer and CombatRenderer
-// Can be set as a renderer by a mod to completely disable a vanilla renderer
-// Ex: set ShipRenderer's script to NullRenderer if you are making your own system
-// and don't want to use its ID for some reason
+/**
+ * A dummy implementation of CampaignRenderer and CombatRenderer.
+ * Can be set as a renderer by a mod to completely disable a vanilla renderer.
+ * For example: set ShipRenderer's script to NullRenderer if you are making your
+ * own system to draw ships and don't want to use its ID for some reason.
+ * <p>
+ * @author LazyWizard
+ * @since 2.0
+ */
 public class NullRenderer implements CampaignRenderer, CombatRenderer
 {
     @Override

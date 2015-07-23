@@ -4,7 +4,7 @@
     ################################
 
     # The framerate the radar should update at, lower fps = better performance
-    "radarFPS":12.0,  # Default: 12.0
+    "radarFPS":12.0,    # Default: 12.0
 
     # What buttons to press to change the radar zoom level or toggle radar on/off
     # Key IDs are integers, and can be found in the LWJGL documentation here:
@@ -19,13 +19,16 @@
 
     # How far the radar can see, in su
     # Be very careful, radar CPU cost grows exponentially with higher values
-    "combatRadarRange":2100.0, # Default: 2100.0
+    "combatRadarRange":2100.0,   # Default: 2100.0
     "campaignRadarRange":2100.0, # Default: 2100.0
+
+    # How long it takes for the radar to switch zooms, in seconds
+    "zoomDuration":0.4, # Default: 0.4
     # Number of zoom levels, zoom amount is automatic (3 = 1/3, 2/3, 3/3)
-    "zoomLevels":3, # Default: 3
+    "zoomLevels":3,     # Default: 3
 
     # Controls the alpha level of radar HUD elements (not radar contacts)
-    "radarUIAlpha":0.7, # Default: 0.7
+    "radarUIAlpha":0.7,  # Default: 0.7
     # Controls the alpha level of radar contacts (but not the HUD)
     "contactAlpha":0.85, # Default: 0.85
 
@@ -79,24 +82,25 @@
             "radarBackgroundColor":[0,0,0,255],
             "radarBackgroundAlpha":0.5, # Default: 0.5
             # Controls how faded the edges of the radar box are
-            "radarEdgeAlpha":0.33, # Default: 0.33
+            "radarEdgeAlpha":0.33,      # Default: 0.33
         },
 
         "fleetRenderer":
         {
+            #"maxShown":150,
             # What color fleets with a bounty on their head show up as
             "bountyColor":[255,215,0,255],
         },
 
         "stationRenderer":
         {
-            #"maxShown":250,
+            #"maxShown":20,
             "stationIcon":"station",
         },
 
         "relayRenderer":
         {
-            #"maxShown":250,
+            #"maxShown":10,
             "relayIcon":"relay",
         },
 
@@ -108,7 +112,7 @@
 
         "jumpPointRenderer":
         {
-            #"maxShown":150,
+            #"maxShown":15,
             "jumpPointIcon":"jumpPoint",
             "jumpPointColor":[255,0,255,255],
         },
@@ -126,7 +130,7 @@
             "radarBackgroundColor":[0,0,0,255],
             "radarBackgroundAlpha":0.33, # Default: 0.33
             # Controls how faded the edges of the radar box are
-            "radarEdgeAlpha":0.25, # Default: 0.25
+            "radarEdgeAlpha":0.25,       # Default: 0.25
         },
 
         "mapBorderRenderer":
@@ -137,7 +141,7 @@
 
         "shipRenderer":
         {
-            #"maxShown":150,
+            #"maxShown":50,
             "fighterSizeMod":1.75,
             "simpleMode":false, # If true, draw all ships as triangles
             "shieldColor":[0,255,255,255],

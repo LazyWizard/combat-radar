@@ -11,8 +11,7 @@ public class RadarModPlugin extends BaseModPlugin
 {
     public static void reloadSettings() throws IOException, JSONException
     {
-        CombatRadarPlugin.reloadSettings();
-        CampaignRadarPlugin.reloadSettings();
+        RadarSettings.reloadSettings();
     }
 
     @Override
