@@ -31,7 +31,8 @@ public class RadarBoxRenderer implements CampaignRenderer
         RADAR_FG_COLOR = Global.getSettings().getColor("tripadGridColor");
 
         // Background settings
-        settings = settings.getJSONObject("radarBoxRenderer");
+        settings = settings.getJSONObject("campaignRenderers")
+                .getJSONObject("radarBoxRenderer");
         RADAR_BG_COLOR = JSONUtils.toColor(settings.getJSONArray("radarBackgroundColor"));
         RADAR_OPACITY = (float) settings.getDouble("radarBackgroundAlpha");
         RADAR_EDGE_ALPHA = (float) settings.getDouble("radarEdgeAlpha");

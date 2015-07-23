@@ -24,9 +24,10 @@ public class AsteroidRenderer implements CombatRenderer
     @Override
     public void reloadSettings(JSONObject settings) throws JSONException
     {
-        SHOW_ASTEROIDS = settings.getBoolean("showAsteroids");
+        SHOW_ASTEROIDS = settings.getBoolean("showCombatAsteroids");
 
-        settings = settings.getJSONObject("asteroidRenderer");
+        settings = settings.getJSONObject("combatRenderers")
+                .getJSONObject("asteroidRenderer");
         MAX_ASTEROIDS_SHOWN = settings.optInt("maxShown", 1_000);
         ASTEROID_COLOR = JSONUtils.toColor(settings.getJSONArray("asteroidColor"));
     }

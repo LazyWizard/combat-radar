@@ -26,9 +26,10 @@ public class AsteroidRenderer implements CampaignRenderer
     @Override
     public void reloadSettings(JSONObject settings) throws JSONException
     {
-        SHOW_ASTEROIDS = settings.getBoolean("showAsteroids");
+        SHOW_ASTEROIDS = settings.getBoolean("showCampaignAsteroids");
 
-        settings = settings.getJSONObject("asteroidRenderer");
+        settings = settings.getJSONObject("campaignRenderers")
+                .getJSONObject("asteroidRenderer");
         MAX_ASTEROIDS_SHOWN = settings.optInt("maxShown", 1_000);
         ASTEROID_COLOR = JSONUtils.toColor(settings.getJSONArray("asteroidColor"));
     }

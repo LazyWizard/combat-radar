@@ -28,7 +28,8 @@ public class FleetRenderer implements CampaignRenderer
     {
         SHOW_FLEETS = settings.getBoolean("showFleets");
 
-        settings = settings.getJSONObject("fleetRenderer");
+        settings = settings.getJSONObject("campaignRenderers")
+                .getJSONObject("fleetRenderer");
         BOUNTY_COLOR = JSONUtils.toColor(settings.getJSONArray("bountyColor"));
     }
 

@@ -1,9 +1,9 @@
 renderer id,render order,script,settings file (optional)
-MapBorderRenderer,5,org.lazywizard.radar.renderers.combat.MapBorderRenderer,data/config/radar/combat_radar.json
-RadarBoxRenderer,10,org.lazywizard.radar.renderers.combat.RadarBoxRenderer,data/config/radar/combat_radar.json
-BattleProgressRenderer,20,org.lazywizard.radar.renderers.combat.BattleProgressRenderer,data/config/radar/combat_radar.json
-CombatReadinessRenderer,30,org.lazywizard.radar.renderers.combat.CombatReadinessRenderer,data/config/radar/combat_radar.json
-ShipRenderer,40,org.lazywizard.radar.renderers.combat.ShipRenderer,data/config/radar/combat_radar.json
-AsteroidRenderer,50,org.lazywizard.radar.renderers.combat.AsteroidRenderer,data/config/radar/combat_radar.json
-MissileRenderer,60,org.lazywizard.radar.renderers.combat.MissileRenderer,data/config/radar/combat_radar.json
-ObjectiveRenderer,70,org.lazywizard.radar.renderers.combat.ObjectiveRenderer,data/config/radar/combat_radar.json
+MapBorderRenderer,5,org.lazywizard.radar.renderers.combat.MapBorderRenderer,data/config/radar/common_radar.json
+RadarBoxRenderer,10,org.lazywizard.radar.renderers.combat.RadarBoxRenderer,data/config/radar/common_radar.json
+BattleProgressRenderer,20,org.lazywizard.radar.renderers.combat.BattleProgressRenderer,data/config/radar/common_radar.json
+CombatReadinessRenderer,30,org.lazywizard.radar.renderers.combat.CombatReadinessRenderer,data/config/radar/common_radar.json
+ShipRenderer,40,org.lazywizard.radar.renderers.combat.ShipRenderer,data/config/radar/common_radar.json
+AsteroidRenderer,50,org.lazywizard.radar.renderers.combat.AsteroidRenderer,data/config/radar/common_radar.json
+MissileRenderer,60,org.lazywizard.radar.renderers.combat.MissileRenderer,data/config/radar/common_radar.json
+ObjectiveRenderer,70,org.lazywizard.radar.renderers.combat.ObjectiveRenderer,data/config/radar/common_radar.json

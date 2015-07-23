@@ -27,7 +27,8 @@ public class MapBorderRenderer implements CombatRenderer
     {
         SHOW_BORDERS = settings.getBoolean("showMapBorder");
 
-        settings = settings.getJSONObject("mapBorderRenderer");
+        settings = settings.getJSONObject("combatRenderers")
+                .getJSONObject("mapBorderRenderer");
         RETREAT_AREA_COLOR = JSONUtils.toColor(settings.getJSONArray("retreatAreaColor"));
         GRAVITY_BARRIER_COLOR = JSONUtils.toColor(settings.getJSONArray("gravityBarrierColor"));
     }

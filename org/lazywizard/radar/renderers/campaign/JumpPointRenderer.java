@@ -27,7 +27,8 @@ public class JumpPointRenderer implements CampaignRenderer
     {
         SHOW_JUMP_POINTS = settings.getBoolean("showJumpPoints");
 
-        settings = settings.getJSONObject("jumpPointRenderer");
+        settings = settings.getJSONObject("campaignRenderers")
+                .getJSONObject("jumpPointRenderer");
         JUMP_POINT_ICON = settings.optString("jumpPointIcon", null);
         JUMP_POINT_COLOR = JSONUtils.toColor(settings.getJSONArray("jumpPointColor"));
     }
