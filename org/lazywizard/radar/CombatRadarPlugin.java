@@ -34,7 +34,7 @@ public class CombatRadarPlugin extends BaseEveryFrameCombatPlugin
 {
     // == CONSTANTS ==
     // Path to master settings files, link to individual renderers + their settings
-    private static final String SETTINGS_FILE = "data/config/radar/combat_radar.json";
+    private static final String SETTINGS_FILE = "data/config/radar/common_radar.json";
     private static final String CSV_PATH = "data/config/radar/combat_radar_plugins.csv";
     // How fast the zoom animates
     private static final float ZOOM_ANIMATION_DURATION = .4f;
@@ -86,7 +86,7 @@ public class CombatRadarPlugin extends BaseEveryFrameCombatPlugin
         RADAR_ALPHA = (float) settings.getDouble("radarUIAlpha");
 
         // Radar range
-        MAX_SIGHT_RANGE = (float) settings.getDouble("maxRadarRange");
+        MAX_SIGHT_RANGE = (float) settings.getDouble("combatRadarRange");
         NUM_ZOOM_LEVELS = settings.getInt("zoomLevels");
 
         // Radar contact colors

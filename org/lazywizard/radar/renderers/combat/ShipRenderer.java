@@ -44,7 +44,8 @@ public class ShipRenderer implements CombatRenderer
         SHOW_SHIELDS = settings.getBoolean("showShields");
         SHOW_TARGET_MARKER = settings.getBoolean("showMarkerAroundTarget");
 
-        settings = settings.getJSONObject("shipRenderer");
+        settings = settings.getJSONObject("combatRenderers")
+                .getJSONObject("shipRenderer");
         MAX_SHIPS_SHOWN = settings.optInt("maxShown", 1_000);
         SIMPLE_SHIPS = settings.getBoolean("simpleMode");
         FIGHTER_SIZE_MOD = (float) settings.getDouble("fighterSizeMod");

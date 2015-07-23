@@ -25,7 +25,8 @@ public class StationRenderer implements CampaignRenderer
     {
         SHOW_STATIONS = settings.getBoolean("showStations");
 
-        settings = settings.getJSONObject("stationRenderer");
+        settings = settings.getJSONObject("campaignRenderers")
+                .getJSONObject("stationRenderer");
         STATION_ICON = settings.optString("stationIcon", null);
     }
 

@@ -39,7 +39,8 @@ public class BattleProgressRenderer implements CombatRenderer
     {
         SHOW_BATTLE_PROGRESS = settings.getBoolean("showBattleProgress");
 
-        settings = settings.getJSONObject("battleProgressRenderer");
+        settings = settings.getJSONObject("combatRenderers")
+                .getJSONObject("battleProgressRenderer");
         ANIMATE_BAR = settings.getBoolean("animateProgressBar");
         ANIMATION_SPEED = (float) settings.getDouble("barAnimationSpeed") / 100f;
     }

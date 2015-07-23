@@ -33,7 +33,8 @@ public class RadarBoxRenderer implements CombatRenderer
         RADAR_FG_DEAD_COLOR = Global.getSettings().getColor("textNeutralColor");
 
         // Background settings
-        settings = settings.getJSONObject("radarBoxRenderer");
+        settings = settings.getJSONObject("combatRenderers")
+                .getJSONObject("radarBoxRenderer");
         RADAR_BG_COLOR = JSONUtils.toColor(settings.getJSONArray("radarBackgroundColor"));
         RADAR_OPACITY = (float) settings.getDouble("radarBackgroundAlpha");
         RADAR_EDGE_ALPHA = (float) settings.getDouble("radarEdgeAlpha");

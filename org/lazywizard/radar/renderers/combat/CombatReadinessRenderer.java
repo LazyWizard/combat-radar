@@ -37,7 +37,8 @@ public class CombatReadinessRenderer implements CombatRenderer
     {
         SHOW_COMBAT_READINESS = settings.getBoolean("showCombatReadiness");
 
-        settings = settings.getJSONObject("combatReadinessRenderer");
+        settings = settings.getJSONObject("combatRenderers")
+                .getJSONObject("combatReadinessRenderer");
         CURRENT_CR_COLOR = JSONUtils.toColor(
                 settings.getJSONArray("currentCRColor"));
         LOST_CR_COLOR = JSONUtils.toColor(
