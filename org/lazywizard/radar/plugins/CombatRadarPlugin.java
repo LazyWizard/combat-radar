@@ -152,17 +152,12 @@ public class CombatRadarPlugin extends BaseEveryFrameCombatPlugin
             timeSinceLastUpdateFrame = 0;
         }
 
-        // Retina display fix
-        int width = (int) (Display.getWidth() * Display.getPixelScaleFactor()),
-                height = (int) (Display.getHeight() * Display.getPixelScaleFactor());
-
         // Set OpenGL flags
         glPushAttrib(GL_ALL_ATTRIB_BITS);
         glMatrixMode(GL_PROJECTION);
         glPushMatrix();
         glLoadIdentity();
-        glViewport(0, 0, width, height);
-        glOrtho(0, width, 0, height, -1, 1);
+        radarInfo.resetView();
         glMatrixMode(GL_MODELVIEW);
         glPushMatrix();
         glLoadIdentity();
@@ -241,10 +236,13 @@ public class CombatRadarPlugin extends BaseEveryFrameCombatPlugin
     private class CombatRadarInfo implements CommonRadar<CombatEntityAPI>
     {
         @Override
-        @Deprecated // TEMPORARY
         public void resetView()
         {
-            // TODO: call glOrtho() and glViewport() here
+            // Retina display fix
+            int width = (int) (Display.getWidth() * Display.getPixelScaleFactor()),
+                    height = (int) (Display.getHeight() * Display.getPixelScaleFactor());
+            glViewport(0, 0, width, height);
+            glOrtho(0, width, 0, height, -1, 1);
         }
 
         @Override
@@ -381,7 +379,7 @@ public class CombatRadarPlugin extends BaseEveryFrameCombatPlugin
                 CombatEntityAPI contact = (CombatEntityAPI) tmp;
 
                 // Limit maximum contacts displayed
-                if (visible.size() >= maxContacts)
+                if (maxContacts >= 0 && visible.size() >= maxContacts)
                 {
                     return visible;
                 }
