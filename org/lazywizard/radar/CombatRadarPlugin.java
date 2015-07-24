@@ -15,6 +15,7 @@ import org.lazywizard.lazylib.combat.CombatUtils;
 import org.lazywizard.lazylib.opengl.DrawUtils;
 import org.lazywizard.radar.renderers.CombatRenderer;
 import org.lazywizard.radar.util.DrawQueue;
+import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.util.vector.Vector2f;
 import static org.lwjgl.opengl.GL11.*;
@@ -28,7 +29,7 @@ public class CombatRadarPlugin extends BaseEveryFrameCombatPlugin
     private float renderRadius, sightRadius, radarScaling, currentZoom, intendedZoom;
     private int zoomLevel;
     private ShipAPI player;
-    private boolean initialized = false, enabled = true;
+    private boolean initialized = false, keyDown = false, enabled = true;
 
     private void setZoomLevel(int zoom)
     {
@@ -73,61 +74,58 @@ public class CombatRadarPlugin extends BaseEveryFrameCombatPlugin
         }
     }
 
-    private void checkInput(List<InputEventAPI> events)
+    private void checkInput()
     {
-        final int toggleKey = RadarSettings.getRadarToggleKey(),
-                zoomInKey = RadarSettings.getZoomInKey(),
-                zoomOutKey = RadarSettings.getZoomOutKey();
-        for (InputEventAPI event : events)
+        final boolean zoomIn = Keyboard.isKeyDown(RadarSettings.getZoomInKey()),
+                zoomOut = Keyboard.isKeyDown(RadarSettings.getZoomOutKey()),
+                toggle = Keyboard.isKeyDown(RadarSettings.getRadarToggleKey());
+        if (zoomIn || zoomOut || toggle)
         {
-            if (event.isConsumed())
+            if (keyDown == true)
             {
-                continue;
+                return;
             }
 
-            if (event.isKeyDownEvent())
+            // Radar on/off toggle
+            if (toggle)
             {
-                // Radar on/off toggle
-                if (event.getEventValue() == toggleKey)
-                {
-                    enabled = !enabled;
-                    event.consume();
-                }
-                // Radar zoom levels
-                else if (event.getEventValue() == zoomInKey
-                        || event.getEventValue() == zoomOutKey)
-                {
-                    int newZoom = zoomLevel;
-                    // Zoom in
-                    if (event.getEventValue() == zoomInKey)
-                    {
-                        if (--newZoom <= 0)
-                        {
-                            newZoom = RadarSettings.getNumZoomLevels();
-                        }
-                    }
-                    // Zoom out
-                    else
-                    {
-                        if (++newZoom > RadarSettings.getNumZoomLevels())
-                        {
-                            newZoom = 1;
-                        }
-                    }
-
-                    setZoomLevel(newZoom);
-                    event.consume();
-                    break;
-                }
+                enabled = !enabled;
             }
+            // Radar zoom levels
+            else
+            {
+                int newZoom = zoomLevel;
+                if (zoomIn)
+                {
+                    if (--newZoom <= 0)
+                    {
+                        newZoom = RadarSettings.getNumZoomLevels();
+                    }
+                }
+                else
+                {
+                    if (++newZoom > RadarSettings.getNumZoomLevels())
+                    {
+                        newZoom = 1;
+                    }
+                }
+
+                setZoomLevel(newZoom);
+            }
+
+            keyDown = true;
+        }
+        else
+        {
+            keyDown = false;
         }
     }
 
     private void advanceZoom(float amount)
     {
         // Gradually zoom towards actual zoom level
-        final float animationSpeed = (RadarSettings.getZoomAnimationDuration() * amount)
-                * (float) RadarSettings.getNumZoomLevels();
+        final float animationSpeed = RadarSettings.getZoomAnimationDuration()
+                * RadarSettings.getNumZoomLevels() * amount;
         if (currentZoom < intendedZoom)
         {
             currentZoom = Math.min(intendedZoom, currentZoom + animationSpeed);
@@ -229,7 +227,7 @@ public class CombatRadarPlugin extends BaseEveryFrameCombatPlugin
         }
 
         checkInit();
-        checkInput(events);
+        checkInput();
     }
 
     @Override
@@ -373,12 +371,13 @@ public class CombatRadarPlugin extends BaseEveryFrameCombatPlugin
         }
 
         @Override
-        public List<CombatEntityAPI> filterVisible(List<? extends CombatEntityAPI> contacts,
-                int maxContacts)
+        public List<CombatEntityAPI> filterVisible(List contacts, int maxContacts)
         {
             List<CombatEntityAPI> visible = new ArrayList<>();
-            for (CombatEntityAPI contact : contacts)
+            for (Object tmp : contacts)
             {
+                CombatEntityAPI contact = (CombatEntityAPI) tmp;
+
                 // Limit maximum contacts displayed
                 if (visible.size() >= maxContacts)
                 {

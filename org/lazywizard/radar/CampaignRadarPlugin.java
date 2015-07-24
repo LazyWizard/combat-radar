@@ -133,8 +133,8 @@ public class CampaignRadarPlugin implements EveryFrameScript
     private void advanceZoom(float amount)
     {
         // Gradually zoom towards actual zoom level
-        final float animationSpeed = (RadarSettings.getZoomAnimationDuration() * amount)
-                * (float) RadarSettings.getNumZoomLevels();
+        final float animationSpeed = RadarSettings.getZoomAnimationDuration()
+                * RadarSettings.getNumZoomLevels() * amount;
         if (currentZoom < intendedZoom)
         {
             currentZoom = Math.min(intendedZoom, currentZoom + animationSpeed);
@@ -164,6 +164,7 @@ public class CampaignRadarPlugin implements EveryFrameScript
                 height = (int) (Display.getHeight() * Display.getPixelScaleFactor());
 
         // Set OpenGL flags
+        glPushAttrib(GL_ALL_ATTRIB_BITS);
         glMatrixMode(GL_PROJECTION);
         glPushMatrix();
         glLoadIdentity();
@@ -199,6 +200,7 @@ public class CampaignRadarPlugin implements EveryFrameScript
         glPopMatrix();
         glMatrixMode(GL_PROJECTION);
         glPopMatrix();
+        glPopAttrib();
     }
 
     @Override
@@ -365,12 +367,13 @@ public class CampaignRadarPlugin implements EveryFrameScript
         }
 
         @Override
-        public List<SectorEntityToken> filterVisible(List<? extends SectorEntityToken> contacts,
-                int maxContacts)
+        public List<SectorEntityToken> filterVisible(List contacts, int maxContacts)
         {
             List<SectorEntityToken> visible = new ArrayList<>();
-            for (SectorEntityToken contact : contacts)
+            for (Object tmp : contacts)
             {
+                final SectorEntityToken contact = (SectorEntityToken) tmp;
+
                 // Limit maximum contacts displayed
                 if (visible.size() >= maxContacts)
                 {
