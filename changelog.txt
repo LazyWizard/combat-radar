@@ -1,10 +1,29 @@
- 1.2 (March XX, 2015)
-======================
-Added getCurrentSightRadius() to BaseRadar interface
-Fleets with a bounty on their head are now shown as gold on the campaign radar
-New combat radar element: MapBorderRenderer
- - Displays retreat zone in yellow
+ 2.0 (July XX, 2015)
+=====================
+Radar framerate is now separate from Starsector's framerate, defaults to 12 FPS
+Combined campaign and combat radars into one codebase
+Merged radar settings into a single file, data/config/radar/radar_settings.json
+Improved icon for relays in the campaign
+Added getCurrentSightRadius() to CommonRadar interface
+Campaign fleet renderer changes:
+ - Fleets with a bounty on their head are now shown as gold on the radar
+New combat renderer: MapBorderRenderer
+ - Displays retreat zones in yellow
  - Displays gravity barrier line in red
+ - Displays out of bounds in grey
+New combat renderer: ShipRenderer
+ - Replaces ShipSimpleRenderer and ShipPolygonRenderer
+ - Draws proper polygons for ships instead of approximation like old system
+ - Will fall back to old approximation system on ships that can't be
+   triangulated (just Paragon in vanilla + a handful of ships in existing mods)
+ - To draw ships as triangles instead like with the old ShipSimpleRenderer,
+   change "simpleMode" to true in radar_settings.json under "shipRenderer"
+New utility class: DrawQueue
+ - Aids in efficiently drawing many primitive shapes
+ - Handles native buffer allocation/data/resizing automatically
+ - Uses VBOs if the user's card supports them (hint: it does)
+All interfaces are now fully documented (see javadoc.zip in mod folder)
+Miscellaneous optimizations and improvements
 
  1.1f (March 06, 2015)
 =======================
