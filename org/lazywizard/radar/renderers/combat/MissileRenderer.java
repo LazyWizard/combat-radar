@@ -3,6 +3,7 @@ package org.lazywizard.radar.renderers.combat;
 import java.awt.Color;
 import java.util.List;
 import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.combat.CombatEntityAPI;
 import com.fs.starfarer.api.combat.GuidedMissileAI;
 import com.fs.starfarer.api.combat.MissileAIPlugin;
 import com.fs.starfarer.api.combat.MissileAPI;
@@ -11,7 +12,7 @@ import com.fs.starfarer.api.graphics.SpriteAPI;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.lazywizard.lazylib.JSONUtils;
-import org.lazywizard.radar.CombatRadar;
+import org.lazywizard.radar.CommonRadar;
 import org.lazywizard.radar.renderers.CombatRenderer;
 import org.lazywizard.radar.util.DrawQueue;
 import org.lwjgl.util.vector.Vector2f;
@@ -28,7 +29,7 @@ public class MissileRenderer implements CombatRenderer
     private boolean playerLock = false;
     private float highestThreatAlpha = 0f;
     private DrawQueue drawQueue;
-    private CombatRadar radar;
+    private CommonRadar<CombatEntityAPI> radar;
 
     @Override
     public void reloadSettings(JSONObject settings) throws JSONException
@@ -44,7 +45,7 @@ public class MissileRenderer implements CombatRenderer
     }
 
     @Override
-    public void init(CombatRadar radar)
+    public void init(CommonRadar<CombatEntityAPI> radar)
     {
         if (!SHOW_MISSILES)
         {

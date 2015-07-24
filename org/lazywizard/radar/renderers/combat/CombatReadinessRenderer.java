@@ -4,13 +4,14 @@ import java.awt.Color;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.combat.CombatEntityAPI;
 import com.fs.starfarer.api.combat.ShipAPI;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.lazywizard.lazylib.JSONUtils;
 import org.lazywizard.lazylib.combat.CombatUtils;
-import org.lazywizard.radar.CombatRadar;
+import org.lazywizard.radar.CommonRadar;
 import org.lazywizard.radar.renderers.CombatRenderer;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.util.vector.Vector2f;
@@ -25,7 +26,7 @@ public class CombatReadinessRenderer implements CombatRenderer
 {
     private static boolean SHOW_COMBAT_READINESS;
     private static Color CURRENT_CR_COLOR, LOST_CR_COLOR, NO_CR_COLOR;
-    private CombatRadar radar;
+    private CommonRadar<CombatEntityAPI> radar;
     private Vector2f barLocation;
     private FloatBuffer vertexMap, colorMap;
     private IntBuffer indexMap;
@@ -64,7 +65,7 @@ public class CombatReadinessRenderer implements CombatRenderer
     }
 
     @Override
-    public void init(CombatRadar radar)
+    public void init(CommonRadar<CombatEntityAPI> radar)
     {
         // Location and size of radar on the screen
         this.radar = radar;

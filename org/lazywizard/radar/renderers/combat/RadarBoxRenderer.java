@@ -2,12 +2,13 @@ package org.lazywizard.radar.renderers.combat;
 
 import java.awt.Color;
 import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.combat.CombatEntityAPI;
 import com.fs.starfarer.api.combat.ShipAPI;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.lazywizard.lazylib.JSONUtils;
 import org.lazywizard.lazylib.opengl.DrawUtils;
-import org.lazywizard.radar.CombatRadar;
+import org.lazywizard.radar.CommonRadar;
 import org.lazywizard.radar.renderers.CombatRenderer;
 import org.lwjgl.util.vector.Vector2f;
 import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
@@ -21,7 +22,7 @@ public class RadarBoxRenderer implements CombatRenderer
     // Radar OpenGL buffers/display lists
     private static int RADAR_BOX_DISPLAY_LIST_ID = -123;
     private boolean firstFrame = true, wasAliveLastFrame = false;
-    private CombatRadar radar;
+    private CommonRadar<CombatEntityAPI> radar;
 
     @Override
     public void reloadSettings(JSONObject settings) throws JSONException
@@ -41,7 +42,7 @@ public class RadarBoxRenderer implements CombatRenderer
     }
 
     @Override
-    public void init(CombatRadar radar)
+    public void init(CommonRadar<CombatEntityAPI> radar)
     {
         this.radar = radar;
         firstFrame = true;

@@ -9,7 +9,7 @@ import com.fs.starfarer.api.campaign.SectorEntityToken;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.lazywizard.lazylib.JSONUtils;
-import org.lazywizard.radar.CampaignRadar;
+import org.lazywizard.radar.CommonRadar;
 import org.lazywizard.radar.renderers.CampaignRenderer;
 import org.lwjgl.BufferUtils;
 import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
@@ -21,7 +21,7 @@ public class AsteroidRenderer implements CampaignRenderer
     private static boolean SHOW_ASTEROIDS;
     private static int MAX_ASTEROIDS_SHOWN;
     private static Color ASTEROID_COLOR;
-    private CampaignRadar radar;
+    private CommonRadar<SectorEntityToken> radar;
 
     @Override
     public void reloadSettings(JSONObject settings) throws JSONException
@@ -35,7 +35,7 @@ public class AsteroidRenderer implements CampaignRenderer
     }
 
     @Override
-    public void init(CampaignRadar radar)
+    public void init(CommonRadar<SectorEntityToken> radar)
     {
         this.radar = radar;
     }

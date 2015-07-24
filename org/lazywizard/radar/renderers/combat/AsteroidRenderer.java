@@ -8,7 +8,7 @@ import com.fs.starfarer.api.combat.ShipAPI;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.lazywizard.lazylib.JSONUtils;
-import org.lazywizard.radar.CombatRadar;
+import org.lazywizard.radar.CommonRadar;
 import org.lazywizard.radar.renderers.CombatRenderer;
 import org.lazywizard.radar.util.DrawQueue;
 import static org.lwjgl.opengl.GL11.*;
@@ -19,7 +19,7 @@ public class AsteroidRenderer implements CombatRenderer
     private static int MAX_ASTEROIDS_SHOWN;
     private static Color ASTEROID_COLOR;
     private DrawQueue drawQueue;
-    private CombatRadar radar;
+    private CommonRadar<CombatEntityAPI> radar;
 
     @Override
     public void reloadSettings(JSONObject settings) throws JSONException
@@ -33,7 +33,7 @@ public class AsteroidRenderer implements CombatRenderer
     }
 
     @Override
-    public void init(CombatRadar radar)
+    public void init(CommonRadar<CombatEntityAPI> radar)
     {
         if (!SHOW_ASTEROIDS)
         {

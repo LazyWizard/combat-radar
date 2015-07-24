@@ -8,6 +8,7 @@ import java.util.Map;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.BoundsAPI;
 import com.fs.starfarer.api.combat.BoundsAPI.SegmentAPI;
+import com.fs.starfarer.api.combat.CombatEntityAPI;
 import com.fs.starfarer.api.combat.ShieldAPI;
 import com.fs.starfarer.api.combat.ShipAPI;
 import com.fs.starfarer.api.combat.ShipAPI.HullSize;
@@ -16,7 +17,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.lazywizard.lazylib.FastTrig;
 import org.lazywizard.lazylib.JSONUtils;
-import org.lazywizard.radar.CombatRadar;
+import org.lazywizard.radar.CommonRadar;
 import org.lazywizard.radar.renderers.CombatRenderer;
 import org.lazywizard.radar.util.DrawQueue;
 import org.lwjgl.util.vector.Vector2f;
@@ -35,7 +36,7 @@ public class ShipRenderer implements CombatRenderer
     private static Color SHIELD_COLOR, MARKER_COLOR;
     private static float FIGHTER_SIZE_MOD, PHASE_ALPHA_MULT;
     private DrawQueue drawQueue;
-    private CombatRadar radar;
+    private CommonRadar<CombatEntityAPI> radar;
 
     @Override
     public void reloadSettings(JSONObject settings) throws JSONException
@@ -57,7 +58,7 @@ public class ShipRenderer implements CombatRenderer
     }
 
     @Override
-    public void init(CombatRadar radar)
+    public void init(CommonRadar<CombatEntityAPI> radar)
     {
         if (!SHOW_SHIPS)
         {
@@ -381,7 +382,7 @@ public class ShipRenderer implements CombatRenderer
             bounds.update(ship.getLocation(), ship.getFacing());
         }
 
-        private float[] getVertices(CombatRadar radar, ShipAPI ship)
+        private float[] getVertices(CommonRadar radar, ShipAPI ship)
         {
             // Invalid ship bounds
             if (drawMode == -1)

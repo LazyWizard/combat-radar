@@ -2,8 +2,9 @@ package org.lazywizard.radar.renderers;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.lazywizard.radar.CommonRadar;
 
-public interface BaseRenderer
+public interface BaseRenderer<T>
 {
     /**
      * Called when the game first loads or when
@@ -21,4 +22,15 @@ public interface BaseRenderer
      * @since 1.0
      */
     public void reloadSettings(JSONObject settings) throws JSONException;
+
+    /**
+     * Called on the first frame before rendering begins. You should set up your
+     * component here.
+     * <p>
+     * @param radar The master radar object; you should keep track of this as
+     *              many of its properties can change.
+     * <p>
+     * @since 1.0
+     */
+    public void init(CommonRadar<T> radar);
 }

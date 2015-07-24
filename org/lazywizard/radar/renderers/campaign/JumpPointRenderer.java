@@ -5,11 +5,12 @@ import java.util.List;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import com.fs.starfarer.api.campaign.JumpPointAPI;
+import com.fs.starfarer.api.campaign.SectorEntityToken;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.lazywizard.lazylib.JSONUtils;
-import org.lazywizard.radar.CampaignRadar;
+import org.lazywizard.radar.CommonRadar;
 import org.lazywizard.radar.renderers.CampaignRenderer;
 import static org.lwjgl.opengl.GL11.*;
 
@@ -20,7 +21,7 @@ public class JumpPointRenderer implements CampaignRenderer
     private static String JUMP_POINT_ICON;
     private static Color JUMP_POINT_COLOR;
     private SpriteAPI icon;
-    private CampaignRadar radar;
+    private CommonRadar<SectorEntityToken> radar;
 
     @Override
     public void reloadSettings(JSONObject settings) throws JSONException
@@ -34,7 +35,7 @@ public class JumpPointRenderer implements CampaignRenderer
     }
 
     @Override
-    public void init(CampaignRadar radar)
+    public void init(CommonRadar<SectorEntityToken> radar)
     {
         this.radar = radar;
 

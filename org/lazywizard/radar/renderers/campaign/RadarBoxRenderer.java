@@ -3,11 +3,12 @@ package org.lazywizard.radar.renderers.campaign;
 import java.awt.Color;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
+import com.fs.starfarer.api.campaign.SectorEntityToken;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.lazywizard.lazylib.JSONUtils;
 import org.lazywizard.lazylib.opengl.DrawUtils;
-import org.lazywizard.radar.CampaignRadar;
+import org.lazywizard.radar.CommonRadar;
 import org.lazywizard.radar.renderers.CampaignRenderer;
 import org.lwjgl.util.vector.Vector2f;
 import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
@@ -21,7 +22,7 @@ public class RadarBoxRenderer implements CampaignRenderer
     // Radar OpenGL buffers/display lists
     private static int RADAR_BOX_DISPLAY_LIST_ID = -123;
     private boolean firstFrame = true;
-    private CampaignRadar radar;
+    private CommonRadar<SectorEntityToken> radar;
 
     @Override
     public void reloadSettings(JSONObject settings) throws JSONException
@@ -39,7 +40,7 @@ public class RadarBoxRenderer implements CampaignRenderer
     }
 
     @Override
-    public void init(CampaignRadar radar)
+    public void init(CommonRadar<SectorEntityToken> radar)
     {
         this.radar = radar;
         firstFrame = true;

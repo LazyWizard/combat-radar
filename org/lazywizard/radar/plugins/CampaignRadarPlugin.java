@@ -1,4 +1,4 @@
-package org.lazywizard.radar;
+package org.lazywizard.radar.plugins;
 
 import java.awt.Color;
 import java.util.ArrayList;
@@ -10,6 +10,8 @@ import com.fs.starfarer.api.campaign.SectorAPI;
 import com.fs.starfarer.api.campaign.SectorEntityToken;
 import org.lazywizard.lazylib.MathUtils;
 import org.lazywizard.lazylib.opengl.DrawUtils;
+import org.lazywizard.radar.CommonRadar;
+import org.lazywizard.radar.RadarSettings;
 import org.lazywizard.radar.renderers.CampaignRenderer;
 import org.lazywizard.radar.util.DrawQueue;
 import org.lwjgl.input.Keyboard;
@@ -232,7 +234,7 @@ public class CampaignRadarPlugin implements EveryFrameScript
         }
     }
 
-    private class CampaignRadarInfo implements CampaignRadar
+    private class CampaignRadarInfo implements CommonRadar<SectorEntityToken>
     {
         @Override
         @Deprecated // TEMPORARY

@@ -50,7 +50,7 @@ public class RadarSettings
     // Radar button LWJGL constants
     private static int RADAR_TOGGLE_KEY, ZOOM_IN_KEY, ZOOM_OUT_KEY;
 
-    static void reloadSettings() throws JSONException, IOException
+    public static void reloadSettings() throws JSONException, IOException
     {
         final JSONObject settings = Global.getSettings().loadJSON(SETTINGS_FILE);
 

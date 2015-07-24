@@ -1,7 +1,8 @@
 package org.lazywizard.radar.renderers;
 
+import com.fs.starfarer.api.combat.CombatEntityAPI;
 import com.fs.starfarer.api.combat.ShipAPI;
-import org.lazywizard.radar.CombatRadar;
+import org.lazywizard.radar.CommonRadar;
 
 /**
  * The interface all combat radar plugins must implement.
@@ -9,23 +10,12 @@ import org.lazywizard.radar.CombatRadar;
  * @author LazyWizard
  * @since 1.0
  */
-public interface CombatRenderer extends BaseRenderer
+public interface CombatRenderer extends BaseRenderer<CombatEntityAPI>
 {
-    /**
-     * Called on the first frame of a new combat before rendering begins. You
-     * should set up your component here.
-     * <p>
-     * @param radar The master radar object; you should keep track of this as
-     *              many of its properties can change.
-     * <p>
-     * @since 1.0
-     */
-    public void init(CombatRadar radar);
-
     /**
      * Called every frame to tell your component to render. Rendering is done
      * using screen coordinates. If your code calls glOrtho() or glViewport(),
-     * you should call {@link CombatRadar#resetView()} at the end of this
+     * you should call {@link CommonRadar#resetView()} at the end of this
      * method.
      * <p>
      * @param player        The player's ship; also the center of the radar.

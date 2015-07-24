@@ -5,7 +5,7 @@ import java.util.List;
 import org.lwjgl.util.vector.Vector2f;
 
 // TODO: Javadoc this interface
-interface BaseRadar<T>
+public interface CommonRadar<T>
 {
     public void resetView();
     public void enableStencilTest();

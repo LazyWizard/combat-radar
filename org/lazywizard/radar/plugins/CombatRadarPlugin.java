@@ -1,4 +1,4 @@
-package org.lazywizard.radar;
+package org.lazywizard.radar.plugins;
 
 import java.awt.Color;
 import java.util.ArrayList;
@@ -13,6 +13,8 @@ import com.fs.starfarer.api.input.InputEventAPI;
 import org.lazywizard.lazylib.MathUtils;
 import org.lazywizard.lazylib.combat.CombatUtils;
 import org.lazywizard.lazylib.opengl.DrawUtils;
+import org.lazywizard.radar.CommonRadar;
+import org.lazywizard.radar.RadarSettings;
 import org.lazywizard.radar.renderers.CombatRenderer;
 import org.lazywizard.radar.util.DrawQueue;
 import org.lwjgl.input.Keyboard;
@@ -236,7 +238,7 @@ public class CombatRadarPlugin extends BaseEveryFrameCombatPlugin
         initialized = false;
     }
 
-    private class CombatRadarInfo implements CombatRadar
+    private class CombatRadarInfo implements CommonRadar<CombatEntityAPI>
     {
         @Override
         @Deprecated // TEMPORARY

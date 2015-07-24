@@ -10,7 +10,7 @@ import com.fs.starfarer.api.graphics.SpriteAPI;
 import com.fs.starfarer.api.impl.campaign.ids.Tags;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.lazywizard.radar.CampaignRadar;
+import org.lazywizard.radar.CommonRadar;
 import org.lazywizard.radar.renderers.CampaignRenderer;
 import static org.lwjgl.opengl.GL11.*;
 
@@ -20,7 +20,7 @@ public class CommRelayRenderer implements CampaignRenderer
     private static boolean SHOW_RELAYS;
     private static String RELAY_ICON;
     private SpriteAPI icon;
-    private CampaignRadar radar;
+    private CommonRadar<SectorEntityToken> radar;
 
     @Override
     public void reloadSettings(JSONObject settings) throws JSONException
@@ -33,7 +33,7 @@ public class CommRelayRenderer implements CampaignRenderer
     }
 
     @Override
-    public void init(CampaignRadar radar)
+    public void init(CommonRadar<SectorEntityToken> radar)
     {
         this.radar = radar;
 
