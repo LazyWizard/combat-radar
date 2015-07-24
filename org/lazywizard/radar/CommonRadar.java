@@ -180,8 +180,7 @@ public interface CommonRadar<T>
 
     /**
      * Converts multiple points from world space to radar space. Used to know
-     * where to
-     * draw on the radar.
+     * where to draw on the radar.
      * <p>
      * @param worldCoords The points in Starsector coordinates to translate, in
      *                    {x,y} pairs.
@@ -194,7 +193,9 @@ public interface CommonRadar<T>
     public float[] getRawPointsOnRadar(float[] worldCoords);
 
     /**
-     * Filters out all contacts that aren't in range or visible to the player.
+     * Filters out all contacts that aren't in radar range or are invisible to
+     * the player (if {@link RadarSettings#isRespectingFogOfWar()} is
+     * {@code true}).
      *
      * @param contacts    The list of contacts to be filtered.
      * @param maxContacts The maximum number of contacts to be retained. Use

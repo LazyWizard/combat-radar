@@ -148,6 +148,7 @@ public class RadarBoxRenderer implements CombatRenderer
         glCallList(RADAR_BOX_DISPLAY_LIST_ID);
 
         // Calculate position and size of zoom level notification lines
+        // This ignores isUpdateFrame for better responsiveness
         float zoomLinePos = radarRadius / radar.getCurrentZoomLevel();
         float zoomLineSize = (radarRadius / 15f)
                 / (.75f + radar.getCurrentZoomLevel() / 2f);
