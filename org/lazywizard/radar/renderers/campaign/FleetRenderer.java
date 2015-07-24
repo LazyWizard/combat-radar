@@ -3,6 +3,7 @@ package org.lazywizard.radar.renderers.campaign;
 import java.awt.Color;
 import java.util.List;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
+import com.fs.starfarer.api.campaign.SectorEntityToken;
 import com.fs.starfarer.api.impl.campaign.ids.FleetTypes;
 import com.fs.starfarer.api.impl.campaign.ids.MemFlags;
 import org.json.JSONException;
@@ -10,7 +11,7 @@ import org.json.JSONObject;
 import org.lazywizard.lazylib.JSONUtils;
 import org.lazywizard.lazylib.VectorUtils;
 import org.lazywizard.lazylib.opengl.DrawUtils;
-import org.lazywizard.radar.CampaignRadar;
+import org.lazywizard.radar.CommonRadar;
 import org.lazywizard.radar.renderers.CampaignRenderer;
 import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
 
@@ -22,7 +23,7 @@ public class FleetRenderer implements CampaignRenderer
     private static boolean SHOW_FLEETS;
     private static int MAX_FLEETS_SHOWN;
     private static Color BOUNTY_COLOR;
-    private CampaignRadar radar;
+    private CommonRadar<SectorEntityToken> radar;
     private float lastFacing, flashTimer = 0f;
 
     @Override
@@ -37,7 +38,7 @@ public class FleetRenderer implements CampaignRenderer
     }
 
     @Override
-    public void init(CampaignRadar radar)
+    public void init(CommonRadar<SectorEntityToken> radar)
     {
         this.radar = radar;
         lastFacing = 0f;

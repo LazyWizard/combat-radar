@@ -6,13 +6,14 @@ import java.nio.IntBuffer;
 import java.util.List;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.CombatEngineAPI;
+import com.fs.starfarer.api.combat.CombatEntityAPI;
 import com.fs.starfarer.api.combat.CombatFleetManagerAPI;
 import com.fs.starfarer.api.combat.ShipAPI;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
 import com.fs.starfarer.api.mission.FleetSide;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.lazywizard.radar.CombatRadar;
+import org.lazywizard.radar.CommonRadar;
 import org.lazywizard.radar.renderers.CombatRenderer;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.util.vector.Vector2f;
@@ -26,7 +27,7 @@ public class BattleProgressRenderer implements CombatRenderer
     private static boolean SHOW_BATTLE_PROGRESS, ANIMATE_BAR;
     private static float ANIMATION_SPEED;
     private static final float TIME_BETWEEN_CHECKS = .25f;
-    private CombatRadar radar;
+    private CommonRadar<CombatEntityAPI> radar;
     private Vector2f barLocation;
     private FloatBuffer vertexMap, colorMap;
     private IntBuffer indexMap;
@@ -62,7 +63,7 @@ public class BattleProgressRenderer implements CombatRenderer
     }
 
     @Override
-    public void init(CombatRadar radar)
+    public void init(CommonRadar<CombatEntityAPI> radar)
     {
         // Location and size of radar on the screen
         this.radar = radar;

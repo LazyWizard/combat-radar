@@ -1,7 +1,7 @@
 {
     "plugins":
     {
-        "CombatRadarPlugin":"org.lazywizard.radar.CombatRadarPlugin"
+        "CombatRadarPlugin":"org.lazywizard.radar.plugins.CombatRadarPlugin"
     },
 
     "graphics":

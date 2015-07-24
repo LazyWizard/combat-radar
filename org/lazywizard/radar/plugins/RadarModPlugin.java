@@ -1,9 +1,10 @@
-package org.lazywizard.radar;
+package org.lazywizard.radar.plugins;
 
 import java.io.IOException;
 import com.fs.starfarer.api.BaseModPlugin;
 import com.fs.starfarer.api.Global;
 import org.json.JSONException;
+import org.lazywizard.radar.RadarSettings;
 
 // TODO: Unify combat and campaign codebases
 // TODO: Add csv to prevent certain ships from being drawn

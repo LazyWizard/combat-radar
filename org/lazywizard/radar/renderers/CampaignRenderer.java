@@ -2,14 +2,14 @@ package org.lazywizard.radar.renderers;
 
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import com.fs.starfarer.api.campaign.SectorEntityToken;
-import org.lazywizard.radar.CampaignRadar;
+import org.lazywizard.radar.CommonRadar;
 
-public interface CampaignRenderer extends BaseRenderer
+public interface CampaignRenderer extends BaseRenderer<SectorEntityToken>
 {
     /**
      * {@link SectorEntityToken}s with this tag should be ignored by all
      * {@link CampaignRenderer}s. If your renderer uses
-     * {@link CampaignRadar#filterVisible(java.util.List, int)}, entities with
+     * {@link CommonRadar#filterVisible(java.util.List, int)}, entities with
      * this tag will already be filtered out for you.
      * <p>
      * @since 1.1e
@@ -17,20 +17,9 @@ public interface CampaignRenderer extends BaseRenderer
     public static final String NODRAW_TAG = "radar_nodraw";
 
     /**
-     * Called on the first frame before rendering begins. You should set up your
-     * component here.
-     * <p>
-     * @param radar The master radar object; you should keep track of this as
-     *              many of its properties can change.
-     * <p>
-     * @since 1.0
-     */
-    public void init(CampaignRadar radar);
-
-    /**
      * Called every frame to tell your component to render. Rendering is done
      * using screen coordinates. If your code calls glOrtho() or glViewport(),
-     * you should call {@link CampaignRadar#resetView()} at the end of this
+     * you should call {@link CommonRadar#resetView()} at the end of this
      * method.
      * <p>
      * @param player        The player's fleet; also the center of the radar.

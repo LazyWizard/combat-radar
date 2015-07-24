@@ -3,10 +3,11 @@ package org.lazywizard.radar.renderers.campaign;
 import java.util.List;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import com.fs.starfarer.api.campaign.PlanetAPI;
+import com.fs.starfarer.api.campaign.SectorEntityToken;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.lazywizard.lazylib.opengl.DrawUtils;
-import org.lazywizard.radar.CampaignRadar;
+import org.lazywizard.radar.CommonRadar;
 import org.lazywizard.radar.renderers.CampaignRenderer;
 import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
 import static org.lwjgl.opengl.GL11.*;
@@ -15,7 +16,7 @@ import static org.lwjgl.opengl.GL11.*;
 public class PlanetRenderer implements CampaignRenderer
 {
     private static boolean SHOW_PLANETS;
-    private CampaignRadar radar;
+    private CommonRadar<SectorEntityToken> radar;
 
     @Override
     public void reloadSettings(JSONObject settings) throws JSONException
@@ -24,7 +25,7 @@ public class PlanetRenderer implements CampaignRenderer
     }
 
     @Override
-    public void init(CampaignRadar radar)
+    public void init(CommonRadar<SectorEntityToken> radar)
     {
         this.radar = radar;
     }
