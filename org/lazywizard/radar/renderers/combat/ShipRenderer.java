@@ -148,22 +148,22 @@ public class ShipRenderer implements CombatRenderer
             // Upper left corner
             radarLoc.x - size, radarLoc.y + size, // 0
             radarLoc.x - margin, radarLoc.y + size, // 1
-            radarLoc.x - margin, radarLoc.y + size, // 1
+            radarLoc.x - size, radarLoc.y + size, // 0
             radarLoc.x - size, radarLoc.y + margin, // 2
             // Upper right corner
             radarLoc.x + size, radarLoc.y + size, // 3
             radarLoc.x + margin, radarLoc.y + size, // 4
-            radarLoc.x + margin, radarLoc.y + size, // 4
+            radarLoc.x + size, radarLoc.y + size, // 3
             radarLoc.x + size, radarLoc.y + margin, // 5
             // Lower left corner
             radarLoc.x - size, radarLoc.y - size, // 6
             radarLoc.x - margin, radarLoc.y - size, // 7
-            radarLoc.x - margin, radarLoc.y - size, // 7
+            radarLoc.x - size, radarLoc.y - size, // 6
             radarLoc.x - size, radarLoc.y - margin, // 8
             // Lower right corner
             radarLoc.x + size, radarLoc.y - size, // 9
             radarLoc.x + margin, radarLoc.y - size, // 10
-            radarLoc.x + margin, radarLoc.y - size, // 10
+            radarLoc.x + size, radarLoc.y - size, // 9
             radarLoc.x + size, radarLoc.y - margin  // 11
         };
 
