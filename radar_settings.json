@@ -39,7 +39,7 @@
     # Alpha channel is multiplied by contactAlpha setting
     "friendlyColor":[0,255,0,255],
     "enemyColor":[255,0,0,255],
-    "neutralColor":[75,75,75,255], # Only used for hulks right now
+    "neutralColor":[150,150,150,255],
 
 
     ############################

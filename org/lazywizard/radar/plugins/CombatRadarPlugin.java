@@ -149,6 +149,7 @@ public class CombatRadarPlugin extends BaseEveryFrameCombatPlugin
         if (timeSinceLastUpdateFrame > RadarSettings.getTimeBetweenUpdateFrames())
         {
             isUpdateFrame = true;
+            advanceZoom(timeSinceLastUpdateFrame);
             timeSinceLastUpdateFrame = 0;
         }
 
@@ -206,7 +207,6 @@ public class CombatRadarPlugin extends BaseEveryFrameCombatPlugin
         if (enabled && zoomLevel != 0)
         {
             float amount = engine.getElapsedInLastFrame();
-            advanceZoom(amount);
             render(amount);
         }
     }

@@ -158,6 +158,7 @@ public class CampaignRadarPlugin implements EveryFrameScript
         if (timeSinceLastUpdateFrame > RadarSettings.getTimeBetweenUpdateFrames())
         {
             isUpdateFrame = true;
+            advanceZoom(timeSinceLastUpdateFrame);
             timeSinceLastUpdateFrame = 0;
         }
 
@@ -224,7 +225,6 @@ public class CampaignRadarPlugin implements EveryFrameScript
         // Zoom 0 = radar disabled
         if (enabled && zoomLevel != 0)
         {
-            advanceZoom(amount);
             render(amount);
         }
     }
