@@ -24,6 +24,7 @@ import org.lwjgl.input.Keyboard;
  * @author LazyWizard
  * @since 2.0
  */
+// TODO: Javadoc this class
 public class RadarSettings
 {
     // Path to master settings files, link to individual renderers + their settings
@@ -73,7 +74,7 @@ public class RadarSettings
         // Radar range
         COMBAT_SIGHT_RANGE = (float) settings.getDouble("combatRadarRange");
         CAMPAIGN_SIGHT_RANGE = (float) settings.getDouble("campaignRadarRange");
-        NUM_ZOOM_LEVELS = settings.getInt("zoomLevels");
+        NUM_ZOOM_LEVELS = Math.max(1, settings.getInt("zoomLevels"));
 
         // Radar contact colors
         final boolean useVanillaColors = settings.getBoolean("useVanillaColors");

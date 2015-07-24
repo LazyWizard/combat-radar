@@ -1,10 +1,11 @@
 package org.lazywizard.radar;
 
 import java.awt.Color;
+import java.util.List;
 import org.lwjgl.util.vector.Vector2f;
 
 // TODO: Javadoc this interface
-interface BaseRadar
+interface BaseRadar<T>
 {
     public void resetView();
     public void enableStencilTest();
@@ -28,8 +29,10 @@ interface BaseRadar
     public float getCurrentPixelsPerSU();
     public float getCurrentZoomLevel();
     public float getCurrentSightRadius();
-    @Deprecated public Vector2f getPointOnRadar(Vector2f worldLoc);
+    public Vector2f getPointOnRadar(Vector2f worldLoc);
     public float[] getRawPointOnRadar(Vector2f worldLoc);
     public float[] getRawPointOnRadar(float worldX, float worldY);
     public float[] getRawPointsOnRadar(float[] worldCoords);
+
+    public List filterVisible(List<? extends T> contacts, int maxContacts);
 }

@@ -205,7 +205,7 @@ public class DrawQueue
     }
 
     /**
-     * Returns whether this DrawQueue contains any data.
+     * Checks whether this DrawQueue contains any vertex data yet.
      *
      * @return {@code true} if no vertices have been added to the DrawQueue,
      *         {@code false} otherwise.

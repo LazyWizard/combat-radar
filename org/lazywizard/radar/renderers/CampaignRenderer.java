@@ -3,7 +3,6 @@ package org.lazywizard.radar.renderers;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import com.fs.starfarer.api.campaign.SectorEntityToken;
 import org.lazywizard.radar.CampaignRadar;
-import org.lazywizard.radar.CombatRadar;
 
 public interface CampaignRenderer extends BaseRenderer
 {
@@ -31,7 +30,7 @@ public interface CampaignRenderer extends BaseRenderer
     /**
      * Called every frame to tell your component to render. Rendering is done
      * using screen coordinates. If your code calls glOrtho() or glViewport(),
-     * you should call {@link CombatRadar#resetView()} at the end of this
+     * you should call {@link CampaignRadar#resetView()} at the end of this
      * method.
      * <p>
      * @param player        The player's fleet; also the center of the radar.
