@@ -1,6 +1,7 @@
 package org.lazywizard.radar.renderers.campaign;
 
 import java.awt.Color;
+import java.util.ArrayList;
 import java.util.List;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
@@ -18,9 +19,12 @@ import static org.lwjgl.opengl.GL11.*;
 public class JumpPointRenderer implements CampaignRenderer
 {
     private static boolean SHOW_JUMP_POINTS;
+    private static int MAX_JUMP_POINTS_SHOWN;
     private static String JUMP_POINT_ICON;
     private static Color JUMP_POINT_COLOR;
+    private float angle;
     private SpriteAPI icon;
+    private List<JumpPointIcon> toDraw;
     private CommonRadar<SectorEntityToken> radar;
 
     @Override
@@ -32,56 +36,91 @@ public class JumpPointRenderer implements CampaignRenderer
                 .getJSONObject("jumpPointRenderer");
         JUMP_POINT_ICON = settings.optString("jumpPointIcon", null);
         JUMP_POINT_COLOR = JSONUtils.toColor(settings.getJSONArray("jumpPointColor"));
+        MAX_JUMP_POINTS_SHOWN = settings.optInt("maxShown", 1_000);
     }
 
     @Override
     public void init(CommonRadar<SectorEntityToken> radar)
     {
-        this.radar = radar;
-
-        if (SHOW_JUMP_POINTS)
+        if (!SHOW_JUMP_POINTS)
         {
-            icon = Global.getSettings().getSprite("radar", JUMP_POINT_ICON);
+            return;
         }
+
+        this.radar = radar;
+        icon = Global.getSettings().getSprite("radar", JUMP_POINT_ICON);
+        icon.setColor(JUMP_POINT_COLOR);
+        toDraw = new ArrayList<>();
     }
 
     @Override
     public void render(CampaignFleetAPI player, float amount, boolean isUpdateFrame)
     {
-        if (SHOW_JUMP_POINTS)
+        if (!SHOW_JUMP_POINTS)
         {
+            return;
+        }
+
+        if (isUpdateFrame)
+        {
+            toDraw.clear();
             List<JumpPointAPI> jumpPoints = radar.filterVisible(
                     player.getContainingLocation().getEntities(JumpPointAPI.class), 1_000);
             if (!jumpPoints.isEmpty())
             {
-                float angle = (System.currentTimeMillis() / 20) % 360;
-
-                radar.enableStencilTest();
-                glEnable(GL_TEXTURE_2D);
-
-                icon.setColor(JUMP_POINT_COLOR);
-                icon.setAlphaMult(radar.getContactAlpha());
+                angle = (System.currentTimeMillis() / 20) % 360;
                 for (JumpPointAPI jumpPoint : jumpPoints)
                 {
                     // Resize and draw jump point on radar
                     float[] center = radar.getRawPointOnRadar(jumpPoint.getLocation());
                     float size = jumpPoint.getRadius() * 2f * radar.getCurrentPixelsPerSU();
-                    size *= 2f; // Scale upwards for better visibility
-                    icon.setSize(size, size);
-                    icon.setAngle(angle);
-                    icon.renderAtCenter(center[0], center[1]);
-
-                    // Render again for better visibility
-                    size = (player.getContainingLocation().isHyperspace()
-                            ? (size / 2f) : (size * 2f));
-                    icon.setSize(size, size);
-                    icon.setAngle(360f - angle);
-                    icon.renderAtCenter(center[0], center[1]);
+                    // Scale upwards for better visibility
+                    size *= (player.getContainingLocation().isHyperspace() ? 2f : 4f);
+                    toDraw.add(new JumpPointIcon(center[0], center[1], size));
                 }
-
-                glDisable(GL_TEXTURE_2D);
-                radar.disableStencilTest();
             }
+        }
+
+        // Don't draw if there's nothing to render!
+        if (toDraw.isEmpty())
+        {
+            return;
+        }
+
+        icon.setAlphaMult(radar.getContactAlpha());
+        radar.enableStencilTest();
+
+        // Draw all relays
+        glEnable(GL_TEXTURE_2D);
+        for (JumpPointIcon jIcon : toDraw)
+        {
+            jIcon.render(angle);
+        }
+        glDisable(GL_TEXTURE_2D);
+
+        radar.disableStencilTest();
+    }
+
+    private class JumpPointIcon
+    {
+        private final float x, y, size;
+
+        private JumpPointIcon(float x, float y, float size)
+        {
+            this.x = x;
+            this.y = y;
+            this.size = size;
+        }
+
+        private void render(float angle)
+        {
+            icon.setSize(size, size);
+            icon.setAngle(angle);
+            icon.renderAtCenter(x, y);
+
+            icon.setSize(size / 2f, size / 2f);
+            icon.setAngle(360f - angle);
+            icon.renderAtCenter(x, y);
         }
     }
 }

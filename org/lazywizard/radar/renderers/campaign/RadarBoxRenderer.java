@@ -14,7 +14,6 @@ import org.lwjgl.util.vector.Vector2f;
 import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
 import static org.lwjgl.opengl.GL11.*;
 
-// TODO: Update to use isUpdateFrame
 public class RadarBoxRenderer implements CampaignRenderer
 {
     private static Color RADAR_BG_COLOR, RADAR_FG_COLOR;
