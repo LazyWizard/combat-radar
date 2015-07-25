@@ -6,6 +6,7 @@ Combined campaign and combat radars into one codebase
 Replaced CampaignRadar and CombatRadar with a generic CommonRadar interface
 Added getCurrentSightRadius() to CommonRadar interface
 Improved icon for relays in the campaign
+All renderers now support a "maxShown" setting where valid
 Campaign fleet renderer changes:
  - Fleets with a bounty on their head are now shown as gold on the radar
 New combat renderer: MapBorderRenderer

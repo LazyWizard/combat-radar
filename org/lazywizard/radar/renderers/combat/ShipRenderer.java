@@ -78,7 +78,7 @@ public class ShipRenderer implements CombatRenderer
         }
 
         this.radar = radar;
-        drawQueue = new DrawQueue(initialVertexCapacity, true);
+        drawQueue = new DrawQueue(initialVertexCapacity);
     }
 
     private void addShieldToBuffer(ShipAPI contact)
