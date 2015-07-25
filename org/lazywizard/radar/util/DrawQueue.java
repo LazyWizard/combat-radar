@@ -28,14 +28,10 @@ import static org.lwjgl.opengl.GL15.*;
  * Usage instructions:
  * <p>
  * Step 1: Create a DrawQueue. This only has to be done once, as the same
- * DrawQueue can be reused an infinite amount of times. If you know how many
- * vertices your DrawQueue will hold use the constructor
- * {@link DrawQueue#DrawQueue(int)}. This will create a fixed-size DrawQueue
- * that will throw an exception if its capacity is ever exceeded. If you don't
- * know how many vertices your DrawQueue will hold, use
- * {@link DrawQueue#DrawQueue(int, boolean)} with {@code true} as the second
- * argument. This creates a variable-sized DrawQueue that will allocate larger
- * buffers whenever its capacity is exceeded.
+ * DrawQueue can be reused an infinite amount of times. Make sure to pass in as
+ * high an initial capacity as you think you will use, as when this capacity is
+ * exceeded new native buffers will have to be allocated (which is a relatively
+ * expensive operation).
  * <p>
  * Step 2: Call {@link DrawQueue#setNextColor(java.awt.Color, float)} to set the
  * color of the following vertices. If you don't call this the DrawQueue will
@@ -74,7 +70,6 @@ public class DrawQueue
     private static final int SIZEOF_VERTEX = 2, SIZEOF_COLOR = 4,
             STRIDE_VERTEX = 8, STRIDE_COLOR = 4;
     private static final Map<WeakReference<DrawQueue>, IntBuffer> refs = new LinkedHashMap<>();
-    private final boolean allowResize;
     private final byte[] currentColor = new byte[]
     {
         Byte.MAX_VALUE, Byte.MAX_VALUE, Byte.MAX_VALUE, Byte.MAX_VALUE
@@ -124,35 +119,18 @@ public class DrawQueue
     }
 
     /**
-     * Creates a new fixed-size DrawQueue.
+     * Creates a new auto-resizing DrawQueue.
      *
-     * @param maxVertices The maximum number of vertices this DrawQueue should
-     *                    hold, used for allocating native buffers of the proper
-     *                    size.
+     * @param initialCapacity The initial number of vertices this DrawQueue
+     *                        should hold, used for allocating native buffers of
+     *                        the proper size. Resizing is a relatively
+     *                        expensive operation, so you should try to set
+     *                        this to the maximum number of vertices you expect
+     *                        the DrawQueue to hold.
      * <p>
      * @since 2.0
      */
-    public DrawQueue(int maxVertices)
-    {
-        this(maxVertices, false);
-    }
-
-    /**
-     * Creates a new DrawQueue, with the option of making it auto-resize when
-     * data overflows.
-     *
-     * @param maxVertices The maximum number of vertices this DrawQueue should
-     *                    hold, used for allocating native buffers of the proper
-     *                    size.
-     * @param allowResize Whether the DrawQueue will allocate larger buffers if
-     *                    you exceed {@code maxVertices} vertices. Reallocating
-     *                    is relatively expensive, so this flag should only be
-     *                    used when you don't know how much data you will be
-     *                    passing in.
-     * <p>
-     * @since 2.0
-     */
-    public DrawQueue(int maxVertices, boolean allowResize)
+    public DrawQueue(int initialCapacity)
     {
         // If using vertex buffer objects, allocate buffer space on the graphics card
         if (USE_VBO)
@@ -170,9 +148,8 @@ public class DrawQueue
         }
 
         // Allocate native buffers
-        vertexMap = BufferUtils.createByteBuffer(maxVertices * STRIDE_VERTEX);
-        colorMap = BufferUtils.createByteBuffer(maxVertices * STRIDE_COLOR);
-        this.allowResize = allowResize;
+        vertexMap = BufferUtils.createByteBuffer(initialCapacity * STRIDE_VERTEX);
+        colorMap = BufferUtils.createByteBuffer(initialCapacity * STRIDE_COLOR);
     }
 
     private void resize(int newCapacity)
@@ -305,16 +282,13 @@ public class DrawQueue
             clear();
         }
 
-        // Ensure we have space remaining (or just allow it to fail if allowResize is false)
-        if (allowResize)
+        // Ensure we have space remaining (and resize if we don't)
+        final int requiredCapacity = (vertices.length * 4) + vertexMap.position();
+        if (requiredCapacity > vertexMap.capacity())
         {
-            final int requiredCapacity = (vertices.length * 4) + vertexMap.position();
-            if (requiredCapacity > vertexMap.capacity())
-            {
-                // Resize to 150% of the newly required capacity
-                // Odd multiplier is to adjust for byte size and vertex pairs
-                resize((int) (requiredCapacity * .1875));
-            }
+            // Resize to 150% of the newly required capacity
+            // Odd multiplier is to adjust for byte size and vertex pairs
+            resize((int) (requiredCapacity * .1875));
         }
 
         // Individual puts are much faster, but won't check limitations on bounds

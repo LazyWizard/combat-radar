@@ -12,6 +12,7 @@ import org.lazywizard.radar.renderers.CombatRenderer;
 import org.lazywizard.radar.util.DrawQueue;
 import static org.lwjgl.opengl.GL11.*;
 
+// TODO: Support "maxShown" setting
 public class ObjectiveRenderer implements CombatRenderer
 {
     private static boolean SHOW_OBJECTIVES;
@@ -33,7 +34,7 @@ public class ObjectiveRenderer implements CombatRenderer
         }
 
         this.radar = radar;
-        drawQueue = new DrawQueue(12, true);
+        drawQueue = new DrawQueue(12);
     }
 
     @Override
