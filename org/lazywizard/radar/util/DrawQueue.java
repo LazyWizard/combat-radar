@@ -120,13 +120,15 @@ public class DrawQueue
 
     /**
      * Creates a new auto-resizing DrawQueue.
-     *
-     * @param initialCapacity The initial number of vertices this DrawQueue
-     *                        should hold, used for allocating native buffers of
-     *                        the proper size. Resizing is a relatively
-     *                        expensive operation, so you should try to set
-     *                        this to the maximum number of vertices you expect
-     *                        the DrawQueue to hold.
+     * <p>
+     * @param initialCapacity The initial maximum number of vertices this
+     *                        DrawQueue should hold, used for allocating native
+     *                        buffers of the proper size. If this capacity is
+     *                        exceeded new native buffers of the proper size
+     *                        will be allocated automatically. Resizing is a
+     *                        relatively expensive operation, so you should try
+     *                        to set this to the maximum number of vertices you
+     *                        expect the DrawQueue to hold over its lifetime.
      * <p>
      * @since 2.0
      */
@@ -266,9 +268,12 @@ public class DrawQueue
      * <p>
      * @param vertices The vertex x,y pairs to be added.
      * <p>
+     * @return {@code true} if the DrawQueue had to resize to fit
+     *         {@code vertices}, {@code false} otherwise.
+     * <p>
      * @since 2.0
      */
-    public void addVertices(float[] vertices)
+    public boolean addVertices(float[] vertices)
     {
         // Ensure the vertex array has an even number of floats
         if ((vertices.length & 1) != 0)
@@ -283,12 +288,14 @@ public class DrawQueue
         }
 
         // Ensure we have space remaining (and resize if we don't)
+        boolean resized = false;
         final int requiredCapacity = (vertices.length * 4) + vertexMap.position();
         if (requiredCapacity > vertexMap.capacity())
         {
             // Resize to 150% of the newly required capacity
             // Odd multiplier is to adjust for byte size and vertex pairs
             resize((int) (requiredCapacity * .1875));
+            resized = true;
         }
 
         // Individual puts are much faster, but won't check limitations on bounds
@@ -307,6 +314,7 @@ public class DrawQueue
         }
 
         finished = false;
+        return resized;
     }
 
     /**
@@ -315,9 +323,12 @@ public class DrawQueue
      * <p>
      * @param vertices The vertices to be added.
      * <p>
+     * @return {@code true} if the DrawQueue had to resize to fit
+     *         {@code vertices}, {@code false} otherwise.
+     * <p>
      * @since 2.0
      */
-    public void addVertices(List<Vector2f> vertices)
+    public boolean addVertices(List<Vector2f> vertices)
     {
         // Convert to a raw float array and pass to the real implementation
         // Lazy and inefficient, yes, but much easier to maintain
@@ -329,7 +340,7 @@ public class DrawQueue
             rawVertices[x + 1] = vertex.y;
         }
 
-        addVertices(rawVertices);
+        return addVertices(rawVertices);
     }
 
     /**
