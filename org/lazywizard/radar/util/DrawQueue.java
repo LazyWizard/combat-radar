@@ -170,8 +170,8 @@ public class DrawQueue
         }
 
         // Allocate native buffers
-        vertexMap = BufferUtils.createByteBuffer(maxVertices * SIZEOF_VERTEX * 4);
-        colorMap = BufferUtils.createByteBuffer(maxVertices * SIZEOF_COLOR);
+        vertexMap = BufferUtils.createByteBuffer(maxVertices * STRIDE_VERTEX);
+        colorMap = BufferUtils.createByteBuffer(maxVertices * STRIDE_COLOR);
         this.allowResize = allowResize;
     }
 
@@ -186,8 +186,8 @@ public class DrawQueue
 
         // Allocate new buffers of the required size and transfer the existing data to them
         LOG.debug("Resizing to " + newCapacity + " vertices");
-        vertexMap = BufferUtils.createByteBuffer(newCapacity * SIZEOF_VERTEX * 4).put(vertexMap);
-        colorMap = BufferUtils.createByteBuffer(newCapacity * SIZEOF_COLOR).put(colorMap);
+        vertexMap = BufferUtils.createByteBuffer(newCapacity * STRIDE_VERTEX).put(vertexMap);
+        colorMap = BufferUtils.createByteBuffer(newCapacity * STRIDE_COLOR).put(colorMap);
         finished = false;
     }
 
