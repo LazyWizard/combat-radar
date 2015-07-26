@@ -52,7 +52,7 @@ public class ShipRenderer implements CombatRenderer
         FIGHTER_SIZE_MOD = (float) settings.getDouble("fighterSizeMod");
         SHIELD_COLOR = JSONUtils.toColor(settings.getJSONArray("shieldColor"));
         MARKER_COLOR = JSONUtils.toColor(settings.getJSONArray("targetMarkerColor"));
-        DRAW_SOLID_SHIELDS = settings.getBoolean("showSolidShields");
+        DRAW_SOLID_SHIELDS = settings.getBoolean("drawSolidShields");
         MAX_SHIELD_SEGMENTS = settings.getInt("maxShieldSegments");
         PHASE_ALPHA_MULT = (float) settings.getDouble("phasedShipAlphaMult");
     }

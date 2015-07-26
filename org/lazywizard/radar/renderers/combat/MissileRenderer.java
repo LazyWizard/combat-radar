@@ -66,56 +66,6 @@ public class MissileRenderer implements CombatRenderer
         }
     }
 
-    private void generateMaps(ShipAPI player, List<MissileAPI> missiles)
-    {
-        drawQueue.clear();
-        for (MissileAPI missile : missiles)
-        {
-            // Calculate vertices
-            float[] radarLoc = radar.getRawPointOnRadar(missile.getLocation());
-
-            // Calculate color
-            float alphaMod = Math.min(1f, Math.max(0.3f,
-                    (missile.getDamageAmount() + (missile.getEmpAmount() / 2f)) / 750f));
-            alphaMod *= radar.getContactAlpha() * (missile.isFading() ? .5f : 1f);
-
-            // Burnt-out missiles count as hostile
-            Color color;
-            if (missile.isFizzling())
-            {
-                color = radar.getEnemyContactColor();
-            }
-            // Enemy missiles
-            else if (missile.getOwner() + player.getOwner() == 1)
-            {
-                // Color missiles locked onto us differently
-                MissileAIPlugin ai = missile.getMissileAI();
-                if (ai != null && ai instanceof GuidedMissileAI
-                        && player == ((GuidedMissileAI) ai).getTarget())
-                {
-                    playerLock = true;
-                    highestThreatAlpha = alphaMod;
-                    color = MISSILE_LOCKED_COLOR;
-                }
-                else
-                {
-                    color = radar.getEnemyContactColor();
-                }
-            }
-            // Allied missiles
-            else
-            {
-                color = radar.getFriendlyContactColor();
-            }
-
-            drawQueue.setNextColor(color, alphaMod);
-            drawQueue.addVertices(radarLoc);
-        }
-
-        drawQueue.finishShape(GL_POINTS);
-        drawQueue.finish();
-    }
-
     @Override
     public void render(ShipAPI player, float amount, boolean isUpdateFrame)
     {
@@ -129,7 +79,54 @@ public class MissileRenderer implements CombatRenderer
         {
             playerLock = false;
             highestThreatAlpha = 0f;
-            generateMaps(player, radar.filterVisible(Global.getCombatEngine().getMissiles(), MAX_MISSILES_SHOWN));
+            drawQueue.clear();
+            final List<MissileAPI> missiles = radar.filterVisible(
+                    Global.getCombatEngine().getMissiles(), MAX_MISSILES_SHOWN);
+            for (MissileAPI missile : missiles)
+            {
+                // Calculate vertices
+                float[] radarLoc = radar.getRawPointOnRadar(missile.getLocation());
+
+                // Calculate color
+                float alphaMod = Math.min(1f, Math.max(0.3f,
+                        (missile.getDamageAmount() + (missile.getEmpAmount() / 2f)) / 750f));
+                alphaMod *= radar.getContactAlpha() * (missile.isFading() ? .5f : 1f);
+
+                // Burnt-out missiles count as hostile
+                Color color;
+                if (missile.isFizzling())
+                {
+                    color = radar.getEnemyContactColor();
+                }
+                // Enemy missiles
+                else if (missile.getOwner() + player.getOwner() == 1)
+                {
+                    // Color missiles locked onto us differently
+                    MissileAIPlugin ai = missile.getMissileAI();
+                    if (ai != null && ai instanceof GuidedMissileAI
+                            && player == ((GuidedMissileAI) ai).getTarget())
+                    {
+                        playerLock = true;
+                        highestThreatAlpha = alphaMod;
+                        color = MISSILE_LOCKED_COLOR;
+                    }
+                    else
+                    {
+                        color = radar.getEnemyContactColor();
+                    }
+                }
+                // Allied missiles
+                else
+                {
+                    color = radar.getFriendlyContactColor();
+                }
+
+                drawQueue.setNextColor(color, alphaMod);
+                drawQueue.addVertices(radarLoc);
+            }
+
+            drawQueue.finishShape(GL_POINTS);
+            drawQueue.finish();
         }
 
         // Don't draw if there's nothing to render!

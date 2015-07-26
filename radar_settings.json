@@ -98,6 +98,11 @@
             "stationIcon":"station",
         },
 
+        "planetRenderer":
+        {
+            #"maxShown":20,
+        },
+
         "relayRenderer":
         {
             #"maxShown":10,
@@ -145,7 +150,7 @@
             "fighterSizeMod":1.75,
             "simpleMode":false, # If true, draw all ships as triangles
             "shieldColor":[0,255,255,255],
-            "showSolidShields":true,
+            "drawSolidShields":true,
             "maxShieldSegments":18,
             "targetMarkerColor":[255,255,255,255],
             "phasedShipAlphaMult":0.5,
@@ -164,6 +169,11 @@
             # Must be in the "radar" subcategory of the "graphics" section
             "missileLockIcon":"missileLock",
             "lockedMissileColor":[255,200,0,255],
+        },
+
+        "objectiveRenderer":
+        {
+            #"maxShown":15.
         },
 
         "battleProgressRenderer":
