@@ -20,6 +20,8 @@ New combat renderer: ShipRenderer
    Paragon in vanilla and a handful of ships in existing mods)
  - To draw ships as triangles instead like with the old ShipSimpleRenderer,
    change "simpleMode" to true in radar_settings.json under "shipRenderer"
+ - Shields are drawn filled, can be reverted to the old behavior by changing
+   "drawSolidShields" to false in radar_settings.json under "shipRenderer"
 New utility class: DrawQueue
  - Aids in efficiently drawing many primitive shapes multiple frames in a row
  - Handles native buffer allocation/data/resizing automatically

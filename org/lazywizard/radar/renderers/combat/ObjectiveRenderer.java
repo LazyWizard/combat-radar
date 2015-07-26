@@ -12,10 +12,10 @@ import org.lazywizard.radar.renderers.CombatRenderer;
 import org.lazywizard.radar.util.DrawQueue;
 import static org.lwjgl.opengl.GL11.*;
 
-// TODO: Support "maxShown" setting
 public class ObjectiveRenderer implements CombatRenderer
 {
     private static boolean SHOW_OBJECTIVES;
+    private static int MAX_OBJECTIVES_SHOWN;
     private DrawQueue drawQueue;
     private CommonRadar<CombatEntityAPI> radar;
 
@@ -23,6 +23,10 @@ public class ObjectiveRenderer implements CombatRenderer
     public void reloadSettings(JSONObject settings) throws JSONException
     {
         SHOW_OBJECTIVES = settings.getBoolean("showObjectives");
+
+        settings = settings.getJSONObject("combatRenderers")
+                .getJSONObject("objectiveRenderer");
+        MAX_OBJECTIVES_SHOWN = settings.optInt("maxShown", 1_000);
     }
 
     @Override
@@ -49,7 +53,7 @@ public class ObjectiveRenderer implements CombatRenderer
         {
             drawQueue.clear();
             List<BattleObjectiveAPI> objectives = radar.filterVisible(
-                    Global.getCombatEngine().getObjectives(), 1_000);
+                    Global.getCombatEngine().getObjectives(), MAX_OBJECTIVES_SHOWN);
             if (!objectives.isEmpty())
             {
                 for (BattleObjectiveAPI objective : objectives)
