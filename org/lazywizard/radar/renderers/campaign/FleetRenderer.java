@@ -9,20 +9,20 @@ import com.fs.starfarer.api.impl.campaign.ids.MemFlags;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.lazywizard.lazylib.JSONUtils;
-import org.lazywizard.lazylib.VectorUtils;
-import org.lazywizard.lazylib.opengl.DrawUtils;
 import org.lazywizard.radar.CommonRadar;
 import org.lazywizard.radar.renderers.CampaignRenderer;
-import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
+import org.lazywizard.radar.util.DrawQueue;
+import org.lazywizard.radar.util.ShapeUtils;
+import static org.lwjgl.opengl.GL11.*;
 
-// TODO: Update to use isUpdateFrame
-// TODO: Show bounties in gold
-// TODO: Implement transponder support after Starsector 0.7a is released
+// TODO: Show bounties in flashing gold
+// TODO: Implement transponder fog of war support after Starsector 0.7a is released
 public class FleetRenderer implements CampaignRenderer
 {
     private static boolean SHOW_FLEETS;
     private static int MAX_FLEETS_SHOWN;
     private static Color BOUNTY_COLOR;
+    private DrawQueue drawQueue;
     private CommonRadar<SectorEntityToken> radar;
     private float lastFacing, flashTimer = 0f;
 
@@ -42,25 +42,30 @@ public class FleetRenderer implements CampaignRenderer
     {
         this.radar = radar;
         lastFacing = 0f;
+        drawQueue = new DrawQueue(MAX_FLEETS_SHOWN * 3);
     }
 
     @Override
     public void render(CampaignFleetAPI player, float amount, boolean isUpdateFrame)
     {
-        if (SHOW_FLEETS)
+        if (!SHOW_FLEETS)
         {
-            flashTimer += amount;
-            if (flashTimer > 1f)
-            {
-                flashTimer -= 1f;
-            }
+            return;
+        }
 
+        flashTimer += amount;
+        if (flashTimer > 1f)
+        {
+            flashTimer -= 1f;
+        }
+
+        if (isUpdateFrame)
+        {
+            drawQueue.clear();
             List<CampaignFleetAPI> fleets = radar.filterVisible(
                     player.getContainingLocation().getFleets(), MAX_FLEETS_SHOWN);
             if (!fleets.isEmpty())
             {
-                radar.enableStencilTest();
-
                 for (CampaignFleetAPI fleet : fleets)
                 {
                     // Calculate color of fleet
@@ -68,27 +73,15 @@ public class FleetRenderer implements CampaignRenderer
                             fleet.getMemoryWithoutUpdate().getString(
                                     MemFlags.MEMORY_KEY_FLEET_TYPE)))
                     {
-                        glColor(BOUNTY_COLOR, radar.getContactAlpha(), false);
+                        drawQueue.setNextColor(BOUNTY_COLOR, radar.getContactAlpha());
                     }
                     else if (fleet.getFaction().isHostileTo(player.getFaction()))
                     {
-                        glColor(radar.getEnemyContactColor(), radar.getContactAlpha(), false);
+                        drawQueue.setNextColor(radar.getEnemyContactColor(), radar.getContactAlpha());
                     }
                     else
                     {
-                        glColor(radar.getFriendlyContactColor(), radar.getContactAlpha(), false);
-                    }
-
-                    // Calculate facing of player ship
-                    float facing;
-                    if (fleet.getVelocity().lengthSquared() < 25f)
-                    {
-                        facing = (fleet == player ? lastFacing : 0f);
-                    }
-                    else
-                    {
-                        facing = VectorUtils.getFacing(fleet.getVelocity());
-                        lastFacing = facing;
+                        drawQueue.setNextColor(radar.getFriendlyContactColor(), radar.getContactAlpha());
                     }
 
                     // Draw fleet on radar as angled triangle
@@ -96,12 +89,29 @@ public class FleetRenderer implements CampaignRenderer
                     float size = Math.max(60f, fleet.getRadius())
                             * radar.getCurrentPixelsPerSU();
                     size *= 2f; // Scale upwards for better visibility
-                    DrawUtils.drawEllipse(center[0], center[1],
-                            size, size * .65f, facing, 3, true);
+                    drawQueue.addVertices(ShapeUtils.createEllipse(center[0], center[1],
+                            size, size * 0.65f, fleet.getFacing(), 3));
+                    drawQueue.finishShape(GL_TRIANGLE_FAN);
                 }
-
-                radar.disableStencilTest();
             }
+
+            drawQueue.finish();
         }
+
+        // Don't draw if there's nothing to render!
+        if (drawQueue.isEmpty())
+        {
+            return;
+        }
+
+        // Draw fleets
+        radar.enableStencilTest();
+        glPointSize(2f * radar.getCurrentZoomLevel());
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glEnableClientState(GL_COLOR_ARRAY);
+        drawQueue.draw();
+        glDisableClientState(GL_COLOR_ARRAY);
+        glDisableClientState(GL_VERTEX_ARRAY);
+        radar.disableStencilTest();
     }
 }
