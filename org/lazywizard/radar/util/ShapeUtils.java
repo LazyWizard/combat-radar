@@ -8,16 +8,32 @@ import org.lazywizard.lazylib.opengl.DrawUtils;
 /**
  * Provides methods to calculate vertices of common shapes. Equivalent
  * algorithms to LazyLib's {@link DrawUtils}, but returns the raw vertices
- * instead of drawing them.
+ * instead of drawing them for you.
  *
  * @author LazyWizard
  * @since 2.0
  */
-// TODO: finish and Javadoc this class
 public class ShapeUtils
 {
     private static final Logger LOG = Global.getLogger(ShapeUtils.class);
 
+    /**
+     * Creates the vertices for a simple circle.
+     * <p>
+     * Optimized circle-drawing algorithm based on code taken from:
+     * <a href=http://slabode.exofire.net/circle_draw.shtml>
+     * http://slabode.exofire.net/circle_draw.shtml</a>
+     *
+     * @param centerX     The x value of the center point of the circle.
+     * @param centerY     The y value of the center point of the circle.
+     * @param radius      The radius of the circle to be drawn.
+     * @param numSegments How many line segments the circle should be made up
+     *                    of (higher number = smoother circle).
+     * <p>
+     * @return The vertices needed to draw a circle with the given parameters.
+     * <p>
+     * @since 2.0
+     */
     public static float[] createCircle(float centerX, float centerY,
             float radius, int numSegments)
     {
@@ -49,6 +65,26 @@ public class ShapeUtils
         return vertices;
     }
 
+    /**
+     * Creates the vertices for an elliptical shape.
+     * <p>
+     * Optimized circle-drawing algorithm based on code taken from:
+     * <a href=http://slabode.exofire.net/circle_draw.shtml>
+     * http://slabode.exofire.net/circle_draw.shtml</a>
+     *
+     * @param centerX     The x value of the center point of the circle.
+     * @param centerY     The y value of the center point of the circle.
+     * @param width       The width (size on unrotated x-axis) of the ellipse.
+     * @param height      The height (size on unrotated y-axis) of the ellipse.
+     * @param angleOffset How much to rotate the ellipse from its original axis,
+     *                    in degrees.
+     * @param numSegments How many line segments the ellipse should be made up
+     *                    of (higher number = smoother ellipse).
+     * <p>
+     * @return The vertices needed to draw an ellipse with the given parameters.
+     * <p>
+     * @since 2.0
+     */
     public static float[] createEllipse(float centerX, float centerY,
             float width, float height, float angleOffset, int numSegments)
     {
@@ -90,6 +126,25 @@ public class ShapeUtils
         return vertices;
     }
 
+    /**
+     * Creates the vertices for an arc shape.
+     * <p>
+     * Optimized arc-drawing algorithm based on code taken from:
+     * <a href=http://slabode.exofire.net/circle_draw.shtml>
+     * http://slabode.exofire.net/circle_draw.shtml</a>
+     *
+     * @param centerX     The x value of the center point of the arc.
+     * @param centerY     The y value of the center point of the arc.
+     * @param radius      The radius of the arc to be drawn.
+     * @param startAngle  The angle the arc should start at, in degrees.
+     * @param arcAngle    The size of the arc, in degrees.
+     * @param numSegments How many line segments the arc should be made up
+     *                    of (higher number = smoother arc).
+     * <p>
+     * @return The vertices needed to draw an arc with the given parameters.
+     * <p>
+     * @since 2.0
+     */
     public static float[] createArc(float centerX, float centerY, float radius,
             float startAngle, float arcAngle, int numSegments)
     {

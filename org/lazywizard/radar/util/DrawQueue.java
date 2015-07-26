@@ -13,6 +13,7 @@ import com.fs.starfarer.api.Global;
 import org.apache.log4j.Logger;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GLContext;
 import org.lwjgl.util.vector.Vector2f;
 import static org.lwjgl.opengl.GL11.*;
@@ -30,8 +31,8 @@ import static org.lwjgl.opengl.GL15.*;
  * Step 1: Create a DrawQueue. This only has to be done once, as the same
  * DrawQueue can be reused an infinite amount of times. Make sure to pass in as
  * high an initial capacity as you think you will use, as when this capacity is
- * exceeded new native buffers will have to be allocated (which is a relatively
- * expensive operation).
+ * exceeded new native buffers will have to be allocated, which is a relatively
+ * expensive operation.
  * <p>
  * Step 2: Call {@link DrawQueue#setNextColor(java.awt.Color, float)} to set the
  * color of the following vertices. If you don't call this the DrawQueue will
@@ -75,7 +76,7 @@ public class DrawQueue
         Byte.MAX_VALUE, Byte.MAX_VALUE, Byte.MAX_VALUE, Byte.MAX_VALUE
     };
     private final List<BatchMarker> batchMarkers = new ArrayList<>();
-    private final int vertexId, colorId;
+    private final int vertexId, colorId, drawFlag;
     private ByteBuffer vertexMap, colorMap;
     private boolean finished = false;
 
@@ -119,7 +120,8 @@ public class DrawQueue
     }
 
     /**
-     * Creates a new auto-resizing DrawQueue.
+     * Creates a new auto-resizing DrawQueue with the draw flag
+     * {@link GL15#GL_DYNAMIC_DRAW}.
      * <p>
      * @param initialCapacity The initial maximum number of vertices this
      *                        DrawQueue should hold, used for allocating native
@@ -133,6 +135,27 @@ public class DrawQueue
      * @since 2.0
      */
     public DrawQueue(int initialCapacity)
+    {
+        this(initialCapacity, GL_DYNAMIC_DRAW);
+    }
+
+    /**
+     * Creates a new auto-resizing DrawQueue.
+     * <p>
+     * @param initialCapacity The initial maximum number of vertices this
+     *                        DrawQueue should hold, used for allocating native
+     *                        buffers of the proper size. If this capacity is
+     *                        exceeded new native buffers of the proper size
+     *                        will be allocated automatically. Resizing is a
+     *                        relatively expensive operation, so you should try
+     *                        to set this to the maximum number of vertices you
+     *                        expect the DrawQueue to hold over its lifetime.
+     * @param drawFlag        The buffer data stream type, only used if VBOs are
+     *                        active. Default is {@link GL15#GL_DYNAMIC_DRAW}.
+     * <p>
+     * @since 2.0
+     */
+    public DrawQueue(int initialCapacity, int drawFlag)
     {
         // If using vertex buffer objects, allocate buffer space on the graphics card
         if (USE_VBO)
@@ -152,6 +175,7 @@ public class DrawQueue
         // Allocate native buffers
         vertexMap = BufferUtils.createByteBuffer(initialCapacity * STRIDE_VERTEX);
         colorMap = BufferUtils.createByteBuffer(initialCapacity * STRIDE_COLOR);
+        this.drawFlag = drawFlag;
     }
 
     private void resize(int newCapacity)
@@ -289,7 +313,7 @@ public class DrawQueue
 
         // Ensure we have space remaining (and resize if we don't)
         boolean resized = false;
-        final int requiredCapacity = (vertices.length * 4) + vertexMap.position();
+        final int requiredCapacity = vertexMap.position() + (vertices.length * 4);
         if (requiredCapacity > vertexMap.capacity())
         {
             // Resize to 150% of the newly required capacity
@@ -343,6 +367,44 @@ public class DrawQueue
         return addVertices(rawVertices);
     }
 
+    // TODO: Javadoc this
+    public boolean addVertex(float x, float y)
+    {
+        // If this is a new set of data, clear out the old data first
+        if (finished)
+        {
+            clear();
+        }
+
+        // Ensure we have space remaining (and resize if we don't)
+        boolean resized = false;
+        final int requiredCapacity = vertexMap.position() + STRIDE_VERTEX;
+        if (requiredCapacity > vertexMap.capacity())
+        {
+            // Resize to 150% of the newly required capacity
+            // Odd multiplier is to adjust for byte size and vertex pairs
+            resize((int) (requiredCapacity * .1875));
+            resized = true;
+        }
+
+        // Add vertex and color data
+        vertexMap.putFloat(x).putFloat(y);
+
+        for (int i = 0; i < currentColor.length; i++)
+        {
+            colorMap.put(currentColor[i]);
+        }
+
+        finished = false;
+        return resized;
+    }
+
+    // TODO: Javadoc this
+    public boolean addVertex(Vector2f vertex)
+    {
+        return addVertex(vertex.x, vertex.y);
+    }
+
     /**
      * Finalizes the current shape. You <i>must</i> call this after every shape,
      * otherwise rendering errors will occur.
@@ -384,11 +446,11 @@ public class DrawQueue
         {
             // Vertex data
             glBindBuffer(GL_ARRAY_BUFFER, vertexId);
-            glBufferData(GL_ARRAY_BUFFER, vertexMap, GL_DYNAMIC_DRAW);
+            glBufferData(GL_ARRAY_BUFFER, vertexMap, drawFlag);
 
             // Color data
             glBindBuffer(GL_ARRAY_BUFFER, colorId);
-            glBufferData(GL_ARRAY_BUFFER, colorMap, GL_DYNAMIC_DRAW);
+            glBufferData(GL_ARRAY_BUFFER, colorMap, drawFlag);
 
             // Release buffer binding
             glBindBuffer(GL_ARRAY_BUFFER, 0);
