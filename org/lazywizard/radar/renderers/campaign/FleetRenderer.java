@@ -15,7 +15,7 @@ import org.lazywizard.radar.util.DrawQueue;
 import org.lazywizard.radar.util.ShapeUtils;
 import static org.lwjgl.opengl.GL11.*;
 
-// TODO: Show bounties in flashing gold
+// TODO: Show faction bounties flashing between gold and regular color
 // TODO: Implement transponder fog of war support after Starsector 0.7a is released
 public class FleetRenderer implements CampaignRenderer
 {
@@ -75,6 +75,7 @@ public class FleetRenderer implements CampaignRenderer
                     {
                         drawQueue.setNextColor(BOUNTY_COLOR, radar.getContactAlpha());
                     }
+                    // TODO: General faction bounty
                     else if (fleet.getFaction().isHostileTo(player.getFaction()))
                     {
                         drawQueue.setNextColor(radar.getEnemyContactColor(), radar.getContactAlpha());

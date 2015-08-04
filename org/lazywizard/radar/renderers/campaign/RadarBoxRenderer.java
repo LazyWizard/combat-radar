@@ -7,20 +7,19 @@ import com.fs.starfarer.api.campaign.SectorEntityToken;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.lazywizard.lazylib.JSONUtils;
-import org.lazywizard.lazylib.opengl.DrawUtils;
 import org.lazywizard.radar.CommonRadar;
 import org.lazywizard.radar.renderers.CampaignRenderer;
+import org.lazywizard.radar.util.DrawQueue;
+import org.lazywizard.radar.util.ShapeUtils;
 import org.lwjgl.util.vector.Vector2f;
-import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
 import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL15.GL_STATIC_DRAW;
 
-// TODO: Update to use DrawQueue
 public class RadarBoxRenderer implements CampaignRenderer
 {
     private static Color RADAR_BG_COLOR, RADAR_FG_COLOR;
     private static float RADAR_OPACITY, RADAR_EDGE_ALPHA;
-    // Radar OpenGL buffers/display lists
-    private static int RADAR_BOX_DISPLAY_LIST_ID = -123;
+    private DrawQueue boxDrawQueue, zoomDrawQueue;
     private boolean firstFrame = true;
     private CommonRadar<SectorEntityToken> radar;
 
@@ -44,6 +43,8 @@ public class RadarBoxRenderer implements CampaignRenderer
     {
         this.radar = radar;
         firstFrame = true;
+        boxDrawQueue = new DrawQueue(500, GL_STATIC_DRAW);
+        zoomDrawQueue = new DrawQueue(8);
     }
 
     @Override
@@ -53,104 +54,110 @@ public class RadarBoxRenderer implements CampaignRenderer
         float radarRadius = radar.getRenderRadius();
         float radarAlpha = radar.getRadarAlpha();
 
-        // Cache OpenGL commands for faster execution
+        // The box itself very rarely changes, so it's cached in a separate DrawQueue
         if (firstFrame)
         {
             firstFrame = false;
+            boxDrawQueue.clear();
 
-            // Delete old display list, if existant
-            if (RADAR_BOX_DISPLAY_LIST_ID >= 0)
-            {
-                //Global.getLogger(RadarBoxRenderer.class).log(Level.DEBUG,
-                //        "Deleting old list with ID " + RADAR_BOX_DISPLAY_LIST_ID);
-                glDeleteLists(RADAR_BOX_DISPLAY_LIST_ID, 1);
-            }
-
-            float radarMidFade = (radarAlpha + RADAR_EDGE_ALPHA) / 2f;
-
-            // Generate new display list
-            RADAR_BOX_DISPLAY_LIST_ID = glGenLists(1);
-            //Global.getLogger(RadarBoxRenderer.class).log(Level.DEBUG,
-            //        "Creating new list with ID " + RADAR_BOX_DISPLAY_LIST_ID);
-            glNewList(RADAR_BOX_DISPLAY_LIST_ID, GL_COMPILE);
-            glEnable(GL_LINE_SMOOTH);
-            glLineWidth(1f);
+            final float radarEdgeFade = radarAlpha * RADAR_EDGE_ALPHA,
+                    radarMidFade = (radarAlpha + radarEdgeFade) / 2f;
 
             // Slight darkening of radar background
-            glColor(RADAR_BG_COLOR, RADAR_OPACITY, false);
-            DrawUtils.drawCircle(radarCenter.x, radarCenter.y, radarRadius, 144, true);
+            // Slight darkening of radar background
+            boxDrawQueue.setNextColor(RADAR_BG_COLOR, RADAR_OPACITY);
+            boxDrawQueue.addVertices(ShapeUtils.createCircle(radarCenter.x,
+                    radarCenter.y, radarRadius, 144));
+            boxDrawQueue.finishShape(GL_TRIANGLE_FAN);
 
-            Color color = RADAR_FG_COLOR;
+            final Color color = RADAR_FG_COLOR;
 
             // Outer circle
-            glColor(color, radarAlpha * RADAR_EDGE_ALPHA, false);
-            DrawUtils.drawCircle(radarCenter.x, radarCenter.y, radarRadius, 144, false);
+            boxDrawQueue.setNextColor(color, radarEdgeFade);
+            boxDrawQueue.addVertices(ShapeUtils.createCircle(radarCenter.x,
+                    radarCenter.y, radarRadius, 144));
+            boxDrawQueue.finishShape(GL_LINE_LOOP);
 
             // Middle circle
-            glColor(color, radarAlpha * radarMidFade, false);
-            DrawUtils.drawCircle(radarCenter.x, radarCenter.y, radarRadius * .66f, 108, false);
+            boxDrawQueue.setNextColor(color, radarAlpha * radarMidFade);
+            boxDrawQueue.addVertices(ShapeUtils.createCircle(radarCenter.x,
+                    radarCenter.y, radarRadius * .66f, 108));
+            boxDrawQueue.finishShape(GL_LINE_LOOP);
 
             // Inner circle
-            glColor(color, radarAlpha, false);
-            DrawUtils.drawCircle(radarCenter.x, radarCenter.y, radarRadius * .33f, 64, false);
+            boxDrawQueue.setNextColor(color, radarAlpha);
+            boxDrawQueue.addVertices(ShapeUtils.createCircle(radarCenter.x,
+                    radarCenter.y, radarRadius * .33f, 72));
+            boxDrawQueue.finishShape(GL_LINE_LOOP);
 
-            glBegin(GL_LINES);
-            // Left line
-            glColor(color, radarAlpha, false);
-            glVertex2f(radarCenter.x, radarCenter.y);
-            glColor(color, radarAlpha * RADAR_EDGE_ALPHA, false);
-            glVertex2f(radarCenter.x - radarRadius, radarCenter.y);
+            // Vertical line
+            boxDrawQueue.setNextColor(color, radarEdgeFade);
+            boxDrawQueue.addVertex(radarCenter.x, radarCenter.y - radarRadius);
+            boxDrawQueue.setNextColor(color, radarAlpha);
+            boxDrawQueue.addVertex(radarCenter.x, radarCenter.y);
+            boxDrawQueue.setNextColor(color, radarEdgeFade);
+            boxDrawQueue.addVertex(radarCenter.x, radarCenter.y + radarRadius);
+            boxDrawQueue.finishShape(GL_LINE_STRIP);
 
-            // Right line
-            glColor(color, radarAlpha, false);
-            glVertex2f(radarCenter.x, radarCenter.y);
-            glColor(color, radarAlpha * RADAR_EDGE_ALPHA, false);
-            glVertex2f(radarCenter.x + radarRadius, radarCenter.y);
+            // Horizontal line
+            boxDrawQueue.setNextColor(color, radarEdgeFade);
+            boxDrawQueue.addVertex(radarCenter.x - radarRadius, radarCenter.y);
+            boxDrawQueue.setNextColor(color, radarAlpha);
+            boxDrawQueue.addVertex(radarCenter.x, radarCenter.y);
+            boxDrawQueue.setNextColor(color, radarEdgeFade);
+            boxDrawQueue.addVertex(radarCenter.x + radarRadius, radarCenter.y);
+            boxDrawQueue.finishShape(GL_LINE_STRIP);
 
-            // Upper line
-            glColor(color, radarAlpha, false);
-            glVertex2f(radarCenter.x, radarCenter.y);
-            glColor(color, radarAlpha * RADAR_EDGE_ALPHA, false);
-            glVertex2f(radarCenter.x, radarCenter.y + radarRadius);
-
-            // Lower line
-            glColor(color, radarAlpha, false);
-            glVertex2f(radarCenter.x, radarCenter.y);
-            glColor(color, radarAlpha * RADAR_EDGE_ALPHA, false);
-            glVertex2f(radarCenter.x, radarCenter.y - radarRadius);
-            glEnd();
-
-            glDisable(GL_LINE_SMOOTH);
-            glEndList();
+            boxDrawQueue.finish();
         }
 
-        // Call cached OpenGL commands
-        glCallList(RADAR_BOX_DISPLAY_LIST_ID);
+        // The zoom lines are updated regularly, however
+        if (isUpdateFrame)
+        {
+            zoomDrawQueue.clear();
+            zoomDrawQueue.setNextColor(Color.WHITE, radar.getRadarAlpha() * .66f);
 
-        // Calculate position and size of zoom level notification lines
-        // This ignores isUpdateFrame for better responsiveness
-        float zoomLinePos = radarRadius / radar.getCurrentZoomLevel();
-        float zoomLineSize = (radarRadius / 15f)
-                / (.75f + radar.getCurrentZoomLevel() / 2f);
+            // Calculate position and size of zoom level notification lines
+            final float zoomLinePos = radarRadius / radar.getCurrentZoomLevel();
+            final float zoomLineSize = (radarRadius / 15f)
+                    / (.75f + radar.getCurrentZoomLevel() / 2f);
 
-        // Show current zoom level
-        glColor(Color.WHITE, radar.getRadarAlpha() * .66f, false);
-        glBegin(GL_LINES);
-        // Left line
-        glVertex2f(radarCenter.x - zoomLinePos, radarCenter.y - zoomLineSize);
-        glVertex2f(radarCenter.x - zoomLinePos, radarCenter.y + zoomLineSize);
+            // Left line
+            zoomDrawQueue.addVertex(radarCenter.x - zoomLinePos,
+                    radarCenter.y - zoomLineSize);
+            zoomDrawQueue.addVertex(radarCenter.x - zoomLinePos,
+                    radarCenter.y + zoomLineSize);
 
-        // Right line
-        glVertex2f(radarCenter.x + zoomLinePos, radarCenter.y - zoomLineSize);
-        glVertex2f(radarCenter.x + zoomLinePos, radarCenter.y + zoomLineSize);
+            // Right line
+            zoomDrawQueue.addVertex(radarCenter.x + zoomLinePos,
+                    radarCenter.y - zoomLineSize);
+            zoomDrawQueue.addVertex(radarCenter.x + zoomLinePos,
+                    radarCenter.y + zoomLineSize);
 
-        // Upper line
-        glVertex2f(radarCenter.x - zoomLineSize, radarCenter.y + zoomLinePos);
-        glVertex2f(radarCenter.x + zoomLineSize, radarCenter.y + zoomLinePos);
+            // Upper line
+            zoomDrawQueue.addVertex(radarCenter.x - zoomLineSize,
+                    radarCenter.y + zoomLinePos);
+            zoomDrawQueue.addVertex(radarCenter.x + zoomLineSize,
+                    radarCenter.y + zoomLinePos);
 
-        // Lower line
-        glVertex2f(radarCenter.x - zoomLineSize, radarCenter.y - zoomLinePos);
-        glVertex2f(radarCenter.x + zoomLineSize, radarCenter.y - zoomLinePos);
-        glEnd();
+            // Lower line
+            zoomDrawQueue.addVertex(radarCenter.x - zoomLineSize,
+                    radarCenter.y - zoomLinePos);
+            zoomDrawQueue.addVertex(radarCenter.x + zoomLineSize,
+                    radarCenter.y - zoomLinePos);
+            zoomDrawQueue.finishShape(GL_LINES);
+            zoomDrawQueue.finish();
+        }
+
+        // Draw cached data
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glEnableClientState(GL_COLOR_ARRAY);
+        glEnable(GL_LINE_SMOOTH);
+        glLineWidth(1f);
+        boxDrawQueue.draw();
+        zoomDrawQueue.draw();
+        glDisableClientState(GL_COLOR_ARRAY);
+        glDisableClientState(GL_VERTEX_ARRAY);
+        glDisable(GL_LINE_SMOOTH);
     }
 }
