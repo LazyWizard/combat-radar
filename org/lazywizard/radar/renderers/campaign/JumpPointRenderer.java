@@ -15,7 +15,6 @@ import org.lazywizard.radar.CommonRadar;
 import org.lazywizard.radar.renderers.CampaignRenderer;
 import static org.lwjgl.opengl.GL11.*;
 
-// TODO: Update to use isUpdateFrame
 public class JumpPointRenderer implements CampaignRenderer
 {
     private static boolean SHOW_JUMP_POINTS;
@@ -65,7 +64,7 @@ public class JumpPointRenderer implements CampaignRenderer
         {
             toDraw.clear();
             List<JumpPointAPI> jumpPoints = radar.filterVisible(
-                    player.getContainingLocation().getEntities(JumpPointAPI.class), 1_000);
+                    player.getContainingLocation().getEntities(JumpPointAPI.class), MAX_JUMP_POINTS_SHOWN);
             if (!jumpPoints.isEmpty())
             {
                 angle = (System.currentTimeMillis() / 20) % 360;
