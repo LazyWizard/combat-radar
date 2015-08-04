@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import com.fs.starfarer.api.Global;
 import org.apache.log4j.Logger;
+import org.lazywizard.radar.CommonRadar;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL15;
@@ -226,8 +227,11 @@ public class DrawQueue
      * @param color    The color of the next shape. All vertices added until
      *                 this method is called again will use this color.
      * @param alphaMod Multiplies {@code color}'s alpha channel by this number
-     *                 (should be between 0 and 1). Useful to avoid creating a
-     *                 new Color object every frame just to add fade effects.
+     *                 (should be between 0 and 1). You will usually pass in
+     *                 {@link CommonRadar#getContactAlpha()} for contacts, or
+     *                 {@link CommonRadar#getRadarAlpha()} for UI elements. Also
+     *                 useful to avoid creating a new Color object every frame
+     *                 just to add fade effects.
      * <p>
      * @since 2.0
      */
@@ -367,7 +371,18 @@ public class DrawQueue
         return addVertices(rawVertices);
     }
 
-    // TODO: Javadoc this
+    /**
+     * Add a single vertex to the current shape. If called on a finished
+     * DrawQueue, this will reset it and start a new set of vertex data.
+     * <p>
+     * @param x The x coordinate of the vertex to be added.
+     * @param y The y coordinate of the vertex to be added.
+     * <p>
+     * @return {@code true} if the DrawQueue had to resize to fit
+     *         {@code vertex}, {@code false} otherwise.
+     * <p>
+     * @since 2.0
+     */
     public boolean addVertex(float x, float y)
     {
         // If this is a new set of data, clear out the old data first
@@ -399,7 +414,17 @@ public class DrawQueue
         return resized;
     }
 
-    // TODO: Javadoc this
+    /**
+     * Add a single vertex to the current shape. If called on a finished
+     * DrawQueue, this will reset it and start a new set of vertex data.
+     * <p>
+     * @param vertex The vertex to be added.
+     * <p>
+     * @return {@code true} if the DrawQueue had to resize to fit
+     *         {@code vertex}, {@code false} otherwise.
+     * <p>
+     * @since 2.0
+     */
     public boolean addVertex(Vector2f vertex)
     {
         return addVertex(vertex.x, vertex.y);
