@@ -4,6 +4,7 @@ Radar framerate is now separate from Starsector's framerate, defaults to 20 FPS
 Merged radar settings into a single file, data/config/radar/radar_settings.json
 Combined campaign and combat radars into one codebase
 Replaced CampaignRadar and CombatRadar with a generic CommonRadar interface
+Added RadarSettings class to retrieve loaded renderers and radar settings
 Added getCurrentSightRadius() to CommonRadar interface
 Improved icon for relays in the campaign
 All renderers now support a "maxShown" setting where valid
