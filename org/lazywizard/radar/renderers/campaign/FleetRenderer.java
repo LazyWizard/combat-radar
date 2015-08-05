@@ -1,11 +1,24 @@
 package org.lazywizard.radar.renderers.campaign;
 
 import java.awt.Color;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
+import com.fs.starfarer.api.campaign.FactionAPI;
+import com.fs.starfarer.api.campaign.LocationAPI;
 import com.fs.starfarer.api.campaign.SectorEntityToken;
+import com.fs.starfarer.api.campaign.econ.MarketAPI;
+import com.fs.starfarer.api.campaign.events.CampaignEventPlugin;
+import com.fs.starfarer.api.campaign.events.CampaignEventTarget;
+import com.fs.starfarer.api.impl.campaign.ids.Events;
 import com.fs.starfarer.api.impl.campaign.ids.FleetTypes;
 import com.fs.starfarer.api.impl.campaign.ids.MemFlags;
+import com.fs.starfarer.api.util.Misc;
+import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.lazywizard.lazylib.JSONUtils;
@@ -19,12 +32,15 @@ import static org.lwjgl.opengl.GL11.*;
 // TODO: Implement transponder fog of war support after Starsector 0.7a is released
 public class FleetRenderer implements CampaignRenderer
 {
+    private static final Logger LOG = Global.getLogger(FleetRenderer.class);
+    private static final float TIME_BETWEEN_BOUNTY_UPDATES = 5f;
     private static boolean SHOW_FLEETS;
     private static int MAX_FLEETS_SHOWN;
     private static Color BOUNTY_COLOR;
     private DrawQueue drawQueue;
     private CommonRadar<SectorEntityToken> radar;
-    private float lastFacing, flashTimer = 0f;
+    private List<FactionAPI> factionsWithBounties;
+    private float flashTimer = 0f, timeSinceBountyUpdate = TIME_BETWEEN_BOUNTY_UPDATES;
 
     @Override
     public void reloadSettings(JSONObject settings) throws JSONException
@@ -41,8 +57,63 @@ public class FleetRenderer implements CampaignRenderer
     public void init(CommonRadar<SectorEntityToken> radar)
     {
         this.radar = radar;
-        lastFacing = 0f;
+        factionsWithBounties = new ArrayList<>();
         drawQueue = new DrawQueue(MAX_FLEETS_SHOWN * 3);
+    }
+
+    private static List<FactionAPI> getFactionsWithBounty(LocationAPI location)
+    {
+        if (location == null || location.isHyperspace())
+        {
+            return Collections.<FactionAPI>emptyList();
+        }
+
+        final Set<FactionAPI> factionsWithBounties = new HashSet<>();
+        final StringBuilder sb = new StringBuilder("Checking for faction bounties in "
+                + location.getId() + ":");
+        for (MarketAPI market : Global.getSector().getEconomy().getMarketsCopy())
+        {
+            if (market.getFaction() == null)
+            {
+                sb.append("\n - Ignoring factionless market: " + market.getId());
+                continue;
+            }
+
+            if (market.getContainingLocation() != location)
+            {
+                sb.append("\n - Ignoring non-local market: " + market.getContainingLocation().getId());
+                continue;
+            }
+
+            sb.append("\n - Checking local market: " + market.getId());
+            final CampaignEventPlugin event = Global.getSector().getEventManager()
+                    .getOngoingEvent(new CampaignEventTarget(market), Events.SYSTEM_BOUNTY);
+            if (event == null)
+            {
+                sb.append(" - no active bounties");
+            }
+            else
+            {
+                sb.append(" - FOUND!");
+                for (FactionAPI faction : Global.getSector().getAllFactions())
+                {
+                    if (market.getFaction().isHostileTo(faction))
+                    {
+                        sb.append("\n -  Bounty: " + faction.getId() + " ("
+                                + market.getFactionId() + ")");
+                        factionsWithBounties.add(faction);
+                    }
+                    else
+                    {
+                        sb.append("\n -  No bounty: " + faction.getId() + " ("
+                                + market.getFactionId() + ")");
+                    }
+                }
+            }
+        }
+
+        System.out.println(sb.toString());
+        return new ArrayList(factionsWithBounties);
     }
 
     @Override
@@ -51,6 +122,16 @@ public class FleetRenderer implements CampaignRenderer
         if (!SHOW_FLEETS)
         {
             return;
+        }
+
+        if (!Global.getSector().isPaused())
+        {
+            timeSinceBountyUpdate += amount;
+            if (timeSinceBountyUpdate > TIME_BETWEEN_BOUNTY_UPDATES)
+            {
+                factionsWithBounties = getFactionsWithBounty(Misc.getNearbyStarSystem(player));
+                timeSinceBountyUpdate = 0f;
+            }
         }
 
         flashTimer += amount;
@@ -62,7 +143,7 @@ public class FleetRenderer implements CampaignRenderer
         if (isUpdateFrame)
         {
             drawQueue.clear();
-            List<CampaignFleetAPI> fleets = radar.filterVisible(
+            final List<CampaignFleetAPI> fleets = radar.filterVisible(
                     player.getContainingLocation().getFleets(), MAX_FLEETS_SHOWN);
             if (!fleets.isEmpty())
             {
@@ -76,6 +157,10 @@ public class FleetRenderer implements CampaignRenderer
                         drawQueue.setNextColor(BOUNTY_COLOR, radar.getContactAlpha());
                     }
                     // TODO: General faction bounty
+                    else if (factionsWithBounties.contains(fleet.getFaction()))
+                    {
+                        drawQueue.setNextColor(Color.MAGENTA, radar.getContactAlpha());
+                    }
                     else if (fleet.getFaction().isHostileTo(player.getFaction()))
                     {
                         drawQueue.setNextColor(radar.getEnemyContactColor(), radar.getContactAlpha());
