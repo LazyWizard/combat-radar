@@ -12,10 +12,10 @@ import java.util.Map;
 import com.fs.starfarer.api.Global;
 import org.apache.log4j.Logger;
 import org.lazywizard.radar.CommonRadar;
+import org.lazywizard.radar.RadarSettings;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL15;
-import org.lwjgl.opengl.GLContext;
 import org.lwjgl.util.vector.Vector2f;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL15.*;
@@ -68,7 +68,6 @@ import static org.lwjgl.opengl.GL15.*;
 public class DrawQueue
 {
     private static final Logger LOG = Global.getLogger(DrawQueue.class);
-    private static final boolean USE_VBO;
     private static final int SIZEOF_VERTEX = 2, SIZEOF_COLOR = 4,
             STRIDE_VERTEX = 8, STRIDE_COLOR = 4;
     private static final Map<WeakReference<DrawQueue>, IntBuffer> refs = new LinkedHashMap<>();
@@ -80,14 +79,6 @@ public class DrawQueue
     private final int vertexId, colorId, drawFlag;
     private ByteBuffer vertexMap, colorMap;
     private boolean finished = false;
-
-    static
-    {
-        // Only use vertex buffer objects if the graphics card supports them
-        // Every graphics card that's still in use should, but just in case...
-        USE_VBO = GLContext.getCapabilities().OpenGL15;
-        LOG.info("Using vertex buffer objects: " + USE_VBO);
-    }
 
     /**
      * Releases the vertex and color buffers of all DrawQueues that have been
@@ -159,7 +150,7 @@ public class DrawQueue
     public DrawQueue(int initialCapacity, int drawFlag)
     {
         // If using vertex buffer objects, allocate buffer space on the graphics card
-        if (USE_VBO)
+        if (RadarSettings.usesVertexBufferObjects())
         {
             final IntBuffer ids = BufferUtils.createIntBuffer(2);
             glGenBuffers(ids);
@@ -467,7 +458,7 @@ public class DrawQueue
         colorMap.flip();
 
         // If we're using vertex buffer objects, send the data to the card now
-        if (USE_VBO)
+        if (RadarSettings.usesVertexBufferObjects())
         {
             // Vertex data
             glBindBuffer(GL_ARRAY_BUFFER, vertexId);
@@ -506,7 +497,7 @@ public class DrawQueue
         }
 
         // If using vertex buffer objects, draw using the data we already sent to the card
-        if (USE_VBO)
+        if (RadarSettings.usesVertexBufferObjects())
         {
             // Vertex data
             glBindBuffer(GL_ARRAY_BUFFER, vertexId);

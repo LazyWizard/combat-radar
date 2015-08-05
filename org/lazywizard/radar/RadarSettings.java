@@ -19,6 +19,7 @@ import org.lazywizard.radar.renderers.CampaignRenderer;
 import org.lazywizard.radar.renderers.CombatRenderer;
 import org.lazywizard.radar.renderers.NullRenderer;
 import org.lwjgl.input.Keyboard;
+import org.lwjgl.opengl.GLContext;
 
 /**
  *
@@ -38,7 +39,7 @@ public class RadarSettings
     private static final Logger LOG = Global.getLogger(RadarSettings.class);
 
     // Performance settings
-    private static boolean RESPECT_FOG_OF_WAR;
+    private static boolean RESPECT_FOG_OF_WAR, USE_VBOS;
     private static float TIME_BETWEEN_UPDATE_FRAMES;
     // Radar range settings
     private static float COMBAT_SIGHT_RANGE, CAMPAIGN_SIGHT_RANGE;
@@ -68,6 +69,11 @@ public class RadarSettings
 
         // Performance tweak settings
         RESPECT_FOG_OF_WAR = settings.getBoolean("onlyShowVisibleContacts");
+
+        // Only use vertex buffer objects if the graphics card supports them
+        // Every graphics card that's still in use should, but just in case...
+        USE_VBOS = GLContext.getCapabilities().OpenGL15 && settings.getBoolean("useVBOs");
+        LOG.info("Using vertex buffer objects: " + USE_VBOS);
 
         // Radar options
         RADAR_ALPHA = (float) settings.getDouble("radarUIAlpha");
@@ -185,6 +191,11 @@ public class RadarSettings
     public static boolean isRespectingFogOfWar()
     {
         return RESPECT_FOG_OF_WAR;
+    }
+
+    public static boolean usesVertexBufferObjects()
+    {
+        return USE_VBOS;
     }
 
     public static float getTimeBetweenUpdateFrames()

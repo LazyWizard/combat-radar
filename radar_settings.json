@@ -4,7 +4,10 @@
     ################################
 
     # The framerate the radar should update at, lower fps = better performance
-    "radarFPS":2.0,    # Default: 20.0
+    "radarFPS":20.0,    # Default: 20.0
+    # Whether to use vertex buffers, disable if you have problems
+    # If your card doesn't support VBOs this setting won't do anything
+    "useVBOs":true,     # Default: true
 
     # What buttons to press to change the radar zoom level or toggle radar on/off
     # Key IDs are integers, and can be found in the LWJGL documentation here:
