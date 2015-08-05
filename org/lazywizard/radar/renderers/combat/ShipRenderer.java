@@ -21,9 +21,9 @@ import org.lazywizard.radar.CommonRadar;
 import org.lazywizard.radar.renderers.CombatRenderer;
 import org.lazywizard.radar.util.DrawQueue;
 import org.lwjgl.util.vector.Vector2f;
-import org.newdawn.slick.geom.NeatTriangulator;
-import org.newdawn.slick.geom.Transform;
-import org.newdawn.slick.geom.Triangulator;
+import radar.org.newdawn.slick.geom.NeatTriangulator;
+import radar.org.newdawn.slick.geom.Transform;
+import radar.org.newdawn.slick.geom.Triangulator;
 import static org.lwjgl.opengl.GL11.*;
 
 public class ShipRenderer implements CombatRenderer

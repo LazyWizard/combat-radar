@@ -1,4 +1,4 @@
-package org.newdawn.slick.geom;
+package radar.org.newdawn.slick.geom;
 
 import org.lazywizard.lazylib.FastTrig;
 import org.lwjgl.util.vector.Vector2f;
@@ -91,7 +91,7 @@ public class Transform {
      * @throws ArrayIndexOutOfBoundsException if sourceOffset + numberOfPoints * 2 > source.length or the same operation on the destination array
      */
     public void transform(float source[], int sourceOffset, float destination[], int destOffset, int numberOfPoints) {
-        //TODO performance can be improved by removing the safety to the destination array
+        //performance can be improved by removing the safety to the destination array
         float result[] = source == destination ? new float[numberOfPoints * 2] : destination;
 
         for(int i=0;i<numberOfPoints * 2;i+=2) {
