@@ -1,7 +1,6 @@
 package org.lazywizard.radar.renderers.campaign;
 
 import java.awt.Color;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -28,19 +27,20 @@ import org.lazywizard.radar.util.DrawQueue;
 import org.lazywizard.radar.util.ShapeUtils;
 import static org.lwjgl.opengl.GL11.*;
 
-// TODO: Show faction bounties flashing between gold and regular color
 // TODO: Implement transponder fog of war support after Starsector 0.7a is released
 public class FleetRenderer implements CampaignRenderer
 {
     private static final Logger LOG = Global.getLogger(FleetRenderer.class);
     private static final float TIME_BETWEEN_BOUNTY_UPDATES = 5f;
+    private static final float BOUNTY_FLASH_SPEED = 0.5f;
     private static boolean SHOW_FLEETS;
     private static int MAX_FLEETS_SHOWN;
     private static Color BOUNTY_COLOR;
     private DrawQueue drawQueue;
     private CommonRadar<SectorEntityToken> radar;
-    private List<FactionAPI> factionsWithBounties;
+    private Set<FactionAPI> factionsWithBounties;
     private float flashTimer = 0f, timeSinceBountyUpdate = TIME_BETWEEN_BOUNTY_UPDATES;
+    private boolean isFlashing = false;
 
     @Override
     public void reloadSettings(JSONObject settings) throws JSONException
@@ -57,63 +57,44 @@ public class FleetRenderer implements CampaignRenderer
     public void init(CommonRadar<SectorEntityToken> radar)
     {
         this.radar = radar;
-        factionsWithBounties = new ArrayList<>();
+        factionsWithBounties = new HashSet<>();
         drawQueue = new DrawQueue(MAX_FLEETS_SHOWN * 3);
     }
 
-    private static List<FactionAPI> getFactionsWithBounty(LocationAPI location)
+    private static Set<FactionAPI> getFactionsWithBounty(LocationAPI location)
     {
+        // Ignore places where system-wide bounties don't count
         if (location == null || location.isHyperspace())
         {
-            return Collections.<FactionAPI>emptyList();
+            return Collections.<FactionAPI>emptySet();
         }
 
         final Set<FactionAPI> factionsWithBounties = new HashSet<>();
-        final StringBuilder sb = new StringBuilder("Checking for faction bounties in "
-                + location.getId() + ":");
         for (MarketAPI market : Global.getSector().getEconomy().getMarketsCopy())
         {
-            if (market.getFaction() == null)
+            // Ignore non-local and factionless markets as we won't get paid by them
+            if (market.getFaction() == null || market.getContainingLocation() != location)
             {
-                sb.append("\n - Ignoring factionless market: " + market.getId());
                 continue;
             }
 
-            if (market.getContainingLocation() != location)
-            {
-                sb.append("\n - Ignoring non-local market: " + market.getContainingLocation().getId());
-                continue;
-            }
-
-            sb.append("\n - Checking local market: " + market.getId());
+            // Check if there's an active bounty placed by this market
             final CampaignEventPlugin event = Global.getSector().getEventManager()
                     .getOngoingEvent(new CampaignEventTarget(market), Events.SYSTEM_BOUNTY);
-            if (event == null)
+            if (event != null)
             {
-                sb.append(" - no active bounties");
-            }
-            else
-            {
-                sb.append(" - FOUND!");
+                // If so, find every faction they are willing to pay for kills against
                 for (FactionAPI faction : Global.getSector().getAllFactions())
                 {
                     if (market.getFaction().isHostileTo(faction))
                     {
-                        sb.append("\n -  Bounty: " + faction.getId() + " ("
-                                + market.getFactionId() + ")");
                         factionsWithBounties.add(faction);
-                    }
-                    else
-                    {
-                        sb.append("\n -  No bounty: " + faction.getId() + " ("
-                                + market.getFactionId() + ")");
                     }
                 }
             }
         }
 
-        System.out.println(sb.toString());
-        return new ArrayList(factionsWithBounties);
+        return factionsWithBounties;
     }
 
     @Override
@@ -124,6 +105,7 @@ public class FleetRenderer implements CampaignRenderer
             return;
         }
 
+        // Only update active bounties occasionally since it's relatively expensive
         if (!Global.getSector().isPaused())
         {
             timeSinceBountyUpdate += amount;
@@ -134,10 +116,12 @@ public class FleetRenderer implements CampaignRenderer
             }
         }
 
+        // Cycle flashing of bounty targets
         flashTimer += amount;
-        if (flashTimer > 1f)
+        if (flashTimer > BOUNTY_FLASH_SPEED)
         {
-            flashTimer -= 1f;
+            flashTimer = 0f;
+            isFlashing = !isFlashing;
         }
 
         if (isUpdateFrame)
@@ -150,21 +134,24 @@ public class FleetRenderer implements CampaignRenderer
                 for (CampaignFleetAPI fleet : fleets)
                 {
                     // Calculate color of fleet
+                    // Person bounty
                     if (FleetTypes.PERSON_BOUNTY_FLEET.equals(
                             fleet.getMemoryWithoutUpdate().getString(
                                     MemFlags.MEMORY_KEY_FLEET_TYPE)))
                     {
                         drawQueue.setNextColor(BOUNTY_COLOR, radar.getContactAlpha());
                     }
-                    // TODO: General faction bounty
-                    else if (factionsWithBounties.contains(fleet.getFaction()))
+                    // General faction bounty (flash between bounty and regular color)
+                    else if (isFlashing && factionsWithBounties.contains(fleet.getFaction()))
                     {
-                        drawQueue.setNextColor(Color.MAGENTA, radar.getContactAlpha());
+                        drawQueue.setNextColor(BOUNTY_COLOR, radar.getContactAlpha());
                     }
+                    // Enemy
                     else if (fleet.getFaction().isHostileTo(player.getFaction()))
                     {
                         drawQueue.setNextColor(radar.getEnemyContactColor(), radar.getContactAlpha());
                     }
+                    // Neutral/ally
                     else
                     {
                         drawQueue.setNextColor(radar.getFriendlyContactColor(), radar.getContactAlpha());

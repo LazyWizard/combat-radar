@@ -9,6 +9,8 @@ Improved icon for relays in the campaign
 All renderers now support a "maxShown" setting where valid
 Campaign fleet renderer changes:
  - Fleets with a bounty on their head are now shown as gold on the radar
+   (faction-level bounties flash between gold and their regular color so you
+    won't accidently chase/attack a friendly faction)
 New combat renderer: MapBorderRenderer
  - Displays retreat zones in yellow
  - Displays gravity barrier line in red
