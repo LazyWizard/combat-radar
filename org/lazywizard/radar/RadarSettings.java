@@ -22,11 +22,12 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GLContext;
 
 /**
+ * Contains the radar's configuration data obtained from the files within
+ * {@code data/config/radar/}.
  *
  * @author LazyWizard
  * @since 2.0
  */
-// TODO: Javadoc this class
 public class RadarSettings
 {
     // Path to master settings files, link to individual renderers + their settings
@@ -52,6 +53,14 @@ public class RadarSettings
     // Radar button LWJGL constants
     private static int RADAR_TOGGLE_KEY, ZOOM_IN_KEY, ZOOM_OUT_KEY;
 
+    /**
+     * Reloads all radar settings from the config file. Some changes may not
+     * take effect until the next battle.
+     * <p>
+     * @throws JSONException if any settings are missing.
+     * @throws IOException   if the settings file couldn't be loaded.
+     * @since 2.0
+     */
     public static void reloadSettings() throws JSONException, IOException
     {
         final JSONObject settings = Global.getSettings().loadJSON(SETTINGS_FILE);
@@ -178,87 +187,226 @@ public class RadarSettings
         }
     }
 
+    /**
+     * Returns the list of renderers used in combat.
+     * <p>
+     * @return the {@link List} of {@link CombatRenderer}s used in combat.
+     * <p>
+     * @since 2.0
+     */
     public static List<Class<? extends CombatRenderer>> getCombatRendererClasses()
     {
         return COMBAT_RENDERER_CLASSES;
     }
 
+    /**
+     * Returns the list of renderers used on the campaign map.
+     * <p>
+     * @return the {@link List} of {@link CampaignRenderer}s used on the
+     *         campaign
+     *         map.
+     * <p>
+     * @since 2.0
+     */
     public static List<Class<? extends CampaignRenderer>> getCampaignRendererClasses()
     {
         return CAMPAIGN_RENDERER_CLASSES;
     }
 
+    /**
+     * Returns whether the radar will ignore contacts that the player can't
+     * currently see.
+     * <p>
+     * @return {@code true} if contacts outside the fog of war will be ignored,
+     *         {@code false} otherwise.
+     * <p>
+     * @since 2.0
+     */
     public static boolean isRespectingFogOfWar()
     {
         return RESPECT_FOG_OF_WAR;
     }
 
+    /**
+     * Returns whether the radar will use vertex buffer objects (VBOs) when
+     * rendering.
+     * <p>
+     * @return {@code true} if VBOs are enabled and the user's card supports
+     *         them, {@code false} otherwise.
+     * <p>
+     * @since 2.0
+     */
     public static boolean usesVertexBufferObjects()
     {
         return USE_VBOS;
     }
 
+    /**
+     * Returns how long there is between each radar update frame.
+     * <p>
+     * @return How long between each radar update frame, in seconds.
+     * <p>
+     * @since 2.0
+     */
     public static float getTimeBetweenUpdateFrames()
     {
         return TIME_BETWEEN_UPDATE_FRAMES;
     }
 
+    /**
+     * Returns the maximum combat radar range.
+     * <p>
+     * @return How far the radar can see in combat at maximum zoom, in SU.
+     * <p>
+     * @since 2.0
+     */
     public static float getMaxCombatSightRange()
     {
         return COMBAT_SIGHT_RANGE;
     }
 
+    /**
+     * Returns the maximum campaign radar range.
+     * <p>
+     * @return How far the radar can see on the campaign map at maximum zoom, in
+     *         SU.
+     * <p>
+     * @since 2.0
+     */
     public static float getMaxCampaignSightRange()
     {
         return CAMPAIGN_SIGHT_RANGE;
     }
 
+    /**
+     * Returns how long it takes for the radar to animate switching zoom levels.
+     * <p>
+     * @return How long it takes the radar to switch zoom levels, in seconds.
+     * <p>
+     * @since 2.0
+     */
     public static float getZoomAnimationDuration()
     {
         return ZOOM_ANIMATION_DURATION;
     }
 
+    /**
+     * Returns how many zoom levels the radar supports.
+     * <p>
+     * @return How many different zoom levels the radar is configured to
+     *         support.
+     * <p>
+     * @since 2.0
+     */
     public static int getNumZoomLevels()
     {
         return NUM_ZOOM_LEVELS;
     }
 
-    // Radar color settings
+    /**
+     * Returns the alpha modifier for all radar user interface elements.
+     * <p>
+     * @return The alpha modifier that should be applied to all radar interface
+     *         elements (but not contacts, see
+     *         {@link RadarSettings#getRadarContactAlpha()}).
+     * <p>
+     * @since 2.0
+     */
     public static float getRadarUIAlpha()
     {
         return RADAR_ALPHA;
     }
 
+    /**
+     * Returns the alpha modifier for all radar contacts.
+     * <p>
+     * @return The alpha modifier that should be applied to all radar contacts
+     *         (but not the user interface, see
+     *         {@link RadarSettings#getRadarUIAlpha()}).
+     * <p>
+     * @since 2.0
+     */
     public static float getRadarContactAlpha()
     {
         return CONTACT_ALPHA;
     }
 
+    /**
+     * Returns the color that friendly radar contacts should be drawn with.
+     * <p>
+     * @return The {@link Color} that friendly contacts should appear as.
+     * <p>
+     * @since 2.0
+     */
     public static Color getFriendlyContactColor()
     {
         return FRIENDLY_COLOR;
     }
 
+    /**
+     * Returns the color that hostile radar contacts should be drawn with.
+     * <p>
+     * @return The {@link Color} that hostile contacts should appear as.
+     * <p>
+     * @since 2.0
+     */
     public static Color getEnemyContactColor()
     {
         return ENEMY_COLOR;
     }
 
+    /**
+     * Returns the color that neutral radar contacts should be drawn with.
+     * <p>
+     * @return The {@link Color} that neutral contacts should appear as.
+     * <p>
+     * @since 2.0
+     */
     public static Color getNeutralContactColor()
     {
         return NEUTRAL_COLOR;
     }
 
+    /**
+     * Returns the LWJGL keyboard constant for the radar toggle key.
+     * <p>
+     * @return The LWJGL {@link Keyboard} constant of the key used to toggle the
+     *         radar on or off. See
+     * <a href="http://legacy.lwjgl.org/javadoc/constant-values.html#org.lwjgl.input.Keyboard.KEY_0">
+     * the LWJGL documentation page</a> for details.
+     * <p>
+     * @since 2.0
+     */
     public static int getRadarToggleKey()
     {
         return RADAR_TOGGLE_KEY;
     }
 
+    /**
+     * Returns the LWJGL keyboard constant for the radar zoom in key.
+     * <p>
+     * @return The LWJGL {@link Keyboard} constant of the key used to zoom the
+     *         radar in. See
+     * <a href="http://legacy.lwjgl.org/javadoc/constant-values.html#org.lwjgl.input.Keyboard.KEY_0">
+     * the LWJGL documentation page</a> for details.
+     * <p>
+     * @since 2.0
+     */
     public static int getZoomInKey()
     {
         return ZOOM_IN_KEY;
     }
 
+    /**
+     * Returns the LWJGL keyboard constant for the radar zoom out key.
+     * <p>
+     * @return The LWJGL {@link Keyboard} constant of the key used to zoom the
+     *         radar out. See
+     * <a href="http://legacy.lwjgl.org/javadoc/constant-values.html#org.lwjgl.input.Keyboard.KEY_0">
+     * the LWJGL documentation page</a> for details.
+     * <p>
+     * @since 2.0
+     */
     public static int getZoomOutKey()
     {
         return ZOOM_OUT_KEY;
