@@ -104,7 +104,7 @@ public class ShipRenderer implements CombatRenderer
         // Precalculate the sine and cosine
         // Instead of recalculating sin/cos for each line segment,
         // this algorithm rotates the line around the center point
-        final float theta = arcAngle / (float) (numSegments);
+        final float theta = arcAngle / numSegments;
         final float cos = (float) FastTrig.cos(theta);
         final float sin = (float) FastTrig.sin(theta);
 
