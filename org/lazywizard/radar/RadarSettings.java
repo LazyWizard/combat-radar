@@ -5,10 +5,15 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.campaign.SectorEntityToken;
+import com.fs.starfarer.api.combat.CombatEntityAPI;
+import com.fs.starfarer.api.combat.ShipAPI;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -34,6 +39,11 @@ public class RadarSettings
     private static final String SETTINGS_FILE = "data/config/radar/radar_settings.json";
     private static final String COMBAT_CSV_PATH = "data/config/radar/combat_radar_plugins.csv";
     private static final String CAMPAIGN_CSV_PATH = "data/config/radar/campaign_radar_plugins.csv";
+    private static final String EXCLUDED_CSV_PATH = "data/config/radar/excluded_ships.csv";
+    // Controls what tokens/ships are excluded from the radar
+    private static final String NODRAW_TAG = "radar_nodraw";
+    private static final Set<String> EXCLUDED_HULLS = new HashSet<>();
+    private static final Set<String> EXCLUDED_PREFIXES = new HashSet<>();
     // List of loaded rendering plugins
     private static final List<Class<? extends CombatRenderer>> COMBAT_RENDERER_CLASSES = new ArrayList<>();
     private static final List<Class<? extends CampaignRenderer>> CAMPAIGN_RENDERER_CLASSES = new ArrayList<>();
@@ -102,8 +112,32 @@ public class RadarSettings
         NEUTRAL_COLOR = useVanillaColors ? Global.getSettings().getColor("iconNeutralShipColor")
                 : JSONUtils.toColor(settings.getJSONArray("neutralColor"));
 
+        reloadExcludedShips();
         reloadRenderers(COMBAT_RENDERER_CLASSES, COMBAT_CSV_PATH, CombatRenderer.class);
         reloadRenderers(CAMPAIGN_RENDERER_CLASSES, CAMPAIGN_CSV_PATH, CampaignRenderer.class);
+    }
+
+    private static void reloadExcludedShips() throws IOException, JSONException
+    {
+        final JSONArray csv = Global.getSettings().getMergedSpreadsheetDataForMod(
+                "id", EXCLUDED_CSV_PATH, "lw_radar");
+        EXCLUDED_HULLS.clear();
+        EXCLUDED_PREFIXES.clear();
+        for (int x = 0; x < csv.length(); x++)
+        {
+            JSONObject row = csv.getJSONObject(x);
+            final String id = row.getString("id");
+            final boolean isPrefix = row.optBoolean("prefix", false);
+
+            if (isPrefix)
+            {
+                EXCLUDED_PREFIXES.add(id);
+            }
+            else
+            {
+                EXCLUDED_HULLS.add(id);
+            }
+        }
     }
 
     private static void reloadRenderers(List toPopulate, String csvPath,
@@ -118,11 +152,11 @@ public class RadarSettings
         final Map<String, JSONObject> loadedFiles = new HashMap<>();
         for (int x = 0; x < csv.length(); x++)
         {
-            JSONObject row = csv.getJSONObject(x);
-            String className = row.getString("script");
-            String settingsPath = row.optString("settings file (optional)", null);
-            int renderOrder = row.getInt("render order");
-            Class renderClass;
+            final JSONObject row = csv.getJSONObject(x);
+            final String className = row.getString("script");
+            final String settingsPath = row.optString("settings file (optional)", null);
+            final int renderOrder = row.getInt("render order");
+            final Class renderClass;
 
             try
             {
@@ -239,6 +273,67 @@ public class RadarSettings
     public static boolean usesVertexBufferObjects()
     {
         return USE_VBOS;
+    }
+
+    /**
+     * Checks if a campaign object should be drawn on the campaign radar or not.
+     * <p>
+     * @param token The {@link SectorEntityToken} to check.
+     * <p>
+     * @return {@code true} if {@code token} should <i>not</i> be drawn,
+     *         {@code false} otherwise.
+     * <p>
+     * @since 2.0
+     */
+    public static boolean isFilteredOut(SectorEntityToken token)
+    {
+        return token.hasTag(NODRAW_TAG);
+    }
+
+    /**
+     * Checks if a combat object should be drawn on the combat radar or not.
+     * <p>
+     * @param token The {@link CombatEntityAPI} to check.
+     * <p>
+     * @return {@code true} if {@code entity} should <i>not</i> be drawn,
+     *         {@code false} otherwise.
+     * <p>
+     * @since 2.0
+     */
+    // TODO: Ship filtering could probably be optimized via caching
+    public static boolean isFilteredOut(CombatEntityAPI entity)
+    {
+        // Filter out ships that mod authors don't want shown
+        if (entity instanceof ShipAPI)
+        {
+            // Player is always visible
+            if (Global.getCombatEngine() != null
+                    && entity == Global.getCombatEngine().getPlayerShip())
+            {
+                return false;
+            }
+
+            final ShipAPI ship = (ShipAPI) entity;
+            final String hullId = ship.getHullSpec().getHullId(),
+                    baseHullId = ship.getHullSpec().getBaseHullId();
+
+            // Directly excluded hulls (and their skins)
+            if (EXCLUDED_HULLS.contains(hullId) || EXCLUDED_HULLS.contains(baseHullId))
+            {
+                return true;
+            }
+
+            // Faction-level exclusions, expensive but should be rare!
+            for (String prefix : EXCLUDED_PREFIXES)
+            {
+                if (hullId.startsWith(prefix) || baseHullId.startsWith(prefix))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     /**

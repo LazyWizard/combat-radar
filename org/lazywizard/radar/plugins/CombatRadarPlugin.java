@@ -256,8 +256,6 @@ public class CombatRadarPlugin extends BaseEveryFrameCombatPlugin
         @Override
         public void disableStencilTest()
         {
-            //glStencilFunc(GL_ALWAYS, 1, 1);
-            //glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
             glDisable(GL_STENCIL_TEST);
         }
 
@@ -390,6 +388,11 @@ public class CombatRadarPlugin extends BaseEveryFrameCombatPlugin
                 {
                     if (RadarSettings.isRespectingFogOfWar() && !CombatUtils.isVisibleToSide(
                             contact, player.getOwner()))
+                    {
+                        continue;
+                    }
+
+                    if (RadarSettings.isFilteredOut(contact))
                     {
                         continue;
                     }
