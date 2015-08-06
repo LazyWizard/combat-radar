@@ -48,7 +48,6 @@ public class RadarSettings
     private static final List<Class<? extends CombatRenderer>> COMBAT_RENDERER_CLASSES = new ArrayList<>();
     private static final List<Class<? extends CampaignRenderer>> CAMPAIGN_RENDERER_CLASSES = new ArrayList<>();
     private static final Logger LOG = Global.getLogger(RadarSettings.class);
-
     // Performance settings
     private static boolean RESPECT_FOG_OF_WAR, USE_VBOS;
     private static float TIME_BETWEEN_UPDATE_FRAMES;
@@ -125,7 +124,7 @@ public class RadarSettings
         EXCLUDED_PREFIXES.clear();
         for (int x = 0; x < csv.length(); x++)
         {
-            JSONObject row = csv.getJSONObject(x);
+            final JSONObject row = csv.getJSONObject(x);
             final String id = row.getString("id");
             final boolean isPrefix = row.optBoolean("prefix", false);
 
@@ -230,7 +229,7 @@ public class RadarSettings
      */
     public static List<Class<? extends CombatRenderer>> getCombatRendererClasses()
     {
-        return COMBAT_RENDERER_CLASSES;
+        return Collections.unmodifiableList(COMBAT_RENDERER_CLASSES);
     }
 
     /**
@@ -244,7 +243,7 @@ public class RadarSettings
      */
     public static List<Class<? extends CampaignRenderer>> getCampaignRendererClasses()
     {
-        return CAMPAIGN_RENDERER_CLASSES;
+        return Collections.unmodifiableList(CAMPAIGN_RENDERER_CLASSES);
     }
 
     /**
@@ -293,14 +292,13 @@ public class RadarSettings
     /**
      * Checks if a combat object should be drawn on the combat radar or not.
      * <p>
-     * @param token The {@link CombatEntityAPI} to check.
+     * @param entity The {@link CombatEntityAPI} to check.
      * <p>
      * @return {@code true} if {@code entity} should <i>not</i> be drawn,
      *         {@code false} otherwise.
      * <p>
      * @since 2.0
      */
-    // TODO: Ship filtering could probably be optimized via caching
     public static boolean isFilteredOut(CombatEntityAPI entity)
     {
         // Filter out ships that mod authors don't want shown
@@ -313,23 +311,50 @@ public class RadarSettings
                 return false;
             }
 
+            // Match both ship's hull and its base hull (to block skins)
             final ShipAPI ship = (ShipAPI) entity;
             final String hullId = ship.getHullSpec().getHullId(),
                     baseHullId = ship.getHullSpec().getBaseHullId();
+
+            // Faction-level exclusions, should only be called once to cache matching hulls
+            if (!EXCLUDED_PREFIXES.isEmpty())
+            {
+                // Cache all excluded hulls as soon as possible
+                if (Global.getSector() != null)
+                {
+                    final List<String> allIds = Global.getSector().getAllEmptyVariantIds();
+                    allIds.addAll(Global.getSector().getAllFighterWingIds());
+                    for (String prefix : EXCLUDED_PREFIXES)
+                    {
+                        for (String id : allIds)
+                        {
+                            if (id.startsWith(prefix))
+                            {
+                                // Remove _Hull and _wing
+                                EXCLUDED_HULLS.add(id.substring(0, id.length() - 5));
+                            }
+                        }
+                    }
+
+                    EXCLUDED_PREFIXES.clear();
+                }
+                // Fallback: expensive startsWith() checks, should never run
+                else
+                {
+                    for (String prefix : EXCLUDED_PREFIXES)
+                    {
+                        if (hullId.startsWith(prefix) || baseHullId.startsWith(prefix))
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
 
             // Directly excluded hulls (and their skins)
             if (EXCLUDED_HULLS.contains(hullId) || EXCLUDED_HULLS.contains(baseHullId))
             {
                 return true;
-            }
-
-            // Faction-level exclusions, expensive but should be rare!
-            for (String prefix : EXCLUDED_PREFIXES)
-            {
-                if (hullId.startsWith(prefix) || baseHullId.startsWith(prefix))
-                {
-                    return true;
-                }
             }
         }
 
