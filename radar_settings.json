@@ -13,8 +13,8 @@
     # Key IDs are integers, and can be found in the LWJGL documentation here:
     # http://legacy.lwjgl.org/javadoc/constant-values.html#org.lwjgl.input.Keyboard.KEY_0
     "toggleKey":37,   # Default: K (37)
-    "zoomInKey":13,   # Default: = (13)
-    "zoomOutKey":12,  # Default: - (12)
+    "zoomInKey":13,   # Default: +/= (13)
+    "zoomOutKey":12,  # Default: -/_ (12)
 
     # Disabling this will help performance on slow rigs,
     # but the radar won't respect fog of war anymore
@@ -73,59 +73,6 @@
     "showJumpPoints":true,          # Default: true, performance impact ???
 
 
-    ##############################
-    # CAMPAIGN RENDERER SETTINGS #
-    ##############################
-
-    "campaignRenderers":
-    {
-        "radarBoxRenderer":
-        {
-            # Radar backdrop colors
-            "radarBackgroundColor":[0,0,0,255],
-            "radarBackgroundAlpha":0.5, # Default: 0.5
-            # Controls how faded the edges of the radar box are
-            "radarEdgeAlpha":0.33,      # Default: 0.33
-        },
-
-        "fleetRenderer":
-        {
-            #"maxShown":150,
-            # What color fleets with a bounty on their head show up as
-            "bountyColor":[255,215,0,255],
-        },
-
-        "stationRenderer":
-        {
-            #"maxShown":20,
-            "stationIcon":"station",
-        },
-
-        "planetRenderer":
-        {
-            #"maxShown":20,
-        },
-
-        "relayRenderer":
-        {
-            #"maxShown":10,
-            "relayIcon":"relay",
-        },
-
-        "asteroidRenderer":
-        {
-            #"maxShown":250,
-            "asteroidColor":[192,192,192,255],
-        },
-
-        "jumpPointRenderer":
-        {
-            #"maxShown":15,
-            "jumpPointIcon":"jumpPoint",
-            "jumpPointColor":[255,0,255,255],
-        },
-    },
-
     ############################
     # COMBAT RENDERER SETTINGS #
     ############################
@@ -138,13 +85,13 @@
             "radarBackgroundColor":[0,0,0,255],
             "radarBackgroundAlpha":0.33, # Default: 0.33
             # Controls how faded the edges of the radar box are
-            "radarEdgeAlpha":0.25,       # Default: 0.25
+            "radarEdgeAlpha":0.25        # Default: 0.25
         },
 
         "mapBorderRenderer":
         {
             "retreatAreaColor":[255,255,0,75],
-            "gravityBarrierColor":[255,0,0,255],
+            "gravityBarrierColor":[255,0,0,255]
         },
 
         "shipRenderer":
@@ -156,13 +103,13 @@
             "drawSolidShields":true,
             "maxShieldSegments":18,
             "targetMarkerColor":[255,255,255,255],
-            "phasedShipAlphaMult":0.5,
+            "phasedShipAlphaMult":0.5
         },
 
         "asteroidRenderer":
         {
             #"maxShown":250,
-            "asteroidColor":[192,192,192,255],
+            "asteroidColor":[192,192,192,255]
         },
 
         "missileRenderer":
@@ -171,12 +118,12 @@
             # ID of the missile lock icon, found in data/config/settings.json
             # Must be in the "radar" subcategory of the "graphics" section
             "missileLockIcon":"missileLock",
-            "lockedMissileColor":[255,200,0,255],
+            "lockedMissileColor":[255,200,0,255]
         },
 
         "objectiveRenderer":
         {
-            #"maxShown":15.
+            #"maxShown":15
         },
 
         "battleProgressRenderer":
@@ -185,7 +132,7 @@
             "animateProgressBar":true,
             # How fast the bar should update, in percent per second
             # This setting is ignored if "animateProgressBar" is false
-            "barAnimationSpeed":25.0;
+            "barAnimationSpeed":25.0
         },
 
         "combatReadinessRenderer":
@@ -195,7 +142,66 @@
             # Color of the portion representing CR lost during this battle
             "lostCRColor":[0,0,255,255],
             # Color of the portion representing CR never obtained
-            "emptyBarColor":[64,64,64,255],
+            "emptyBarColor":[64,64,64,255]
+        }
+    },
+
+    ##############################
+    # CAMPAIGN RENDERER SETTINGS #
+    ##############################
+
+    "campaignRenderers":
+    {
+        "radarBoxRenderer":
+        {
+            # Radar backdrop colors
+            "radarBackgroundColor":[0,0,0,255],
+            "radarBackgroundAlpha":0.5, # Default: 0.5
+            # Controls how faded the edges of the radar box are
+            "radarEdgeAlpha":0.33       # Default: 0.33
         },
+
+        "fleetRenderer":
+        {
+            #"maxShown":150,
+            # What color fleets with a bounty on their head show up as
+            "bountyColor":[255,215,0,255]
+        },
+
+        "stationRenderer":
+        {
+            #"maxShown":20,
+            # ID of the station icon, found in data/config/settings.json
+            # Must be in the "radar" subcategory of the "graphics" section
+            "stationIcon":"station"
+        },
+
+        "planetRenderer":
+        {
+            #"maxShown":20
+        },
+
+        "relayRenderer":
+        {
+            #"maxShown":10,
+            # ID of the relay icon, found in data/config/settings.json
+            # Must be in the "radar" subcategory of the "graphics" section
+            "relayIcon":"relay"
+        },
+
+        "asteroidRenderer":
+        {
+            #"maxShown":250,
+            "asteroidColor":[192,192,192,255]
+        },
+
+        "jumpPointRenderer":
+        {
+            #"maxShown":15,
+            # ID of the jump point icon, found in data/config/settings.json
+            # Must be in the "radar" subcategory of the "graphics" section
+            "jumpPointIcon":"jumpPoint",
+            "jumpPointColor":[255,0,255,255]
+        }
     }
 }

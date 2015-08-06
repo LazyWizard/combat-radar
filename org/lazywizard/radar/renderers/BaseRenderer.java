@@ -26,16 +26,6 @@ import org.lazywizard.radar.plugins.RadarModPlugin;
 public interface BaseRenderer<T, P>
 {
     /**
-     * {@link SectorEntityToken}s with this tag should be ignored by all
-     * campaign renderers - not currently used in combat. If your renderer uses
-     * {@link CommonRadar#filterVisible(java.util.List, int)}, entities with
-     * this tag will already be filtered out for you.
-     * <p>
-     * @since 1.1e
-     */
-    public static final String NODRAW_TAG = "radar_nodraw";
-
-    /**
      * Called when the game first loads or when
      * {@link RadarModPlugin#reloadSettings()} is called. You should set up
      * static variables such as colors here.

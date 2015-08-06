@@ -252,8 +252,6 @@ public class CampaignRadarPlugin implements EveryFrameScript
         @Override
         public void disableStencilTest()
         {
-            //glStencilFunc(GL_ALWAYS, 1, 1);
-            //glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
             glDisable(GL_STENCIL_TEST);
         }
 
@@ -383,9 +381,13 @@ public class CampaignRadarPlugin implements EveryFrameScript
                 // Check if any part of the contact is visible
                 // Ignore any tokens with the nodraw tag
                 if (MathUtils.isWithinRange(contact, player.getLocation(),
-                        sightRadius + contact.getRadius())
-                        && !contact.hasTag(CampaignRenderer.NODRAW_TAG))
+                        sightRadius + contact.getRadius()))
                 {
+                    if (RadarSettings.isFilteredOut(contact))
+                    {
+                        continue;
+                    }
+
                     visible.add(contact);
                 }
             }
