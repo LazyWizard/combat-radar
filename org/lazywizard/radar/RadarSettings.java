@@ -13,6 +13,7 @@ import java.util.Set;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.SectorEntityToken;
 import com.fs.starfarer.api.combat.CombatEntityAPI;
+import com.fs.starfarer.api.combat.MissileAPI;
 import com.fs.starfarer.api.combat.ShipAPI;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
@@ -39,11 +40,13 @@ public class RadarSettings
     private static final String SETTINGS_FILE = "data/config/radar/radar_settings.json";
     private static final String COMBAT_CSV_PATH = "data/config/radar/combat_radar_plugins.csv";
     private static final String CAMPAIGN_CSV_PATH = "data/config/radar/campaign_radar_plugins.csv";
-    private static final String EXCLUDED_CSV_PATH = "data/config/radar/excluded_ships.csv";
+    private static final String EXCLUDED_SHIPS_CSV_PATH = "data/config/radar/excluded_ships.csv";
+    private static final String EXCLUDED_MISSILES_CSV_PATH = "data/config/radar/excluded_missiles.csv";
     // Controls what tokens/ships are excluded from the radar
     private static final String NODRAW_TAG = "radar_nodraw";
     private static final Set<String> EXCLUDED_HULLS = new HashSet<>();
-    private static final Set<String> EXCLUDED_PREFIXES = new HashSet<>();
+    private static final Set<String> EXCLUDED_HULL_PREFIXES = new HashSet<>();
+    private static final Set<String> EXCLUDED_MISSILES = new HashSet<>();
     // List of loaded rendering plugins
     private static final List<Class<? extends CombatRenderer>> COMBAT_RENDERER_CLASSES = new ArrayList<>();
     private static final List<Class<? extends CampaignRenderer>> CAMPAIGN_RENDERER_CLASSES = new ArrayList<>();
@@ -111,17 +114,20 @@ public class RadarSettings
         NEUTRAL_COLOR = useVanillaColors ? Global.getSettings().getColor("iconNeutralShipColor")
                 : JSONUtils.toColor(settings.getJSONArray("neutralColor"));
 
-        reloadExcludedShips();
+        reloadExcluded();
         reloadRenderers(COMBAT_RENDERER_CLASSES, COMBAT_CSV_PATH, CombatRenderer.class);
         reloadRenderers(CAMPAIGN_RENDERER_CLASSES, CAMPAIGN_CSV_PATH, CampaignRenderer.class);
     }
 
-    private static void reloadExcludedShips() throws IOException, JSONException
+    private static void reloadExcluded() throws IOException, JSONException
     {
-        final JSONArray csv = Global.getSettings().getMergedSpreadsheetDataForMod(
-                "id", EXCLUDED_CSV_PATH, "lw_radar");
         EXCLUDED_HULLS.clear();
-        EXCLUDED_PREFIXES.clear();
+        EXCLUDED_HULL_PREFIXES.clear();
+        EXCLUDED_MISSILES.clear();
+
+        // Reload excluded ships
+        JSONArray csv = Global.getSettings().getMergedSpreadsheetDataForMod(
+                "id", EXCLUDED_SHIPS_CSV_PATH, "lw_radar");
         for (int x = 0; x < csv.length(); x++)
         {
             final JSONObject row = csv.getJSONObject(x);
@@ -130,12 +136,21 @@ public class RadarSettings
 
             if (isPrefix)
             {
-                EXCLUDED_PREFIXES.add(id);
+                EXCLUDED_HULL_PREFIXES.add(id);
             }
             else
             {
                 EXCLUDED_HULLS.add(id);
             }
+        }
+
+        // Reload excluded missiles
+        csv = Global.getSettings().getMergedSpreadsheetDataForMod(
+                "missile projectile id", EXCLUDED_MISSILES_CSV_PATH, "lw_radar");
+                for (int x = 0; x < csv.length(); x++)
+        {
+            final JSONObject row = csv.getJSONObject(x);
+            EXCLUDED_MISSILES.add(row.getString("missile projectile id"));
         }
     }
 
@@ -317,14 +332,14 @@ public class RadarSettings
                     baseHullId = ship.getHullSpec().getBaseHullId();
 
             // Faction-level exclusions, should only be called once to cache matching hulls
-            if (!EXCLUDED_PREFIXES.isEmpty())
+            if (!EXCLUDED_HULL_PREFIXES.isEmpty())
             {
                 // Cache all excluded hulls as soon as possible
                 if (Global.getSector() != null)
                 {
                     final List<String> allIds = Global.getSector().getAllEmptyVariantIds();
                     allIds.addAll(Global.getSector().getAllFighterWingIds());
-                    for (String prefix : EXCLUDED_PREFIXES)
+                    for (String prefix : EXCLUDED_HULL_PREFIXES)
                     {
                         for (String id : allIds)
                         {
@@ -336,12 +351,12 @@ public class RadarSettings
                         }
                     }
 
-                    EXCLUDED_PREFIXES.clear();
+                    EXCLUDED_HULL_PREFIXES.clear();
                 }
                 // Fallback: expensive startsWith() checks, should never run
                 else
                 {
-                    for (String prefix : EXCLUDED_PREFIXES)
+                    for (String prefix : EXCLUDED_HULL_PREFIXES)
                     {
                         if (hullId.startsWith(prefix) || baseHullId.startsWith(prefix))
                         {
@@ -353,6 +368,16 @@ public class RadarSettings
 
             // Directly excluded hulls (and their skins)
             if (EXCLUDED_HULLS.contains(hullId) || EXCLUDED_HULLS.contains(baseHullId))
+            {
+                return true;
+            }
+        }
+
+        // Filter out decorative missiles
+        else if (entity instanceof MissileAPI)
+        {
+            final MissileAPI missile = (MissileAPI) entity;
+            if (EXCLUDED_MISSILES.contains(missile.getProjectileSpecId()))
             {
                 return true;
             }

@@ -5,6 +5,7 @@ Merged radar settings into a single file, data/config/radar/radar_settings.json
 Combined campaign and combat radars into one codebase
 Replaced CampaignRadar and CombatRadar with a generic CommonRadar interface
 Added excluded_ships.csv, can exclude single hulls or ones with certain prefixes
+Added excluded_missiles.csv, can exclude missiles by their projectile ID
 Added RadarSettings class to retrieve loaded renderers and radar settings
 Added getCurrentSightRadius() to CommonRadar interface
 Improved icon for relays in the campaign
