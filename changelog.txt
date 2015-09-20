@@ -1,5 +1,5 @@
- 2.0 (August XX, 2015)
-=======================
+ 2.0 (September XX, 2015)
+==========================
 Radar framerate is now separate from Starsector's framerate, defaults to 20 FPS
 Merged radar settings into a single file, data/config/radar/radar_settings.json
 Combined campaign and combat radars into one codebase
@@ -14,6 +14,10 @@ Campaign fleet renderer changes:
  - Fleets with a bounty on their head are now shown as gold on the radar
    (faction-level bounties flash between gold and their regular color so you
     won't accidently chase/attack a friendly faction)
+Combat progress renderer changes:
+ - Relative fleet balance calculation is no longer based on information that
+   the player can't obtain in-game, is instead now based on the ship's fleet
+   point costs (with a 75% penalty to calculated strength for civilian ships)
 New combat renderer: MapBorderRenderer
  - Displays retreat zones in yellow
  - Displays gravity barrier line in red
