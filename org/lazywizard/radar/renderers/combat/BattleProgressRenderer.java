@@ -118,7 +118,7 @@ public class BattleProgressRenderer implements CombatRenderer
         // Total up strength of every ship in the fleet
         for (FleetMemberAPI ship : ships)
         {
-            strength += ship.getMemberStrength(); //.getFleetPointCost();
+            strength += ship.getFleetPointCost() * (ship.isCivilian() ? 0.25f : 1f); //ship.getMemberStrength();
         }
 
         return strength;

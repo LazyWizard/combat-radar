@@ -3,7 +3,7 @@
     #    GLOBAL RADAR SETTINGS     #
     ################################
 
-    # The framerate the radar should update at, lower fps = better performance
+    # How many times per second the radar should update, lower fps = better performance
     "radarFPS":20.0,    # Default: 20.0
     # Whether to use vertex buffers, disable if you have problems
     # If your card doesn't support VBOs this setting won't do anything
