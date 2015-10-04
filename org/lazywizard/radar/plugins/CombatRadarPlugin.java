@@ -214,7 +214,7 @@ public class CombatRadarPlugin extends BaseEveryFrameCombatPlugin
     @Override
     public void advance(float amount, List<InputEventAPI> events)
     {
-        CombatEngineAPI engine = Global.getCombatEngine();
+        final CombatEngineAPI engine = Global.getCombatEngine();
 
         // This also acts as a main menu check
         player = engine.getPlayerShip();

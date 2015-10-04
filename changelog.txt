@@ -1,5 +1,5 @@
- 2.0 (September XX, 2015)
-==========================
+ 2.0 (October 04, 2015)
+========================
 Radar framerate is now separate from Starsector's framerate, defaults to 20 FPS
 Merged radar settings into a single file, data/config/radar/radar_settings.json
 Combined campaign and combat radars into one codebase
