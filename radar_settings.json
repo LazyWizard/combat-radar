@@ -103,7 +103,10 @@
             "drawSolidShields":true,
             "maxShieldSegments":18,
             "targetMarkerColor":[255,255,255,255],
-            "phasedShipAlphaMult":0.5
+            # Phased ships are drawn partially transparent based on how strong
+            # the phase effect is. This sets the lowest opacity allowed
+            # Also affects fighters during landing/takeoff
+            "minShipAlphaMult":0.5
         },
 
         "asteroidRenderer":

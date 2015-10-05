@@ -1,3 +1,12 @@
+ 2.0b (October XX, 2015)
+=========================
+Bumped up the transparency of shields
+Transparency of contacts is now based on how the actual ship sprite's alpha:
+ - Hacked-in right click systems with type PHASE_CLOAK won't be momentarily
+   transparent on the radar when activated anymore
+ - Fighters taking off or landing on a carrier now fade in/out on the radar
+ - Removed "phasedShipAlphaMult" setting, added "minShipAlphaMult"
+
  2.0 (October 04, 2015)
 ========================
 Radar framerate is now separate from Starsector's framerate, defaults to 20 FPS
