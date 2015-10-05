@@ -1,10 +1,10 @@
  2.0b (October XX, 2015)
 =========================
 Bumped up the transparency of shields
-Transparency of contacts is now based on how the actual ship sprite's alpha:
- - Hacked-in right click systems with type PHASE_CLOAK won't be momentarily
-   transparent on the radar when activated anymore
- - Fighters taking off or landing on a carrier now fade in/out on the radar
+Transparency of ship contacts is based on the alpha of the actual sprite:
+ - Ships with custom right click ship systems won't be momentarily transparent
+   on the radar after using them anymore (ex: Exigency Incorporated)
+ - Fighters taking off or landing on a carrier now fade in/out
  - Removed "phasedShipAlphaMult" setting, added "minShipAlphaMult"
 
  2.0 (October 04, 2015)
