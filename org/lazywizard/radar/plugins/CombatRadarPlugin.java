@@ -150,7 +150,7 @@ public class CombatRadarPlugin extends BaseEveryFrameCombatPlugin
         {
             isUpdateFrame = true;
             advanceZoom(timeSinceLastUpdateFrame);
-            timeSinceLastUpdateFrame = 0;
+            timeSinceLastUpdateFrame = 0f;
         }
 
         // Set OpenGL flags
