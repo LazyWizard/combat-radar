@@ -34,7 +34,7 @@ public class ShipRenderer implements CombatRenderer
             DRAW_SOLID_SHIELDS, SIMPLE_SHIPS;
     private static int MAX_SHIPS_SHOWN, MAX_SHIELD_SEGMENTS;
     private static Color SHIELD_COLOR, MARKER_COLOR;
-    private static float FIGHTER_SIZE_MOD, PHASE_ALPHA_MULT;
+    private static float FIGHTER_SIZE_MOD, MIN_SHIP_ALPHA_MULT;
     private DrawQueue drawQueue;
     private CommonRadar<CombatEntityAPI> radar;
 
@@ -54,7 +54,7 @@ public class ShipRenderer implements CombatRenderer
         MARKER_COLOR = JSONUtils.toColor(settings.getJSONArray("targetMarkerColor"));
         DRAW_SOLID_SHIELDS = settings.getBoolean("drawSolidShields");
         MAX_SHIELD_SEGMENTS = settings.getInt("maxShieldSegments");
-        PHASE_ALPHA_MULT = (float) settings.getDouble("phasedShipAlphaMult");
+        MIN_SHIP_ALPHA_MULT = (float) settings.getDouble("minShipAlphaMult");
     }
 
     @Override
@@ -173,33 +173,45 @@ public class ShipRenderer implements CombatRenderer
         drawQueue.finishShape(GL_LINES);
     }
 
-    private float getAlphaMod(ShipAPI ship)
+    private float[] getColor(ShipAPI ship, int playerSide)
     {
-        return (ship.getPhaseCloak() != null && ship.getPhaseCloak().isOn()) ? PHASE_ALPHA_MULT : 1f;
-    }
+        Color baseColor;
 
-    private Color getColor(ShipAPI ship, int playerSide)
-    {
         // Hulks
         if (ship.isHulk())
         {
-            return radar.getNeutralContactColor();
+            baseColor = radar.getNeutralContactColor();
         }
         // Allies
         else if (ship.getOwner() == playerSide)
         {
-            return radar.getFriendlyContactColor();
+            baseColor = radar.getFriendlyContactColor();
         }
         // Enemies
         else if (ship.getOwner() + playerSide == 1)
         {
-            return radar.getEnemyContactColor();
+            baseColor = radar.getEnemyContactColor();
         }
         // Neutral (doesn't show up in vanilla)
         else
         {
-            return radar.getNeutralContactColor();
+            baseColor = radar.getNeutralContactColor();
         }
+
+        // Convert color to float array
+        float[] color = new float[]
+        {
+            baseColor.getRed() / 255f,
+            baseColor.getGreen() / 255f,
+            baseColor.getBlue() / 255f,
+            baseColor.getAlpha() / 255f
+        };
+
+        // Adjust alpha levels for phasing/fighter takeoff and landing
+        color[3] *= radar.getContactAlpha() * Math.max(MIN_SHIP_ALPHA_MULT,
+                1f - ((1f - ship.getCombinedAlphaMult()) * 2f));
+
+        return color;
     }
 
     @Override
@@ -239,8 +251,8 @@ public class ShipRenderer implements CombatRenderer
                     final float[] vertices = renderer.getVertices(radar, contact);
                     if (vertices != null)
                     {
-                        drawQueue.setNextColor(getColor(contact, player.getOwner()),
-                                getAlphaMod(contact));
+                        final float[] color = getColor(contact, player.getOwner());
+                        drawQueue.setNextColor(color[0], color[1], color[2], color[3]);
                         drawQueue.addVertices(vertices);
                         drawQueue.finishShape(renderer.drawMode);
                     }
