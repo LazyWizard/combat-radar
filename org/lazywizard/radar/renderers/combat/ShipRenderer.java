@@ -31,7 +31,7 @@ public class ShipRenderer implements CombatRenderer
     private static final Logger LOG = Global.getLogger(ShipRenderer.class);
     private static final Map<String, RenderData> cachedRenderData = new HashMap<>();
     private static boolean SHOW_SHIPS, SHOW_SHIELDS, SHOW_TARGET_MARKER,
-            DRAW_SOLID_SHIELDS, SIMPLE_SHIPS;
+            DRAW_SOLID_SHIELDS, SIMPLE_SHIPS, SIMPLE_FIGHTERS;
     private static int MAX_SHIPS_SHOWN, MAX_SHIELD_SEGMENTS;
     private static Color SHIELD_COLOR, MARKER_COLOR;
     private static float FIGHTER_SIZE_MOD, MIN_SHIP_ALPHA_MULT;
@@ -49,6 +49,7 @@ public class ShipRenderer implements CombatRenderer
                 .getJSONObject("shipRenderer");
         MAX_SHIPS_SHOWN = settings.optInt("maxShown", 1_000);
         SIMPLE_SHIPS = settings.getBoolean("simpleMode");
+        SIMPLE_FIGHTERS = (SIMPLE_SHIPS || settings.getBoolean("simpleFighters"));
         FIGHTER_SIZE_MOD = (float) settings.getDouble("fighterSizeMod");
         SHIELD_COLOR = JSONUtils.toColor(settings.getJSONArray("shieldColor"));
         MARKER_COLOR = JSONUtils.toColor(settings.getJSONArray("targetMarkerColor"));
@@ -90,7 +91,8 @@ public class ShipRenderer implements CombatRenderer
         }
 
         final float[] radarLoc = radar.getRawPointOnRadar(shield.getLocation());
-        final float size = shield.getRadius() * radar.getCurrentPixelsPerSU();
+        final float size = shield.getRadius() * radar.getCurrentPixelsPerSU()
+                * (contact.isFighter() ? FIGHTER_SIZE_MOD : 1f);
         final float startAngle = (float) Math.toRadians(shield.getFacing()
                 - (shield.getActiveArc() / 2f));
         final float arcAngle = (float) Math.toRadians(shield.getActiveArc());
@@ -294,7 +296,7 @@ public class ShipRenderer implements CombatRenderer
             // Fighters and boundless ships are drawn as simple triangles
             // If "simpleShips" is true, all ships are drawn this way
             final BoundsAPI bounds = ship.getExactBounds();
-            if (isFighter || SIMPLE_SHIPS || bounds == null)
+            if (SIMPLE_SHIPS || (isFighter && SIMPLE_FIGHTERS) || bounds == null)
             {
                 drawMode = GL_TRIANGLES;
                 float size = ship.getCollisionRadius();
@@ -388,6 +390,13 @@ public class ShipRenderer implements CombatRenderer
 
                 LOG.debug("Failed to triangulate hull '" + ship.getHullSpec().getHullId()
                         + "', defaulting to triangle fan");
+            }
+
+            // Scale fighters by size mod
+            if (isFighter)
+            {
+                Transform.createScaleTransform(FIGHTER_SIZE_MOD, FIGHTER_SIZE_MOD)
+                        .transform(rawPoints, 0, rawPoints, 0, rawPoints.length / 2);
             }
 
             // Reset bounds to real facing
