@@ -8,6 +8,8 @@ Transparency of ship contacts is based on the alpha of the actual sprite:
  - Removed "phasedShipAlphaMult" setting, added "minShipAlphaMult"
 Combat ship renderer changes:
  - Bumped default fighter contact scaling from 175% to 225% actual size
+ - Use sprite size instead of collision radius for calculating fighter size
+   (this should fix the issue with shield drones and their oversized radius)
  - Fixed issue where a fighter's shields weren't being scaled
 
  2.0 (October 04, 2015)
