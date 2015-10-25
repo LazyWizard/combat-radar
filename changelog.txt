@@ -1,12 +1,14 @@
  2.0b (October XX, 2015)
 =========================
-Bumped up the transparency of shields
+Increased transparency of shields
 Transparency of ship contacts is based on the alpha of the actual sprite:
  - Ships with custom right click ship systems won't be momentarily translucent
    on the radar after using them anymore (ex: Exigency Incorporated)
  - Fighters taking off or landing on a carrier now fade in/out
  - Removed "phasedShipAlphaMult" setting, added "minShipAlphaMult"
+   (ships with 0 alpha will be completely invisible regardless of this setting)
 Combat ship renderer changes:
+ - Polygon triangulator is now a config file option
  - Bumped default fighter contact scaling from 175% to 225% actual size
  - Use sprite size instead of collision radius for calculating fighter size
    (this should fix the issue with shield drones and their oversized radius)

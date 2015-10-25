@@ -11,7 +11,6 @@ import com.fs.starfarer.api.combat.BoundsAPI.SegmentAPI;
 import com.fs.starfarer.api.combat.CombatEntityAPI;
 import com.fs.starfarer.api.combat.ShieldAPI;
 import com.fs.starfarer.api.combat.ShipAPI;
-import com.fs.starfarer.api.combat.ShipAPI.HullSize;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 import org.apache.log4j.Logger;
 import org.json.JSONException;
@@ -22,7 +21,6 @@ import org.lazywizard.radar.CommonRadar;
 import org.lazywizard.radar.renderers.CombatRenderer;
 import org.lazywizard.radar.util.DrawQueue;
 import org.lwjgl.util.vector.Vector2f;
-import radar.org.newdawn.slick.geom.NeatTriangulator;
 import radar.org.newdawn.slick.geom.Transform;
 import radar.org.newdawn.slick.geom.Triangulator;
 import static org.lwjgl.opengl.GL11.*;
@@ -31,6 +29,7 @@ public class ShipRenderer implements CombatRenderer
 {
     private static final Logger LOG = Global.getLogger(ShipRenderer.class);
     private static final Map<String, RenderData> cachedRenderData = new HashMap<>();
+    private static Class TRIANGULATOR_CLASS;
     private static boolean SHOW_SHIPS, SHOW_SHIELDS, SHOW_TARGET_MARKER,
             DRAW_SOLID_SHIELDS, SIMPLE_SHIPS;
     private static int MAX_SHIPS_SHOWN, MAX_SHIELD_SEGMENTS;
@@ -56,6 +55,16 @@ public class ShipRenderer implements CombatRenderer
         DRAW_SOLID_SHIELDS = settings.getBoolean("drawSolidShields");
         MAX_SHIELD_SEGMENTS = settings.getInt("maxShieldSegments");
         MIN_SHIP_ALPHA_MULT = (float) settings.getDouble("minShipAlphaMult");
+
+        try
+        {
+            TRIANGULATOR_CLASS = Global.getSettings().getScriptClassLoader()
+                    .loadClass(settings.getString("triangulator"));
+        }
+        catch (ClassNotFoundException ex)
+        {
+            throw new RuntimeException(ex);
+        }
     }
 
     @Override
@@ -210,8 +219,15 @@ public class ShipRenderer implements CombatRenderer
         };
 
         // Adjust alpha levels for phasing/fighter takeoff and landing
-        color[3] *= radar.getContactAlpha() * Math.max(MIN_SHIP_ALPHA_MULT,
-                1f - ((1f - ship.getCombinedAlphaMult()) * 2f));
+        if (ship.getCombinedAlphaMult() <= 0f)
+        {
+            color[3] = 0f;
+        }
+        else
+        {
+            color[3] *= radar.getContactAlpha() * Math.max(MIN_SHIP_ALPHA_MULT,
+                    1f - ((1f - ship.getCombinedAlphaMult()) * 2f));
+        }
 
         return color;
     }
@@ -291,7 +307,8 @@ public class ShipRenderer implements CombatRenderer
 
         private RenderData(ShipAPI ship)
         {
-            final boolean isFighter = (ship.getHullSize() == HullSize.FIGHTER);
+            final boolean isFighter = ship.isFighter() || ship.isDrone()
+                    || ship.isShuttlePod();
 
             // Fighters and boundless ships are drawn as simple triangles
             // If "simpleShips" is true, all ships are drawn this way
@@ -302,15 +319,15 @@ public class ShipRenderer implements CombatRenderer
 
                 // Base triangle size on sprite size, or collision radius if no sprite
                 float size;
-                if (ship.getSpriteAPI() == null)
+                final SpriteAPI sprite = ship.getSpriteAPI();
+                if (sprite != null)
                 {
-                    size = ship.getCollisionRadius();
+                    final float h = sprite.getHeight(), w = sprite.getWidth();
+                    size = (float) Math.sqrt((h * h) + (w * w)) * 0.5f;
                 }
                 else
                 {
-                    final SpriteAPI sprite = ship.getSpriteAPI();
-                    final float h = sprite.getHeight(), w = sprite.getWidth();
-                    size = (float) Math.sqrt((h * h) + (w * w)) * 0.5f;
+                    size = ship.getCollisionRadius();
                 }
 
                 // Bump fighter contact size for better visibility on the radar
@@ -320,7 +337,7 @@ public class ShipRenderer implements CombatRenderer
                     size *= FIGHTER_SIZE_MOD;
                 }
 
-                // Triangle based on collision radius
+                // Calculate points for triangle
                 rawPoints = new float[]
                 {
                     // Top
@@ -352,7 +369,16 @@ public class ShipRenderer implements CombatRenderer
             bounds.update(new Vector2f(0f, 0f), 0f);
 
             // tmpPoints will be used as a fallback if triangulation fails
-            final Triangulator triangles = new NeatTriangulator();
+            final Triangulator triangles;
+            try
+            {
+                triangles = (Triangulator) TRIANGULATOR_CLASS.newInstance();
+            }
+            catch (InstantiationException | IllegalAccessException ex)
+            {
+                throw new RuntimeException(ex);
+            }
+
             final List<Vector2f> tmpPoints = new ArrayList<>(segments.size() + 2);
             tmpPoints.add(new Vector2f(0f, 0f));
             for (SegmentAPI segment : segments)
@@ -369,6 +395,7 @@ public class ShipRenderer implements CombatRenderer
                 drawMode = GL_TRIANGLES;
                 rawPoints = new float[triangles.getTriangleCount() * 6];
 
+                // TODO: If triangle vertices follow a pattern I can make this much more efficient
                 for (int x = 0, y = 0; x < triangles.getTriangleCount(); x++, y += 6)
                 {
                     float[] point = triangles.getTrianglePoint(x, 0);
