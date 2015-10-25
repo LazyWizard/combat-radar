@@ -12,6 +12,7 @@ import com.fs.starfarer.api.combat.CombatEntityAPI;
 import com.fs.starfarer.api.combat.ShieldAPI;
 import com.fs.starfarer.api.combat.ShipAPI;
 import com.fs.starfarer.api.combat.ShipAPI.HullSize;
+import com.fs.starfarer.api.graphics.SpriteAPI;
 import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -298,7 +299,19 @@ public class ShipRenderer implements CombatRenderer
             if (SIMPLE_SHIPS || isFighter || bounds == null)
             {
                 drawMode = GL_TRIANGLES;
-                float size = ship.getCollisionRadius();
+
+                // Base triangle size on sprite size, or collision radius if no sprite
+                float size;
+                if (ship.getSpriteAPI() == null)
+                {
+                    size = ship.getCollisionRadius();
+                }
+                else
+                {
+                    final SpriteAPI sprite = ship.getSpriteAPI();
+                    final float h = sprite.getHeight(), w = sprite.getWidth();
+                    size = (float) Math.sqrt((h * h) + (w * w)) * 0.5f;
+                }
 
                 // Bump fighter contact size for better visibility on the radar
                 if (isFighter)
