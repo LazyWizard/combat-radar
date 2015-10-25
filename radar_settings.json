@@ -97,8 +97,9 @@
         "shipRenderer":
         {
             #"maxShown":50,
-            "fighterSizeMod":1.75,
             "simpleMode":false, # If true, draw all ships as triangles
+            "simpleFighters":false, # If true, draw fighters as triangles
+            "fighterSizeMod":2.25,
             "shieldColor":[0,255,255,200],
             "drawSolidShields":true,
             "maxShieldSegments":18,
