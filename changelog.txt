@@ -7,8 +7,6 @@ Transparency of ship contacts is based on the alpha of the actual sprite:
  - Fighters taking off or landing on a carrier now fade in/out
  - Removed "phasedShipAlphaMult" setting, added "minShipAlphaMult"
 Combat ship renderer changes:
- - Fighters are drawn using bounds if possible, fall back to a triangle if that
-   fails (only affects Wasps in vanilla)
  - Bumped default fighter contact scaling from 175% to 225% actual size
  - Fixed issue where a fighter's shields weren't being scaled
 
