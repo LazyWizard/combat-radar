@@ -27,7 +27,6 @@ import org.lazywizard.radar.util.DrawQueue;
 import org.lazywizard.radar.util.ShapeUtils;
 import static org.lwjgl.opengl.GL11.*;
 
-// TODO: Implement transponder fog of war support after Starsector 0.7a is released
 public class FleetRenderer implements CampaignRenderer
 {
     private static final Logger LOG = Global.getLogger(FleetRenderer.class);
