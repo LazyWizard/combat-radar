@@ -110,7 +110,7 @@ public class BattleProgressRenderer implements CombatRenderer
 
         // Ignore reserves if player is in a refit simulation battle
         // Also ignore if fleet is in full retreat and can't send them out
-        if (!engine.isSimulation() && !fm.isInFullRetreat())
+        if (!engine.isSimulation() && !isRetreating(side))
         {
             ships.addAll(fm.getReservesCopy());
         }
@@ -136,7 +136,8 @@ public class BattleProgressRenderer implements CombatRenderer
 
     private static boolean isRetreating(FleetSide side)
     {
-        return Global.getCombatEngine().getFleetManager(side).isInFullRetreat();
+        return Global.getCombatEngine().getFleetManager(side)
+                .getTaskManager(false).isInFullRetreat();
     }
 
     @Override

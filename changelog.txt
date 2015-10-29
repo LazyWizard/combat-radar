@@ -1,5 +1,6 @@
  2.0b (October XX, 2015)
 =========================
+Updated to be compatible with Starsector 0.7a
 Increased transparency of shields
 Transparency of ship contacts is based on the alpha of the actual sprite:
  - Ships with custom right click ship systems won't be momentarily translucent

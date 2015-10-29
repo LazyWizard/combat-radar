@@ -383,6 +383,11 @@ public class CampaignRadarPlugin implements EveryFrameScript
                 if (MathUtils.isWithinRange(contact, player.getLocation(),
                         sightRadius + contact.getRadius()))
                 {
+                    if (RadarSettings.isRespectingFogOfWar() && !contact.isVisibleToPlayerFleet())
+                    {
+                        continue;
+                    }
+
                     if (RadarSettings.isFilteredOut(contact))
                     {
                         continue;
