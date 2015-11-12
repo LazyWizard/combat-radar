@@ -138,8 +138,14 @@ public class CombatReadinessRenderer implements CombatRenderer
             float alphaMod = radar.getRadarAlpha();
             alphaMod *= ((flashProgress / 2f)) + .75f;
 
-            // Dim the bar if player ship doesn't lose CR during battle
-            if (!player.losesCRDuringCombat())
+            final float timerFraction = (!player.losesCRDuringCombat() ? 1f
+                    : Math.max(0f, Math.min(1f,
+                        1f - (player.getTimeDeployedForCRReduction()
+                        / player.getMutableStats().getPeakCRDuration()
+                        .computeEffective(player.getHullSpec().getNoCRLossTime())))));
+
+            // Dim the bar if player ship isn't currently losing CR
+            if (timerFraction > 0f)
             {
                 alphaMod *= .5f;
             }
@@ -197,6 +203,39 @@ public class CombatReadinessRenderer implements CombatRenderer
                 glVertex2f(barLocation.x + barWidth, lineHeight);
             }
             glEnd();
+
+            // TODO: Draw remaining CR timer
+            // TODO: Add config file options for this
+            if (player.losesCRDuringCombat())
+            {
+                /*glLineWidth(1f);
+                glColor(Color.WHITE, 1f, false);
+                glBegin(GL_LINES);
+                glVertex2f(barLocation.x + (barWidth * 0.5f),
+                        barLocation.y);
+                glVertex2f(barLocation.x + (barWidth * 0.5f),
+                        barLocation.y + (barHeight * timerFraction));
+                glEnd();*/
+                if (timerFraction > 0f)
+                {
+                    final float width = 1f;
+                    glLineWidth(2f);
+                    glColor(Color.WHITE, .75f, false);
+                    glBegin(GL_LINE_STRIP);
+                    if (timerFraction >= 1f)
+                    {
+                        glVertex2f(barLocation.x + barWidth + width,
+                                barLocation.y + barHeight + width);
+                    }
+                    glVertex2f(barLocation.x - width,
+                            barLocation.y + width + (barHeight * timerFraction));
+                    glVertex2f(barLocation.x - width, barLocation.y - width);
+                    glVertex2f(barLocation.x + barWidth + width, barLocation.y - width);
+                    glVertex2f(barLocation.x + barWidth + width,
+                            barLocation.y + width + (barHeight * timerFraction));
+                    glEnd();
+                }
+            }
 
             // Draw max CR possible as horizontal line
             if (Global.getCombatEngine().isInCampaign())

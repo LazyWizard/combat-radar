@@ -1,13 +1,17 @@
- 2.0b (October XX, 2015)
-=========================
+ 2.0b (November XX, 2015)
+==========================
 Updated to be compatible with Starsector 0.7a
 Increased transparency of shields
 Transparency of ship contacts is based on the alpha of the actual sprite:
  - Ships with custom right click ship systems won't be momentarily translucent
-   on the radar after using them anymore (ex: Exigency Incorporated)
+   on the radar when using them anymore (ex: Exigency Incorporated)
  - Fighters taking off or landing on a carrier now fade in/out
  - Removed "phasedShipAlphaMult" setting, added "minShipAlphaMult"
    (ships with 0 alpha will be completely invisible regardless of this setting)
+Combat readiness renderer changes:
+ - Bar is dimmed until your peak CR timer elapses (or forever if ship doesn't
+   lose CR)
+ - Remaining peak CR duration is shown as an outline around the bar
 Combat ship renderer changes:
  - Polygon triangulator is now a config file option
  - Bumped default fighter contact scaling from 175% to 225% actual size
