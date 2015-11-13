@@ -7,6 +7,7 @@ import com.fs.starfarer.api.campaign.SectorEntityToken;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.lazywizard.radar.CommonRadar;
+import org.lazywizard.radar.RadarSettings;
 import org.lazywizard.radar.renderers.CampaignRenderer;
 import org.lazywizard.radar.util.DrawQueue;
 import org.lazywizard.radar.util.ShapeUtils;
@@ -62,7 +63,8 @@ public class PlanetRenderer implements CampaignRenderer
                     float[] center = radar.getRawPointOnRadar(planet.getLocation());
                     float radius = planet.getRadius() * radar.getCurrentPixelsPerSU();
                     drawQueue.setNextColor(planet.getSpec().getIconColor(), radar.getContactAlpha());
-                    drawQueue.addVertices(ShapeUtils.createCircle(center[0], center[1], radius, 64));
+                    drawQueue.addVertices(ShapeUtils.createCircle(center[0],
+                            center[1], radius, RadarSettings.getVerticesPerCircle()));
                     drawQueue.finishShape(GL_TRIANGLE_FAN);
                 }
             }

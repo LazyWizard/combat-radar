@@ -8,6 +8,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.lazywizard.lazylib.JSONUtils;
 import org.lazywizard.radar.CommonRadar;
+import org.lazywizard.radar.RadarSettings;
 import org.lazywizard.radar.renderers.CombatRenderer;
 import org.lazywizard.radar.util.DrawQueue;
 import org.lazywizard.radar.util.ShapeUtils;
@@ -70,7 +71,7 @@ public class RadarBoxRenderer implements CombatRenderer
             // Slight darkening of radar background
             boxDrawQueue.setNextColor(RADAR_BG_COLOR, RADAR_OPACITY);
             boxDrawQueue.addVertices(ShapeUtils.createCircle(radarCenter.x,
-                    radarCenter.y, radarRadius, 144));
+                    radarCenter.y, radarRadius, RadarSettings.getVerticesPerCircle()));
             boxDrawQueue.finishShape(GL_TRIANGLE_FAN);
 
             final Color color = (player.isAlive() ? RADAR_FG_COLOR : RADAR_FG_DEAD_COLOR);
@@ -78,19 +79,19 @@ public class RadarBoxRenderer implements CombatRenderer
             // Outer circle
             boxDrawQueue.setNextColor(color, radarEdgeFade);
             boxDrawQueue.addVertices(ShapeUtils.createCircle(radarCenter.x,
-                    radarCenter.y, radarRadius, 144));
+                    radarCenter.y, radarRadius, RadarSettings.getVerticesPerCircle()));
             boxDrawQueue.finishShape(GL_LINE_LOOP);
 
             // Middle circle
             boxDrawQueue.setNextColor(color, radarAlpha * radarMidFade);
             boxDrawQueue.addVertices(ShapeUtils.createCircle(radarCenter.x,
-                    radarCenter.y, radarRadius * .66f, 108));
+                    radarCenter.y, radarRadius * .66f, RadarSettings.getVerticesPerCircle()));
             boxDrawQueue.finishShape(GL_LINE_LOOP);
 
             // Inner circle
             boxDrawQueue.setNextColor(color, radarAlpha);
             boxDrawQueue.addVertices(ShapeUtils.createCircle(radarCenter.x,
-                    radarCenter.y, radarRadius * .33f, 72));
+                    radarCenter.y, radarRadius * .33f, RadarSettings.getVerticesPerCircle()));
             boxDrawQueue.finishShape(GL_LINE_LOOP);
 
             // Vertical line
