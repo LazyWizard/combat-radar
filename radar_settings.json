@@ -107,7 +107,7 @@
             "fighterSizeMod":2.25, # Multiplies fighter contact size by this
             "shieldColor":[0,255,255,200],
             "drawSolidShields":true,
-            "maxShieldSegments":18,
+            "maxShieldSegments":64,
             "targetMarkerColor":[255,255,255,255],
             # Phased ships are drawn partially transparent based on how strong
             # the phase effect is. This sets the lowest opacity allowed

@@ -105,7 +105,7 @@ public class ShipRenderer implements CombatRenderer
         final float startAngle = (float) Math.toRadians(shield.getFacing()
                 - (shield.getActiveArc() / 2f));
         final float arcAngle = (float) Math.toRadians(shield.getActiveArc());
-        final int numSegments = (int) ((shield.getActiveArc() / MAX_SHIELD_SEGMENTS) + 0.5f);
+        final int numSegments = (int) (MAX_SHIELD_SEGMENTS / (360f / shield.getActiveArc()) + 0.5f);
 
         if (numSegments < 1)
         {
