@@ -3,10 +3,15 @@
 Updated to be compatible with Starsector 0.7a
 Added "verticesPerCircle" setting, increase this for smoother circles
 Enabled line, point and polygon smoothing where applicable
- - Should make ships, shields, missiles, asteroids and planets look much better
+ - Should make ships, shields, missiles and asteroids look much better
+Increased size of missiles and asteroids to make them more visible
 Campaign fleet renderer changes:
- - Fixed issue where player would flash bounty colors if a faction paying for
-   kills against their enemies was hostile towards the player
+ - Uses a sprite now, should look much smoother
+ - Fixed issue where player fleet would flash bounty colors if a faction was
+   paying for kills against their enemies and was hostile towards the player
+Planet renderer changes:
+ - Uses vanilla map icons instead of polygons
+ - Differentiates between planets and stars
 Combat readiness renderer changes:
  - Bar is dimmed until you have started losing combat readiness
  - Remaining peak CR timer is shown as a white line down the middle of the bar

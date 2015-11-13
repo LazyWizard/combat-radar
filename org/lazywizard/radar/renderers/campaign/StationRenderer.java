@@ -30,7 +30,7 @@ public class StationRenderer implements CampaignRenderer
 
         settings = settings.getJSONObject("campaignRenderers")
                 .getJSONObject("stationRenderer");
-        STATION_ICON = settings.optString("stationIcon", null);
+        STATION_ICON = settings.getString("stationIcon");
         MAX_STATIONS_SHOWN = settings.optInt("maxShown", 1_000);
     }
 
