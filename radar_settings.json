@@ -62,6 +62,7 @@
     "showMapBorder":true,           # Default: true, performance impact very low
     "showBattleProgress":true,      # Default: true, performance impact low
     "showCombatReadiness":true,     # Default: true, performance impact very low
+    "showPeakCRRemaining":true,     # Default: true, performance impact very low
 
     # Controls what shows up on the campaign radar. Disabling some of these
     # might improve performance on a particularly slow machine

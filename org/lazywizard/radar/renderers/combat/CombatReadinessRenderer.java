@@ -24,7 +24,7 @@ import static org.lwjgl.opengl.GL11.*;
 // TODO: Update to use isUpdateFrame
 public class CombatReadinessRenderer implements CombatRenderer
 {
-    private static boolean SHOW_COMBAT_READINESS;
+    private static boolean SHOW_COMBAT_READINESS, SHOW_PEAK_CR;
     private static Color CURRENT_CR_COLOR, LOST_CR_COLOR, NO_CR_COLOR;
     private CommonRadar<CombatEntityAPI> radar;
     private Vector2f barLocation;
@@ -37,6 +37,7 @@ public class CombatReadinessRenderer implements CombatRenderer
     public void reloadSettings(JSONObject settings) throws JSONException
     {
         SHOW_COMBAT_READINESS = settings.getBoolean("showCombatReadiness");
+        SHOW_PEAK_CR = settings.getBoolean("showPeakCRRemaining");
 
         settings = settings.getJSONObject("combatRenderers")
                 .getJSONObject("combatReadinessRenderer");
@@ -140,9 +141,9 @@ public class CombatReadinessRenderer implements CombatRenderer
 
             final float timerFraction = (!player.losesCRDuringCombat() ? 1f
                     : Math.max(0f, Math.min(1f,
-                        1f - (player.getTimeDeployedForCRReduction()
-                        / player.getMutableStats().getPeakCRDuration()
-                        .computeEffective(player.getHullSpec().getNoCRLossTime())))));
+                            1f - (player.getTimeDeployedForCRReduction()
+                            / player.getMutableStats().getPeakCRDuration()
+                            .computeEffective(player.getHullSpec().getNoCRLossTime())))));
 
             // Dim the bar if player ship isn't currently losing CR
             if (timerFraction > 0f)
@@ -204,37 +205,17 @@ public class CombatReadinessRenderer implements CombatRenderer
             }
             glEnd();
 
-            // TODO: Draw remaining CR timer
-            // TODO: Add config file options for this
-            if (player.losesCRDuringCombat())
+            // Draw peak CR timer remaining
+            if (SHOW_PEAK_CR && timerFraction > 0f)
             {
-                /*glLineWidth(1f);
-                glColor(Color.WHITE, 1f, false);
+                glLineWidth(barWidth * .25f);
+                glColor(Color.WHITE, radar.getRadarAlpha() * 0.8f, false);
                 glBegin(GL_LINES);
                 glVertex2f(barLocation.x + (barWidth * 0.5f),
                         barLocation.y);
                 glVertex2f(barLocation.x + (barWidth * 0.5f),
                         barLocation.y + (barHeight * timerFraction));
-                glEnd();*/
-                if (timerFraction > 0f)
-                {
-                    final float width = 1f;
-                    glLineWidth(2f);
-                    glColor(Color.WHITE, .75f, false);
-                    glBegin(GL_LINE_STRIP);
-                    if (timerFraction >= 1f)
-                    {
-                        glVertex2f(barLocation.x + barWidth + width,
-                                barLocation.y + barHeight + width);
-                    }
-                    glVertex2f(barLocation.x - width,
-                            barLocation.y + width + (barHeight * timerFraction));
-                    glVertex2f(barLocation.x - width, barLocation.y - width);
-                    glVertex2f(barLocation.x + barWidth + width, barLocation.y - width);
-                    glVertex2f(barLocation.x + barWidth + width,
-                            barLocation.y + width + (barHeight * timerFraction));
-                    glEnd();
-                }
+                glEnd();
             }
 
             // Draw max CR possible as horizontal line
