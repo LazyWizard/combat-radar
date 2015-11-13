@@ -86,6 +86,11 @@ public class FleetRenderer implements CampaignRenderer
                 // If so, find every faction they are willing to pay for kills against
                 for (FactionAPI faction : Global.getSector().getAllFactions())
                 {
+                    if (faction.isPlayerFaction())
+                    {
+                        continue;
+                    }
+
                     if (market.getFaction().isHostileTo(faction))
                     {
                         factionsWithBounties.add(faction);
