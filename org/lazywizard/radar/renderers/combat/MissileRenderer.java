@@ -1,6 +1,7 @@
 package org.lazywizard.radar.renderers.combat;
 
 import java.awt.Color;
+import java.util.ArrayList;
 import java.util.List;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.CombatEntityAPI;
@@ -14,7 +15,6 @@ import org.json.JSONObject;
 import org.lazywizard.lazylib.JSONUtils;
 import org.lazywizard.radar.CommonRadar;
 import org.lazywizard.radar.renderers.CombatRenderer;
-import org.lazywizard.radar.util.DrawQueue;
 import org.lwjgl.util.vector.Vector2f;
 import static org.lwjgl.opengl.GL11.*;
 
@@ -23,12 +23,12 @@ public class MissileRenderer implements CombatRenderer
     private static boolean SHOW_MISSILES, SHOW_MISSILE_LOCK_ICON;
     private static int MAX_MISSILES_SHOWN;
     private static Color MISSILE_LOCKED_COLOR;
-    private static String MISSILE_ICON;
-    private SpriteAPI icon;
-    private Vector2f iconLocation;
+    private static String MISSILE_ICON, MISSILE_LOCK_ICON;
+    private SpriteAPI icon, lockIcon;
+    private Vector2f lockIconLocation;
     private boolean playerLock = false;
-    private float highestThreatAlpha = 0f;
-    private DrawQueue drawQueue;
+    private float highestThreatAlpha = 0f, hScale;
+    private List<MissileIcon> toDraw;
     private CommonRadar<CombatEntityAPI> radar;
 
     @Override
@@ -41,7 +41,8 @@ public class MissileRenderer implements CombatRenderer
                 .getJSONObject("missileRenderer");
         MAX_MISSILES_SHOWN = settings.optInt("maxShown", 1_000);
         MISSILE_LOCKED_COLOR = JSONUtils.toColor(settings.getJSONArray("lockedMissileColor"));
-        MISSILE_ICON = settings.optString("missileLockIcon", null);
+        MISSILE_ICON = settings.getString("missileIcon");
+        MISSILE_LOCK_ICON = settings.optString("missileLockIcon", null);
     }
 
     @Override
@@ -53,15 +54,17 @@ public class MissileRenderer implements CombatRenderer
         }
 
         this.radar = radar;
-        drawQueue = new DrawQueue(MAX_MISSILES_SHOWN);
+        toDraw = new ArrayList<>();
+        icon = Global.getSettings().getSprite("radar", MISSILE_ICON);
+        hScale = icon.getWidth() / icon.getHeight();
 
         if (SHOW_MISSILE_LOCK_ICON)
         {
             final Vector2f radarCenter = radar.getRenderCenter();
             final float radarRadius = radar.getRenderRadius();
-            icon = Global.getSettings().getSprite("radar", MISSILE_ICON);
-            icon.setColor(MISSILE_LOCKED_COLOR);
-            iconLocation = new Vector2f(radarCenter.x - (radarRadius * 0.9f),
+            lockIcon = Global.getSettings().getSprite("radar", MISSILE_LOCK_ICON);
+            lockIcon.setColor(MISSILE_LOCKED_COLOR);
+            lockIconLocation = new Vector2f(radarCenter.x - (radarRadius * 0.9f),
                     radarCenter.y + (radarRadius * 0.9f));
         }
     }
@@ -79,7 +82,7 @@ public class MissileRenderer implements CombatRenderer
         {
             playerLock = false;
             highestThreatAlpha = 0f;
-            drawQueue.clear();
+            toDraw.clear();
             final List<MissileAPI> missiles = radar.filterVisible(
                     Global.getCombatEngine().getMissiles(), MAX_MISSILES_SHOWN);
             for (MissileAPI missile : missiles)
@@ -121,40 +124,60 @@ public class MissileRenderer implements CombatRenderer
                     color = radar.getFriendlyContactColor();
                 }
 
-                drawQueue.setNextColor(color, alphaMod);
-                drawQueue.addVertices(radarLoc);
+                toDraw.add(new MissileIcon(radarLoc[0], radarLoc[1],
+                        alphaMod, missile.getFacing(), color));
             }
-
-            drawQueue.finishShape(GL_POINTS);
-            drawQueue.finish();
         }
 
         // Don't draw if there's nothing to render!
-        if (drawQueue.isEmpty())
+        if (toDraw.isEmpty())
         {
             return;
         }
 
+        final float drawSize = radar.getRenderRadius() * 0.1f;
+
+        icon.setAlphaMult(radar.getContactAlpha());
         radar.enableStencilTest();
 
-        // Draw missiles
-        glPointSize(3f * radar.getCurrentZoomLevel());
-        glEnable(GL_POINT_SMOOTH);
-        glEnableClientState(GL_VERTEX_ARRAY);
-        glEnableClientState(GL_COLOR_ARRAY);
-        drawQueue.draw();
-        glDisableClientState(GL_VERTEX_ARRAY);
-        glDisableClientState(GL_COLOR_ARRAY);
-        glDisable(GL_POINT_SMOOTH);
-
-        radar.disableStencilTest();
+        // Draw all asteroids
+        glEnable(GL_TEXTURE_2D);
+        for (MissileIcon mIcon : toDraw)
+        {
+            mIcon.render(drawSize);
+        }
 
         if (SHOW_MISSILE_LOCK_ICON && playerLock)
         {
-            glEnable(GL_TEXTURE_2D);
-            icon.setAlphaMult(radar.getRadarAlpha() * highestThreatAlpha);
-            icon.renderAtCenter(iconLocation.x, iconLocation.y);
-            glDisable(GL_TEXTURE_2D);
+            lockIcon.setAlphaMult(radar.getRadarAlpha() * highestThreatAlpha);
+            lockIcon.renderAtCenter(lockIconLocation.x, lockIconLocation.y);
+        }
+        glDisable(GL_TEXTURE_2D);
+
+        radar.disableStencilTest();
+    }
+
+    private class MissileIcon
+    {
+        private final float x, y, alpha, facing;
+        private final Color color;
+
+        private MissileIcon(float x, float y, float alpha, float facing, Color color)
+        {
+            this.x = x;
+            this.y = y;
+            this.alpha = alpha;
+            this.facing = facing;
+            this.color = color;
+        }
+
+        private void render(float size)
+        {
+            icon.setSize(size * hScale, size);
+            icon.setAngle(facing - 90f);
+            icon.setColor(color);
+            icon.setAlphaMult(alpha);
+            icon.renderAtCenter(x, y);
         }
     }
 }
