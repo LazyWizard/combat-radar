@@ -1,7 +1,7 @@
- 2.0b (November XX, 2015)
-==========================
+ 2.1 (November XX, 2015)
+=========================
 Updated to be compatible with Starsector 0.7a
-Added "verticesPerCircle" setting, increase for smoother circles
+Added "verticesPerCircle" setting, increase this for smoother circles
 Combat readiness renderer changes:
  - Bar is dimmed until you have started losing combat readiness
  - Remaining peak CR timer is shown as a white line down the middle of the bar
@@ -14,6 +14,8 @@ Combat ship renderer changes:
  - Removed "phasedShipAlphaMult" setting, added "minShipAlphaMult"
    (ships with 0 alpha will be completely invisible regardless of this setting)
  - Polygon triangulator is now a config file option
+ - Fixed bug causing shields to have the wrong number of segments
+ - Bumped default shield segment count from 18 (?!) to 64
  - Bumped default fighter contact scaling from 175% to 225% actual size
  - Use sprite size instead of collision radius for calculating fighter size
    (this should fix the issue with shield drones and their oversized radius)
