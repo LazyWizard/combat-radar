@@ -130,7 +130,11 @@
             # ID of the missile icons, found in data/config/settings.json
             # Must be in the "radar" subcategory of the "graphics" section
             "missileIcon":"missile",
+            "flareIcon":"flare",
             "missileLockIcon":"missileLock",
+            # Only for debugging, won't be in final release!
+            # Size of missile contact is radar render radius times this number
+            "missileSize":0.075,
             "lockedMissileColor":[255,200,0,255]
         },
 
