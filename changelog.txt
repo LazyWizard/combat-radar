@@ -1,10 +1,11 @@
  2.1 (November XX, 2015)
 =========================
+(thanks to MesoTroniK for spritework and extensive help testing new features)
 Updated to be compatible with Starsector 0.7a
-Added "verticesPerCircle" setting, increase this for smoother circles
-Enabled line, point and polygon smoothing where applicable
- - Should make ships, shields, missiles and asteroids look much better
-Increased size of missiles and asteroids to make them more visible
+Added "verticesPerCircle" setting, increase this for smoother radar rings
+Asteroid renderer (both campaign and combat) changes:
+ - Uses a sprite now, should look much smoother
+ - Scaled based on their true size, not a flat value multiplied by zoom level
 Campaign fleet renderer changes:
  - Uses a sprite now, should look much smoother
  - Fixed issue where player fleet would flash bounty colors if a faction was
@@ -16,20 +17,27 @@ Combat readiness renderer changes:
  - Bar is dimmed until you have started losing combat readiness
  - Remaining peak CR timer is shown as a white line down the middle of the bar
 Combat ship renderer changes:
+ - Separated ship and shield rendering
  - Increased transparency of shields
+ - Added smoothing to shields (might cause artifacts on some cards, let me know)
+ - Bumped default shield segment count from 18 (?!) to 64
  - Transparency of ship contacts is based on the alpha of the actual sprite
-  * Ships with custom right click ship systems won't be momentarily
-    translucent on the radar when using them anymore (ex: Exigency Incorporated)
-  * Fighters taking off or landing on a carrier now fade in/out
+   - Ships with custom right click ship systems won't be momentarily
+     translucent on the radar when using them now (ex: Exigency Incorporated)
+   - Fighters taking off or landing on a carrier should fade in/out
  - Removed "phasedShipAlphaMult" setting, added "minShipAlphaMult"
    (ships with 0 alpha will be completely invisible regardless of this setting)
- - Polygon triangulator is now a config file option
+ - Polygon triangulator is now a config file option, added the other Slick2D
+   triangulator implementations
  - Fixed bug causing shields to have the wrong number of segments
- - Bumped default shield segment count from 18 (?!) to 64
  - Bumped default fighter contact scaling from 175% to 225% actual size
  - Use sprite size instead of collision radius for calculating fighter size
    (this should fix the issue with shield drones and their oversized radius)
  - Fixed issue where a fighter's shields weren't being scaled
+Missile renderer changes:
+ - Uses a sprite now, should look much smoother, sprite shows facing of missile
+ - Missile contacts are the same size at every zoom level
+ - Differentiates between missiles and flares
 
  2.0 (October 04, 2015)
 ========================
