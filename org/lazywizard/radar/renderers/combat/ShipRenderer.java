@@ -292,11 +292,13 @@ public class ShipRenderer implements CombatRenderer
 
         // Draw cached render data
         radar.enableStencilTest();
+        glEnable(GL_POLYGON_SMOOTH);
         glEnableClientState(GL_VERTEX_ARRAY);
         glEnableClientState(GL_COLOR_ARRAY);
         drawQueue.draw();
         glDisableClientState(GL_COLOR_ARRAY);
         glDisableClientState(GL_VERTEX_ARRAY);
+        glDisable(GL_POLYGON_SMOOTH);
         radar.disableStencilTest();
     }
 

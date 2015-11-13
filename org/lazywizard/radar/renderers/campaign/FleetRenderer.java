@@ -185,11 +185,13 @@ public class FleetRenderer implements CampaignRenderer
         // Draw fleets
         radar.enableStencilTest();
         glPointSize(2f * radar.getCurrentZoomLevel());
+        glEnable(GL_POLYGON_SMOOTH);
         glEnableClientState(GL_VERTEX_ARRAY);
         glEnableClientState(GL_COLOR_ARRAY);
         drawQueue.draw();
         glDisableClientState(GL_COLOR_ARRAY);
         glDisableClientState(GL_VERTEX_ARRAY);
+        glDisable(GL_POLYGON_SMOOTH);
         radar.disableStencilTest();
     }
 }

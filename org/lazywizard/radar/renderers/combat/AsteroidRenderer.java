@@ -79,11 +79,13 @@ public class AsteroidRenderer implements CombatRenderer
         // Draw asteroids
         radar.enableStencilTest();
         glPointSize(2f * radar.getCurrentZoomLevel());
+        glEnable(GL_POINT_SMOOTH);
         glEnableClientState(GL_VERTEX_ARRAY);
         glEnableClientState(GL_COLOR_ARRAY);
         drawQueue.draw();
         glDisableClientState(GL_COLOR_ARRAY);
         glDisableClientState(GL_VERTEX_ARRAY);
+        glDisable(GL_POINT_SMOOTH);
         radar.disableStencilTest();
     }
 }
