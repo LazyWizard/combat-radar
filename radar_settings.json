@@ -127,8 +127,9 @@
         "missileRenderer":
         {
             #"maxShown":150,
-            # ID of the missile lock icon, found in data/config/settings.json
+            # ID of the missile icons, found in data/config/settings.json
             # Must be in the "radar" subcategory of the "graphics" section
+            "missileIcon":"missile",
             "missileLockIcon":"missileLock",
             "lockedMissileColor":[255,200,0,255]
         },
