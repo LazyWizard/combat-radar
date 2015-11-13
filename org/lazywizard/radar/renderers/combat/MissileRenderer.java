@@ -139,11 +139,13 @@ public class MissileRenderer implements CombatRenderer
 
         // Draw missiles
         glPointSize(2f * radar.getCurrentZoomLevel());
+        glEnable(GL_POINT_SMOOTH);
         glEnableClientState(GL_VERTEX_ARRAY);
         glEnableClientState(GL_COLOR_ARRAY);
         drawQueue.draw();
         glDisableClientState(GL_VERTEX_ARRAY);
         glDisableClientState(GL_COLOR_ARRAY);
+        glDisable(GL_POINT_SMOOTH);
 
         radar.disableStencilTest();
 

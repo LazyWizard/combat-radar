@@ -170,9 +170,9 @@ public class RadarBoxRenderer implements CombatRenderer
         }
 
         // Draw cached data
+        glEnable(GL_LINE_SMOOTH);
         glEnableClientState(GL_VERTEX_ARRAY);
         glEnableClientState(GL_COLOR_ARRAY);
-        glEnable(GL_LINE_SMOOTH);
         glLineWidth(1f);
         boxDrawQueue.draw();
         zoomDrawQueue.draw();

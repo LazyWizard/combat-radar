@@ -80,13 +80,13 @@ public class PlanetRenderer implements CampaignRenderer
 
         // Draw planets
         radar.enableStencilTest();
-        glEnable(GL_LINE_SMOOTH);
+        glEnable(GL_POLYGON_SMOOTH);
         glEnableClientState(GL_VERTEX_ARRAY);
         glEnableClientState(GL_COLOR_ARRAY);
         drawQueue.draw();
         glDisableClientState(GL_COLOR_ARRAY);
         glDisableClientState(GL_VERTEX_ARRAY);
-        glDisable(GL_LINE_SMOOTH);
+        glDisable(GL_POLYGON_SMOOTH);
         radar.disableStencilTest();
     }
 }
