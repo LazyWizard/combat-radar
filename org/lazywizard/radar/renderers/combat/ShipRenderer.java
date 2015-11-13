@@ -35,7 +35,7 @@ public class ShipRenderer implements CombatRenderer
     private static int MAX_SHIPS_SHOWN, MAX_SHIELD_SEGMENTS;
     private static Color SHIELD_COLOR, MARKER_COLOR;
     private static float FIGHTER_SIZE_MOD, MIN_SHIP_ALPHA_MULT;
-    private DrawQueue drawQueue;
+    private DrawQueue shipDrawQueue, shieldDrawQueue;
     private CommonRadar<CombatEntityAPI> radar;
 
     @Override
@@ -75,20 +75,23 @@ public class ShipRenderer implements CombatRenderer
             return;
         }
 
+        this.radar = radar;
+
         // Let's just hope more than this isn't needed. A resize would be expensive
         int initialVertexCapacity = MAX_SHIPS_SHOWN * (SIMPLE_SHIPS ? 3 : 25);
-        if (SHOW_SHIELDS)
-        {
-            initialVertexCapacity += MAX_SHIPS_SHOWN * 2
-                    * (MAX_SHIELD_SEGMENTS + (DRAW_SOLID_SHIELDS ? 4 : 2));
-        }
         if (SHOW_TARGET_MARKER)
         {
             initialVertexCapacity += 8;
         }
+        shipDrawQueue = new DrawQueue(initialVertexCapacity);
 
-        this.radar = radar;
-        drawQueue = new DrawQueue(initialVertexCapacity);
+        if (SHOW_SHIELDS)
+        {
+            shieldDrawQueue = new DrawQueue(MAX_SHIPS_SHOWN * 2
+                    * (MAX_SHIELD_SEGMENTS + (DRAW_SOLID_SHIELDS ? 4 : 2)));
+            shieldDrawQueue.setNextColor(SHIELD_COLOR, radar.getContactAlpha()
+                    * (DRAW_SOLID_SHIELDS ? 0.5f : 1f));
+        }
     }
 
     private void addShieldToBuffer(ShipAPI contact)
@@ -145,8 +148,8 @@ public class ShipRenderer implements CombatRenderer
         vertices[vertices.length - 1] = y + radarLoc[1];
 
         // Add vertices to master vertex map
-        drawQueue.addVertices(vertices);
-        drawQueue.finishShape(DRAW_SOLID_SHIELDS ? GL_TRIANGLE_FAN : GL_LINE_STRIP);
+        shieldDrawQueue.addVertices(vertices);
+        shieldDrawQueue.finishShape(DRAW_SOLID_SHIELDS ? GL_TRIANGLE_FAN : GL_LINE_STRIP);
     }
 
     private void addTargetMarker(ShipAPI target)
@@ -179,9 +182,9 @@ public class ShipRenderer implements CombatRenderer
             radarLoc.x + size, radarLoc.y - margin  // 11
         };
 
-        drawQueue.setNextColor(MARKER_COLOR, radar.getContactAlpha());
-        drawQueue.addVertices(vertices);
-        drawQueue.finishShape(GL_LINES);
+        shipDrawQueue.setNextColor(MARKER_COLOR, radar.getContactAlpha());
+        shipDrawQueue.addVertices(vertices);
+        shipDrawQueue.finishShape(GL_LINES);
     }
 
     private float[] getColor(ShipAPI ship, int playerSide)
@@ -242,7 +245,12 @@ public class ShipRenderer implements CombatRenderer
 
         if (isUpdateFrame)
         {
-            drawQueue.clear();
+            if (SHOW_SHIELDS)
+            {
+                shieldDrawQueue.clear();
+            }
+
+            shipDrawQueue.clear();
             final List<ShipAPI> contacts = radar.filterVisible(
                     Global.getCombatEngine().getShips(), MAX_SHIPS_SHOWN);
             if (!contacts.isEmpty())
@@ -270,37 +278,42 @@ public class ShipRenderer implements CombatRenderer
                     if (vertices != null)
                     {
                         final float[] color = getColor(contact, player.getOwner());
-                        drawQueue.setNextColor(color[0], color[1], color[2], color[3]);
-                        drawQueue.addVertices(vertices);
-                        drawQueue.finishShape(renderer.drawMode);
+                        shipDrawQueue.setNextColor(color[0], color[1], color[2], color[3]);
+                        shipDrawQueue.addVertices(vertices);
+                        shipDrawQueue.finishShape(renderer.drawMode);
                     }
                 }
 
                 // Get updated list of shields
                 if (SHOW_SHIELDS)
                 {
-                    drawQueue.setNextColor(SHIELD_COLOR, radar.getContactAlpha()
-                            * (DRAW_SOLID_SHIELDS ? 0.5f : 1f));
                     for (ShipAPI contact : contacts)
                     {
                         addShieldToBuffer(contact);
                     }
+
+                    shieldDrawQueue.finish();
                 }
             }
-            drawQueue.finish();
+
+            shipDrawQueue.finish();
         }
 
         // Draw cached render data
         radar.enableStencilTest();
-        glEnable(GL_POLYGON_SMOOTH);
-        //glEnable(GL_BLEND);
         glEnableClientState(GL_VERTEX_ARRAY);
         glEnableClientState(GL_COLOR_ARRAY);
-        drawQueue.draw();
+        shipDrawQueue.draw();
+
+        if (SHOW_SHIELDS)
+        {
+            glEnable(GL_POLYGON_SMOOTH);
+            shieldDrawQueue.draw();
+            glDisable(GL_POLYGON_SMOOTH);
+        }
+
         glDisableClientState(GL_COLOR_ARRAY);
         glDisableClientState(GL_VERTEX_ARRAY);
-        //glDisable(GL_BLEND);
-        glDisable(GL_POLYGON_SMOOTH);
         radar.disableStencilTest();
     }
 
