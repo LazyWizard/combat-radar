@@ -68,7 +68,8 @@ public class PlanetRenderer implements CampaignRenderer
                 for (PlanetAPI planet : planets)
                 {
                     float[] center = radar.getRawPointOnRadar(planet.getLocation());
-                    float radius = planet.getRadius() * 2f * radar.getCurrentPixelsPerSU();
+                    float radius = Math.max(160f, planet.getRadius() * 2f)
+                            * radar.getCurrentPixelsPerSU();
                     toDraw.add(new PlanetIcon(center[0],center[1], radius,
                             planet.isStar(), planet.getSpec().getIconColor()));
                 }

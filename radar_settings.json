@@ -208,7 +208,10 @@
         "asteroidRenderer":
         {
             #"maxShown":250,
-            "asteroidColor":[192,192,192,255]
+            # ID of the asteroid icon, found in data/config/settings.json
+            # Must be in the "radar" subcategory of the "graphics" section
+            "asteroidIcon":"asteroid",
+            "asteroidColor":[220,220,220,255]
         },
 
         "jumpPointRenderer":
