@@ -14,6 +14,7 @@ import org.lazywizard.radar.CommonRadar;
 import org.lazywizard.radar.renderers.CampaignRenderer;
 import static org.lwjgl.opengl.GL11.*;
 
+// TODO: Get planet icon sprite directly somehow?
 public class PlanetRenderer implements CampaignRenderer
 {
     private static boolean SHOW_PLANETS;
