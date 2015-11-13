@@ -23,8 +23,9 @@ public class MissileRenderer implements CombatRenderer
     private static boolean SHOW_MISSILES, SHOW_MISSILE_LOCK_ICON;
     private static int MAX_MISSILES_SHOWN;
     private static Color MISSILE_LOCKED_COLOR;
-    private static String MISSILE_ICON, MISSILE_LOCK_ICON;
-    private SpriteAPI icon, lockIcon;
+    private static String MISSILE_ICON, FLARE_ICON, MISSILE_LOCK_ICON;
+    private static float DEBUG_SIZE_VALUE;
+    private SpriteAPI missileIcon, flareIcon, lockIcon;
     private Vector2f lockIconLocation;
     private boolean playerLock = false;
     private float highestThreatAlpha = 0f, hScale;
@@ -42,7 +43,9 @@ public class MissileRenderer implements CombatRenderer
         MAX_MISSILES_SHOWN = settings.optInt("maxShown", 1_000);
         MISSILE_LOCKED_COLOR = JSONUtils.toColor(settings.getJSONArray("lockedMissileColor"));
         MISSILE_ICON = settings.getString("missileIcon");
+        FLARE_ICON = settings.getString("flareIcon");
         MISSILE_LOCK_ICON = settings.optString("missileLockIcon", null);
+        DEBUG_SIZE_VALUE = (float) settings.getDouble("missileSize");
     }
 
     @Override
@@ -55,8 +58,9 @@ public class MissileRenderer implements CombatRenderer
 
         this.radar = radar;
         toDraw = new ArrayList<>();
-        icon = Global.getSettings().getSprite("radar", MISSILE_ICON);
-        hScale = icon.getWidth() / icon.getHeight();
+        missileIcon = Global.getSettings().getSprite("radar", MISSILE_ICON);
+        flareIcon = Global.getSettings().getSprite("radar", FLARE_ICON);
+        hScale = missileIcon.getWidth() / missileIcon.getHeight();
 
         if (SHOW_MISSILE_LOCK_ICON)
         {
@@ -91,7 +95,7 @@ public class MissileRenderer implements CombatRenderer
                 float[] radarLoc = radar.getRawPointOnRadar(missile.getLocation());
 
                 // Calculate color
-                float alphaMod = Math.min(1f, Math.max(0.3f,
+                float alphaMod = Math.min(1f, Math.max(0.45f,
                         (missile.getDamageAmount() + (missile.getEmpAmount() / 2f)) / 750f));
                 alphaMod *= radar.getContactAlpha() * (missile.isFading() ? .5f : 1f);
 
@@ -125,7 +129,7 @@ public class MissileRenderer implements CombatRenderer
                 }
 
                 toDraw.add(new MissileIcon(radarLoc[0], radarLoc[1],
-                        alphaMod, missile.getFacing(), color));
+                        alphaMod, missile.getFacing(), missile.isFlare(), color));
             }
         }
 
@@ -135,9 +139,10 @@ public class MissileRenderer implements CombatRenderer
             return;
         }
 
-        final float drawSize = radar.getRenderRadius() * 0.1f;
+        final float drawSize = radar.getRenderRadius() * DEBUG_SIZE_VALUE;
 
-        icon.setAlphaMult(radar.getContactAlpha());
+        missileIcon.setAlphaMult(radar.getContactAlpha());
+        flareIcon.setAlphaMult(radar.getContactAlpha());
         radar.enableStencilTest();
 
         // Draw all asteroids
@@ -160,19 +165,23 @@ public class MissileRenderer implements CombatRenderer
     private class MissileIcon
     {
         private final float x, y, alpha, facing;
+        private final boolean isFlare;
         private final Color color;
 
-        private MissileIcon(float x, float y, float alpha, float facing, Color color)
+        private MissileIcon(float x, float y, float alpha, float facing,
+                boolean isFlare, Color color)
         {
             this.x = x;
             this.y = y;
             this.alpha = alpha;
             this.facing = facing;
+            this.isFlare = isFlare;
             this.color = color;
         }
 
         private void render(float size)
         {
+            final SpriteAPI icon = (isFlare ? flareIcon : missileIcon);
             icon.setSize(size * hScale, size);
             icon.setAngle(facing - 90f);
             icon.setColor(color);

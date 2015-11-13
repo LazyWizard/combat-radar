@@ -8,6 +8,7 @@
     {
         "radar":
         {
+            "flare":"graphics/lw_radar/campaign/planet.png",
             "missile":"graphics/lw_radar/combat/missile.png",
             "missileLock":"graphics/lw_radar/combat/missile_lock.png",
             "asteroid":"graphics/lw_radar/campaign/planet.png",
