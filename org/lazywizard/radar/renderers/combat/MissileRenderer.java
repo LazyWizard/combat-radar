@@ -44,7 +44,7 @@ public class MissileRenderer implements CombatRenderer
         MISSILE_LOCKED_COLOR = JSONUtils.toColor(settings.getJSONArray("lockedMissileColor"));
         MISSILE_ICON = settings.getString("missileIcon");
         FLARE_ICON = settings.getString("flareIcon");
-        MISSILE_LOCK_ICON = settings.optString("missileLockIcon", null);
+        MISSILE_LOCK_ICON = settings.getString("missileLockIcon");
         DEBUG_SIZE_VALUE = (float) settings.getDouble("missileSize");
     }
 
@@ -152,6 +152,8 @@ public class MissileRenderer implements CombatRenderer
             mIcon.render(drawSize);
         }
 
+        radar.disableStencilTest();
+
         if (SHOW_MISSILE_LOCK_ICON && playerLock)
         {
             lockIcon.setAlphaMult(radar.getRadarAlpha() * highestThreatAlpha);
@@ -159,7 +161,6 @@ public class MissileRenderer implements CombatRenderer
         }
         glDisable(GL_TEXTURE_2D);
 
-        radar.disableStencilTest();
     }
 
     private class MissileIcon
@@ -182,7 +183,15 @@ public class MissileRenderer implements CombatRenderer
         private void render(float size)
         {
             final SpriteAPI icon = (isFlare ? flareIcon : missileIcon);
-            icon.setSize(size * hScale, size);
+            if (isFlare)
+            {
+                icon.setSize(size * 0.5f, size * 0.5f);
+            }
+            else
+            {
+                icon.setSize(size * hScale, size);
+            }
+
             icon.setAngle(facing - 90f);
             icon.setColor(color);
             icon.setAlphaMult(alpha);
