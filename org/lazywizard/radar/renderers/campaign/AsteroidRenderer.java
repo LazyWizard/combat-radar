@@ -69,7 +69,7 @@ public class AsteroidRenderer implements CampaignRenderer
                 {
                     final float[] loc = radar.getRawPointOnRadar(asteroid.getLocation());
                     float size = asteroid.getRadius() * 2f * radar.getCurrentPixelsPerSU();
-                    size *= 2.5f; // Scale upwards for better visibility
+                    size *= 3.5f; // Scale upwards for better visibility
                     toDraw.add(new AsteroidIcon(loc[0], loc[1], size));
                 }
             }

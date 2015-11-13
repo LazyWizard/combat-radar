@@ -1,24 +1,27 @@
 package org.lazywizard.radar.renderers.combat;
 
 import java.awt.Color;
+import java.util.ArrayList;
 import java.util.List;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.CombatEntityAPI;
 import com.fs.starfarer.api.combat.ShipAPI;
+import com.fs.starfarer.api.graphics.SpriteAPI;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.lazywizard.lazylib.JSONUtils;
 import org.lazywizard.radar.CommonRadar;
 import org.lazywizard.radar.renderers.CombatRenderer;
-import org.lazywizard.radar.util.DrawQueue;
 import static org.lwjgl.opengl.GL11.*;
 
 public class AsteroidRenderer implements CombatRenderer
 {
     private static boolean SHOW_ASTEROIDS;
     private static int MAX_ASTEROIDS_SHOWN;
+    private static String ASTEROID_ICON;
     private static Color ASTEROID_COLOR;
-    private DrawQueue drawQueue;
+    private SpriteAPI icon;
+    private List<AsteroidIcon> toDraw;
     private CommonRadar<CombatEntityAPI> radar;
 
     @Override
@@ -28,8 +31,9 @@ public class AsteroidRenderer implements CombatRenderer
 
         settings = settings.getJSONObject("combatRenderers")
                 .getJSONObject("asteroidRenderer");
-        MAX_ASTEROIDS_SHOWN = settings.optInt("maxShown", 1_000);
+        ASTEROID_ICON = settings.getString("asteroidIcon");
         ASTEROID_COLOR = JSONUtils.toColor(settings.getJSONArray("asteroidColor"));
+        MAX_ASTEROIDS_SHOWN = settings.optInt("maxShown", 1_000);
     }
 
     @Override
@@ -41,51 +45,72 @@ public class AsteroidRenderer implements CombatRenderer
         }
 
         this.radar = radar;
-        drawQueue = new DrawQueue(MAX_ASTEROIDS_SHOWN);
-        drawQueue.setNextColor(ASTEROID_COLOR, radar.getContactAlpha());
+        icon = Global.getSettings().getSprite("radar", ASTEROID_ICON);
+        toDraw = new ArrayList<>();
+        icon.setColor(ASTEROID_COLOR);
     }
 
     @Override
     public void render(ShipAPI player, float amount, boolean isUpdateFrame)
     {
-        if (!SHOW_ASTEROIDS || !player.isAlive())
+        if (!SHOW_ASTEROIDS)
         {
             return;
         }
 
-        // Update frame = regenerate all vertex data
         if (isUpdateFrame)
         {
-            drawQueue.clear();
+            toDraw.clear();
             final List<CombatEntityAPI> asteroids = radar.filterVisible(
                     Global.getCombatEngine().getAsteroids(), MAX_ASTEROIDS_SHOWN);
             if (!asteroids.isEmpty())
             {
                 for (CombatEntityAPI asteroid : asteroids)
                 {
-                    drawQueue.addVertices(radar.getRawPointOnRadar(asteroid.getLocation()));
+                    final float[] loc = radar.getRawPointOnRadar(asteroid.getLocation());
+                    float size = Math.max(40f, asteroid.getCollisionRadius() * 2f)
+                            * radar.getCurrentPixelsPerSU();
+                    size *= 1.5f; // Scale upwards for better visibility
+                    toDraw.add(new AsteroidIcon(loc[0], loc[1], size));
                 }
-                drawQueue.finishShape(GL_POINTS);
             }
-            drawQueue.finish();
         }
 
         // Don't draw if there's nothing to render!
-        if (drawQueue.isEmpty())
+        if (toDraw.isEmpty())
         {
             return;
         }
 
-        // Draw asteroids
+        icon.setAlphaMult(radar.getContactAlpha());
         radar.enableStencilTest();
-        glPointSize(3f * radar.getCurrentZoomLevel());
-        glEnable(GL_POINT_SMOOTH);
-        glEnableClientState(GL_VERTEX_ARRAY);
-        glEnableClientState(GL_COLOR_ARRAY);
-        drawQueue.draw();
-        glDisableClientState(GL_COLOR_ARRAY);
-        glDisableClientState(GL_VERTEX_ARRAY);
-        glDisable(GL_POINT_SMOOTH);
+
+        // Draw all asteroids
+        glEnable(GL_TEXTURE_2D);
+        for (AsteroidIcon aIcon : toDraw)
+        {
+            aIcon.render();
+        }
+        glDisable(GL_TEXTURE_2D);
+
         radar.disableStencilTest();
+    }
+
+    private class AsteroidIcon
+    {
+        private final float x, y, size;
+
+        private AsteroidIcon(float x, float y, float size)
+        {
+            this.x = x;
+            this.y = y;
+            this.size = size;
+        }
+
+        private void render()
+        {
+            icon.setSize(size, size);
+            icon.renderAtCenter(x, y);
+        }
     }
 }
