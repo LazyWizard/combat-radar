@@ -54,6 +54,7 @@ public class RadarSettings
     // Performance settings
     private static boolean RESPECT_FOG_OF_WAR, USE_VBOS;
     private static float TIME_BETWEEN_UPDATE_FRAMES;
+    private static int VERTICES_PER_CIRCLE;
     // Radar range settings
     private static float COMBAT_SIGHT_RANGE, CAMPAIGN_SIGHT_RANGE;
     // Zoom controls
@@ -90,6 +91,7 @@ public class RadarSettings
 
         // Performance tweak settings
         RESPECT_FOG_OF_WAR = settings.getBoolean("onlyShowVisibleContacts");
+        VERTICES_PER_CIRCLE = settings.getInt("verticesPerCircle");
 
         // Only use vertex buffer objects if the graphics card supports them
         // Every graphics card that's still in use should, but just in case...
@@ -147,7 +149,7 @@ public class RadarSettings
         // Reload excluded missiles
         csv = Global.getSettings().getMergedSpreadsheetDataForMod(
                 "missile projectile id", EXCLUDED_MISSILES_CSV_PATH, "lw_radar");
-                for (int x = 0; x < csv.length(); x++)
+        for (int x = 0; x < csv.length(); x++)
         {
             final JSONObject row = csv.getJSONObject(x);
             EXCLUDED_MISSILES.add(row.getString("missile projectile id"));
@@ -287,6 +289,18 @@ public class RadarSettings
     public static boolean usesVertexBufferObjects()
     {
         return USE_VBOS;
+    }
+
+    /**
+     * Returns how many vertices the radar should use when creating circles.
+     * <p>
+     * @return How many vertices any drawn circles should use.
+     * <p>
+     * @since 2.1
+     */
+    public static int getVerticesPerCircle()
+    {
+        return VERTICES_PER_CIRCLE;
     }
 
     /**

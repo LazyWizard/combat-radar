@@ -27,6 +27,7 @@ import org.lazywizard.radar.util.DrawQueue;
 import org.lazywizard.radar.util.ShapeUtils;
 import static org.lwjgl.opengl.GL11.*;
 
+// TODO: After 0.7a comes out, play around with neutral/friendly colors for Expanded Battles
 public class FleetRenderer implements CampaignRenderer
 {
     private static final Logger LOG = Global.getLogger(FleetRenderer.class);
