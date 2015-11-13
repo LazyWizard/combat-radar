@@ -31,7 +31,7 @@ public class CommRelayRenderer implements CampaignRenderer
 
         settings = settings.getJSONObject("campaignRenderers")
                 .getJSONObject("relayRenderer");
-        RELAY_ICON = settings.optString("relayIcon", null);
+        RELAY_ICON = settings.getString("relayIcon");
         MAX_RELAYS_SHOWN = settings.optInt("maxShown", 1_000);
     }
 

@@ -8,9 +8,9 @@
     # Whether to use vertex buffers, disable if you have problems
     # If your card doesn't support VBOs this setting won't do anything
     "useVBOs":true,          # Default: true
-    # How many points to use when drawing a circle (planets, radar outline, etc)
+    # How many points to use when drawing the concentric circles around the radar
     # More points = smoother circles, slightly higher performance cost
-    # Not used for shields, see maxShieldSegments further down for that
+    # NOT used for shields, see maxShieldSegments further down for that
     "verticesPerCircle": 144, # Default: 144
 
     # What buttons to press to change the radar zoom level or toggle radar on/off
@@ -174,7 +174,10 @@
         {
             #"maxShown":150,
             # What color fleets with a bounty on their head show up as
-            "bountyColor":[255,215,0,255]
+            "bountyColor":[255,215,0,255],
+            # ID of the fleet icon, found in data/config/settings.json
+            # Must be in the "radar" subcategory of the "graphics" section
+            "fleetIcon":"fleet"
         },
 
         "stationRenderer":
@@ -187,7 +190,11 @@
 
         "planetRenderer":
         {
-            #"maxShown":20
+            #"maxShown":20,
+            # ID of the planet and star icons, found in data/config/settings.json
+            # Must be in the "radar" subcategory of the "graphics" section
+            "planetIcon":"planet",
+            "starIcon":"star"
         },
 
         "relayRenderer":
