@@ -9,6 +9,7 @@
         "radar":
         {
             "missileLock":"graphics/lw_radar/combat/missile.png",
+            "asteroid":"graphics/lw_radar/campaign/planet.png",
             "fleet":"graphics/lw_radar/campaign/fleet.png",
             "jumpPoint":"graphics/lw_radar/campaign/portal.png",
             "planet":"graphics/lw_radar/campaign/planet.png",
