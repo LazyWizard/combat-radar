@@ -9,9 +9,8 @@ Transparency of ship contacts is based on the alpha of the actual sprite:
  - Removed "phasedShipAlphaMult" setting, added "minShipAlphaMult"
    (ships with 0 alpha will be completely invisible regardless of this setting)
 Combat readiness renderer changes:
- - Bar is dimmed until your peak CR timer elapses (or forever if ship doesn't
-   lose CR)
- - Remaining peak CR duration is shown as an outline around the bar
+ - Bar is dimmed until you have started losing combat readiness
+ - Remaining peak CR timer is shown as a white line down the middle of the bar
 Combat ship renderer changes:
  - Polygon triangulator is now a config file option
  - Bumped default fighter contact scaling from 175% to 225% actual size
