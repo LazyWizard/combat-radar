@@ -132,8 +132,9 @@
             "missileIcon":"missile",
             "flareIcon":"flare",
             "missileLockIcon":"missileLock",
-            # Size of missile contacts is radar render radius times this number
-            "missileSize":0.075,
+            # Actual size of contacts is radar render radius times these numbers
+            "missileContactSize":0.075,
+            "flareContactSize":0.04,
             "lockedMissileColor":[255,200,0,255]
         },
 
