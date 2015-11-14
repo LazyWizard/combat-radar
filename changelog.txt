@@ -37,8 +37,9 @@ Combat ship renderer changes:
  - Fixed issue where a fighter's shields weren't being scaled
 Missile renderer changes:
  - Uses a sprite now, should look much smoother, sprite shows facing of missile
- - Missile contacts are the same size at every zoom level
  - Differentiates between missiles and flares
+ - Missile contacts are the same size at every zoom level
+ - New settings: "missileContactSize" and "flareContactSize"
 
  2.0 (October 04, 2015)
 ========================
