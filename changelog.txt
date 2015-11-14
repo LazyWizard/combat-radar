@@ -2,6 +2,7 @@
 =========================
 (thanks to MesoTroniK for spritework and extensive help testing new features)
 Updated to be compatible with Starsector 0.7a
+The "maxShown" setting has been enabled for all renderers, defaults increased
 Added "verticesPerCircle" setting, increase this for smoother radar rings
 Asteroid renderer (both campaign and combat) changes:
  - Uses a sprite now, should look much smoother

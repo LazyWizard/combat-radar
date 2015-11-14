@@ -101,7 +101,7 @@
 
         "shipRenderer":
         {
-            #"maxShown":50,
+            "maxShown":60,
             "triangulator":"radar.org.newdawn.slick.geom.NeatTriangulator",
             "simpleMode":false, # If true, draw all ships as triangles
             "fighterSizeMod":2.25, # Multiplies fighter contact size by this
@@ -117,7 +117,7 @@
 
         "asteroidRenderer":
         {
-            #"maxShown":250,
+            "maxShown":250,
             # ID of the asteroid icon, found in data/config/settings.json
             # Must be in the "radar" subcategory of the "graphics" section
             "asteroidIcon":"asteroid",
@@ -126,7 +126,7 @@
 
         "missileRenderer":
         {
-            #"maxShown":150,
+            "maxShown":150,
             # ID of the missile icons, found in data/config/settings.json
             # Must be in the "radar" subcategory of the "graphics" section
             "missileIcon":"missile",
@@ -139,7 +139,7 @@
 
         "objectiveRenderer":
         {
-            #"maxShown":15
+            "maxShown":15
         },
 
         "battleProgressRenderer":
@@ -179,7 +179,7 @@
 
         "fleetRenderer":
         {
-            #"maxShown":150,
+            "maxShown":150,
             # What color fleets with a bounty on their head show up as
             "bountyColor":[255,215,0,255],
             # ID of the fleet icon, found in data/config/settings.json
@@ -189,7 +189,7 @@
 
         "stationRenderer":
         {
-            #"maxShown":20,
+            "maxShown":20,
             # ID of the station icon, found in data/config/settings.json
             # Must be in the "radar" subcategory of the "graphics" section
             "stationIcon":"station"
@@ -197,7 +197,7 @@
 
         "planetRenderer":
         {
-            #"maxShown":20,
+            "maxShown":40,
             # ID of the planet and star icons, found in data/config/settings.json
             # Must be in the "radar" subcategory of the "graphics" section
             "planetIcon":"planet",
@@ -206,7 +206,7 @@
 
         "relayRenderer":
         {
-            #"maxShown":10,
+            "maxShown":15,
             # ID of the relay icon, found in data/config/settings.json
             # Must be in the "radar" subcategory of the "graphics" section
             "relayIcon":"relay"
@@ -214,7 +214,7 @@
 
         "asteroidRenderer":
         {
-            #"maxShown":250,
+            "maxShown":500,
             # ID of the asteroid icon, found in data/config/settings.json
             # Must be in the "radar" subcategory of the "graphics" section
             "asteroidIcon":"asteroid",
@@ -223,7 +223,7 @@
 
         "jumpPointRenderer":
         {
-            #"maxShown":15,
+            "maxShown":45,
             # ID of the jump point icon, found in data/config/settings.json
             # Must be in the "radar" subcategory of the "graphics" section
             "jumpPointIcon":"jumpPoint",
