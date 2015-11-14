@@ -67,7 +67,7 @@ import static org.lwjgl.opengl.GL15.*;
 // TODO: Implement interleavened VBO for maximum efficiency
 public class DrawQueue
 {
-    private static final Logger LOG = Global.getLogger(DrawQueue.class);
+    private static final Logger Log = Global.getLogger(DrawQueue.class);
     private static final int SIZEOF_VERTEX = 2, SIZEOF_COLOR = 4,
             STRIDE_VERTEX = 8, STRIDE_COLOR = 4;
     private static final Map<WeakReference<DrawQueue>, IntBuffer> refs = new LinkedHashMap<>();
@@ -107,7 +107,7 @@ public class DrawQueue
 
         if (totalReleased > 0)
         {
-            LOG.debug("Released buffers of " + totalReleased + " dead DrawQueues");
+            Log.debug("Released buffers of " + totalReleased + " dead DrawQueues");
         }
     }
 
@@ -180,7 +180,7 @@ public class DrawQueue
         }
 
         // Allocate new buffers of the required size and transfer the existing data to them
-        LOG.debug("Resizing to " + newCapacity + " vertices");
+        Log.debug("Resizing to " + newCapacity + " vertices");
         vertexMap = BufferUtils.createByteBuffer(newCapacity * STRIDE_VERTEX).put(vertexMap);
         colorMap = BufferUtils.createByteBuffer(newCapacity * STRIDE_COLOR).put(colorMap);
         finished = false;
@@ -439,7 +439,7 @@ public class DrawQueue
     /**
      * Readies the list of shapes for drawing. <i>Must</i> be called before
      * calling {@link DrawQueue#draw()}, otherwise an exception will be thrown!
-     *
+     * <p>
      * Once this method has been called, any further calls to
      * {@link DrawQueue#addVertices(float[])} will <i>replace</i> the
      * DrawQueue's existing contents, not add to them.

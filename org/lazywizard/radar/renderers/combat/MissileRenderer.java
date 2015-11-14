@@ -24,11 +24,11 @@ public class MissileRenderer implements CombatRenderer
     private static int MAX_MISSILES_SHOWN;
     private static Color MISSILE_LOCKED_COLOR;
     private static String MISSILE_ICON, FLARE_ICON, MISSILE_LOCK_ICON;
-    private static float DEBUG_SIZE_VALUE;
+    private static float MISSILE_SIZE_MOD;
     private SpriteAPI missileIcon, flareIcon, lockIcon;
     private Vector2f lockIconLocation;
     private boolean playerLock = false;
-    private float highestThreatAlpha = 0f, hScale;
+    private float highestThreatAlpha = 0f, drawSize, hScale;
     private List<MissileIcon> toDraw;
     private CommonRadar<CombatEntityAPI> radar;
 
@@ -45,7 +45,7 @@ public class MissileRenderer implements CombatRenderer
         MISSILE_ICON = settings.getString("missileIcon");
         FLARE_ICON = settings.getString("flareIcon");
         MISSILE_LOCK_ICON = settings.getString("missileLockIcon");
-        DEBUG_SIZE_VALUE = (float) settings.getDouble("missileSize");
+        MISSILE_SIZE_MOD = (float) settings.getDouble("missileSize");
     }
 
     @Override
@@ -61,6 +61,7 @@ public class MissileRenderer implements CombatRenderer
         missileIcon = Global.getSettings().getSprite("radar", MISSILE_ICON);
         flareIcon = Global.getSettings().getSprite("radar", FLARE_ICON);
         hScale = missileIcon.getWidth() / missileIcon.getHeight();
+        drawSize = radar.getRenderRadius() * MISSILE_SIZE_MOD;
 
         if (SHOW_MISSILE_LOCK_ICON)
         {
@@ -139,8 +140,6 @@ public class MissileRenderer implements CombatRenderer
             return;
         }
 
-        final float drawSize = radar.getRenderRadius() * DEBUG_SIZE_VALUE;
-
         missileIcon.setAlphaMult(radar.getContactAlpha());
         flareIcon.setAlphaMult(radar.getContactAlpha());
         radar.enableStencilTest();
@@ -149,7 +148,7 @@ public class MissileRenderer implements CombatRenderer
         glEnable(GL_TEXTURE_2D);
         for (MissileIcon mIcon : toDraw)
         {
-            mIcon.render(drawSize);
+            mIcon.render();
         }
 
         radar.disableStencilTest();
@@ -159,8 +158,8 @@ public class MissileRenderer implements CombatRenderer
             lockIcon.setAlphaMult(radar.getRadarAlpha() * highestThreatAlpha);
             lockIcon.renderAtCenter(lockIconLocation.x, lockIconLocation.y);
         }
-        glDisable(GL_TEXTURE_2D);
 
+        glDisable(GL_TEXTURE_2D);
     }
 
     private class MissileIcon
@@ -180,16 +179,16 @@ public class MissileRenderer implements CombatRenderer
             this.color = color;
         }
 
-        private void render(float size)
+        private void render()
         {
             final SpriteAPI icon = (isFlare ? flareIcon : missileIcon);
             if (isFlare)
             {
-                icon.setSize(size * 0.5f, size * 0.5f);
+                icon.setSize(drawSize * 0.5f, drawSize * 0.5f);
             }
             else
             {
-                icon.setSize(size * hScale, size);
+                icon.setSize(drawSize * hScale, drawSize);
             }
 
             icon.setAngle(facing - 90f);
