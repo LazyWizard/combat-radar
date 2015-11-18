@@ -104,7 +104,7 @@ public class ShipRenderer implements CombatRenderer
 
         final float[] radarLoc = radar.getRawPointOnRadar(shield.getLocation());
         final float size = shield.getRadius() * radar.getCurrentPixelsPerSU()
-                * (contact.isFighter() ? FIGHTER_SIZE_MOD : 1f);
+                * ((contact.isFighter() && shield.getRadius() < 75f) ? FIGHTER_SIZE_MOD : 1f);
         final float startAngle = (float) Math.toRadians(shield.getFacing()
                 - (shield.getActiveArc() / 2f));
         final float arcAngle = (float) Math.toRadians(shield.getActiveArc());
