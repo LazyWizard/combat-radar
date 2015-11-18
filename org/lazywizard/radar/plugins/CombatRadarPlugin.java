@@ -385,7 +385,7 @@ public class CombatRadarPlugin extends BaseEveryFrameCombatPlugin
 
                 // Check if any part of the contact is visible
                 if (MathUtils.isWithinRange(contact, player.getLocation(),
-                        sightRadius + contact.getCollisionRadius()))
+                        sightRadius + contact.getCollisionRadius() + 250f))
                 {
                     if (RadarSettings.isRespectingFogOfWar() && !CombatUtils.isVisibleToSide(
                             contact, player.getOwner()))

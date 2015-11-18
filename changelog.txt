@@ -14,6 +14,10 @@ Campaign fleet renderer changes:
 Planet renderer changes:
  - Uses vanilla map icons instead of polygons
  - Differentiates between planets and stars
+Battle objective renderer changes:
+ - Fixed pop-in issue when objective is at the very edge of radar
+ - Added a slight tinge to the center of the objective diamond
+ - Changed render order to be drawn below other combat entities
 Combat readiness renderer changes:
  - Bar is dimmed until you have started losing combat readiness
  - Remaining peak CR timer is shown as a white line down the middle of the bar
@@ -24,7 +28,7 @@ Combat ship renderer changes:
  - Bumped default shield segment count from 18 (?!) to 64
  - Transparency of ship contacts is based on the alpha of the actual sprite
    - Ships with custom right click ship systems won't be momentarily
-     translucent on the radar when using them now (ex: Exigency Incorporated)
+     transparent on the radar when using them now (ex: Exigency Incorporated)
    - Fighters taking off or landing on a carrier should fade in/out
  - Removed "phasedShipAlphaMult" setting, added "minShipAlphaMult"
    (ships with 0 alpha will be completely invisible regardless of this setting)

@@ -382,7 +382,7 @@ public class CampaignRadarPlugin implements EveryFrameScript
                 // Check if any part of the contact is visible
                 // Ignore any tokens with the nodraw tag
                 if (MathUtils.isWithinRange(contact, player.getLocation(),
-                        sightRadius + contact.getRadius()))
+                        sightRadius + contact.getRadius() + 250f))
                 {
                     if (RadarSettings.isRespectingFogOfWar() && !contact.isVisibleToPlayerFleet())
                     {
