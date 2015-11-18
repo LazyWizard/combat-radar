@@ -156,7 +156,7 @@ public class MissileRenderer implements CombatRenderer
         flareIcon.setAlphaMult(radar.getContactAlpha());
         radar.enableStencilTest();
 
-        // Draw all asteroids
+        // Draw all missiles
         glEnable(GL_TEXTURE_2D);
         for (MissileIcon mIcon : toDraw)
         {

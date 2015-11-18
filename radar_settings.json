@@ -4,11 +4,10 @@
     ################################
 
     # How many times per second the radar should update, lower fps = better performance
-    "radarFPS":20.0,         # Default: 20.0
-    # Whether to use vertex buffers, disable if you have problems
+    "radarFPS":20.0,          # Default: 20.0
+    # Whether to use vertex buffers. Disable if you have problems with the radar
     # If your card doesn't support VBOs this setting won't do anything
-    "useVBOs":true,          # Default: true
-    # How many points to use when drawing the concentric circles around the radar
+    "useVBOs":true,           # Default: true
     # More points = smoother circles, slightly higher performance cost
     # NOT used for shields, see maxShieldSegments further down for that
     "verticesPerCircle": 144, # Default: 144
