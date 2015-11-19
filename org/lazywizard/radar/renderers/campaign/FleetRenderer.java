@@ -11,6 +11,7 @@ import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import com.fs.starfarer.api.campaign.FactionAPI;
 import com.fs.starfarer.api.campaign.LocationAPI;
 import com.fs.starfarer.api.campaign.SectorEntityToken;
+import com.fs.starfarer.api.campaign.SectorEntityToken.VisibilityLevel;
 import com.fs.starfarer.api.campaign.econ.MarketAPI;
 import com.fs.starfarer.api.campaign.events.CampaignEventPlugin;
 import com.fs.starfarer.api.campaign.events.CampaignEventTarget;
@@ -140,10 +141,16 @@ public class FleetRenderer implements CampaignRenderer
             {
                 for (CampaignFleetAPI fleet : fleets)
                 {
-                    final Color color;
                     // Calculate color of fleet
+                    final Color color;
+                    // Unknown contacts
+                    if (fleet.getVisibilityLevelToPlayerFleet()
+                            != VisibilityLevel.COMPOSITION_AND_FACTION_DETAILS)
+                    {
+                        color = radar.getNeutralContactColor();
+                    }
                     // Person bounty
-                    if (FleetTypes.PERSON_BOUNTY_FLEET.equals(
+                    else if (FleetTypes.PERSON_BOUNTY_FLEET.equals(
                             fleet.getMemoryWithoutUpdate().getString(
                                     MemFlags.MEMORY_KEY_FLEET_TYPE)))
                     {
