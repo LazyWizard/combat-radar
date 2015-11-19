@@ -1,4 +1,4 @@
- 2.1 (November XX, 2015)
+ 2.1 (November 19, 2015)
 =========================
 (thanks to MesoTroniK for spritework and extensive help testing new features)
 Updated to be compatible with Starsector 0.7a
@@ -9,6 +9,7 @@ Asteroid renderer (both campaign and combat) changes:
  - Scaled based on their true size, not a flat value multiplied by zoom level
 Campaign fleet renderer changes:
  - Uses a sprite now, should look much smoother
+ - Unknown (transponder off) contacts are shown in neutral colors
  - Fixed issue where player fleet would flash bounty colors if a faction was
    paying for kills against their enemies and was hostile towards the player
 Planet renderer changes:
