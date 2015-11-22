@@ -196,10 +196,17 @@ public class ShipRenderer implements CombatRenderer
         {
             baseColor = radar.getNeutralContactColor();
         }
-        // Allies
+        // Teammates and allies
         else if (ship.getOwner() == playerSide)
         {
-            baseColor = radar.getFriendlyContactColor();
+            if (ship.isAlly())
+            {
+                baseColor = radar.getAlliedContactColor();
+            }
+            else
+            {
+                baseColor = radar.getFriendlyContactColor();
+            }
         }
         // Enemies
         else if (ship.getOwner() + playerSide == 1)

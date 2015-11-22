@@ -72,6 +72,15 @@ public interface CommonRadar<T>
     public Color getNeutralContactColor();
 
     /**
+     * Returns the color of allied contacts on the radar.
+     * <p>
+     * @return The default color of allied contacts on the radar.
+     * <p>
+     * @since 2.2
+     */
+    public Color getAlliedContactColor();
+
+    /**
      * Returns the center of the radar circle in screen coordinates.
      *
      * @return The center of the radar circle, in screen coordinates.
