@@ -62,7 +62,7 @@ public class RadarSettings
     private static int NUM_ZOOM_LEVELS;
     // Radar color settings
     private static float RADAR_ALPHA, CONTACT_ALPHA;
-    private static Color FRIENDLY_COLOR, ENEMY_COLOR, NEUTRAL_COLOR;
+    private static Color FRIENDLY_COLOR, ENEMY_COLOR, NEUTRAL_COLOR, ALLY_COLOR;
     // Radar button LWJGL constants
     private static int RADAR_TOGGLE_KEY, ZOOM_IN_KEY, ZOOM_OUT_KEY;
 
@@ -115,6 +115,8 @@ public class RadarSettings
                 : JSONUtils.toColor(settings.getJSONArray("enemyColor"));
         NEUTRAL_COLOR = useVanillaColors ? Global.getSettings().getColor("iconNeutralShipColor")
                 : JSONUtils.toColor(settings.getJSONArray("neutralColor"));
+        ALLY_COLOR = useVanillaColors ? Global.getSettings().getColor("") // TODO: Find correct color!
+                : JSONUtils.toColor(settings.getJSONArray("allyColor"));
 
         reloadExcluded();
         reloadRenderers(COMBAT_RENDERER_CLASSES, COMBAT_CSV_PATH, CombatRenderer.class);
@@ -524,6 +526,18 @@ public class RadarSettings
     public static Color getNeutralContactColor()
     {
         return NEUTRAL_COLOR;
+    }
+
+    /**
+     * Returns the color that allied radar contacts should be drawn with.
+     * <p>
+     * @return The {@link Color} that allied contacts should appear as.
+     * <p>
+     * @since 2.2
+     */
+    public static Color getAlliedContactColor()
+    {
+        return ALLY_COLOR;
     }
 
     /**

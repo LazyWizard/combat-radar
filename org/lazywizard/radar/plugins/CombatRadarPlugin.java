@@ -321,6 +321,12 @@ public class CombatRadarPlugin extends BaseEveryFrameCombatPlugin
         }
 
         @Override
+        public Color getAlliedContactColor()
+        {
+            return RadarSettings.getAlliedContactColor();
+        }
+
+        @Override
         public Vector2f getPointOnRadar(Vector2f worldLoc)
         {
             float[] loc = getRawPointOnRadar(worldLoc);
