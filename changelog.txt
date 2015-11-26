@@ -3,6 +3,7 @@
 Added "allyColor" to radar_settings.json
 Added getAlliedContactColor() to CommonRadar interface
 Added isPointOnRadar() to CommonRadar interface
+Added ReloadRadar console command (only if Console Commands mod is enabled)
 Battle progress renderer changes:
  - Allies have their own section of the bar (defaults to blue)
 Combat ship renderer changes:

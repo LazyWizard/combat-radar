@@ -1,0 +1,2 @@
+command,class,tags,syntax,help
+ReloadRadar,org.lazywizard.radar.commands.ReloadRadar,"radar,campaign,combat",reloadradar (no arguments),"Reloads the radar's settings."
