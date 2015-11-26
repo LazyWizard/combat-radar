@@ -31,8 +31,8 @@ public class BattleProgressRenderer implements CombatRenderer
     private Vector2f barLocation;
     private FloatBuffer vertexMap, colorMap;
     private IntBuffer indexMap;
-    private float relativeStrength, relativeStrengthAtBattleStart,
-            alliedFraction, displayedRelativeStrength, nextCheck;
+    private float relativeStrength, relativeStrengthAtBattleStart, alliedFraction,
+            displayedAlliedFraction, displayedRelativeStrength, nextCheck;
     private float barWidth, barHeight, flashProgress;
 
     @Override
@@ -110,6 +110,7 @@ public class BattleProgressRenderer implements CombatRenderer
         runChecks();
         relativeStrengthAtBattleStart = relativeStrength;
         displayedRelativeStrength = relativeStrength;
+        displayedAlliedFraction = alliedFraction;
 
         // Generate OpenGL index mappings
         int[] indices = new int[]
@@ -119,12 +120,15 @@ public class BattleProgressRenderer implements CombatRenderer
             0, 2, 3,
             // Second quad (as triangles)
             4, 5, 6,
-            4, 6, 7
+            4, 6, 7,
+            // Third quad (as triangles)
+            8, 9, 10,
+            8, 10, 11
         };
 
-        vertexMap = BufferUtils.createFloatBuffer(16);
-        colorMap = BufferUtils.createFloatBuffer(32);
-        indexMap = BufferUtils.createIntBuffer(12).put(indices);
+        vertexMap = BufferUtils.createFloatBuffer(24);
+        colorMap = BufferUtils.createFloatBuffer(48);
+        indexMap = BufferUtils.createIntBuffer(18).put(indices);
         indexMap.flip();
 
         flashProgress = 0.5f;
@@ -173,15 +177,31 @@ public class BattleProgressRenderer implements CombatRenderer
                 displayedRelativeStrength = Math.max(relativeStrength,
                         displayedRelativeStrength - (ANIMATION_SPEED * amount));
             }
+
+            // Balance moved towards player, grow bar
+            if (displayedAlliedFraction < alliedFraction)
+            {
+                displayedAlliedFraction = Math.min(alliedFraction,
+                        displayedAlliedFraction + (ANIMATION_SPEED * amount));
+            }
+            // Balance moved towards enemy, shrink bar
+            else if (displayedAlliedFraction > alliedFraction)
+            {
+                displayedAlliedFraction = Math.max(alliedFraction,
+                        displayedAlliedFraction - (ANIMATION_SPEED * amount));
+            }
         }
         // If not animated, instantly move to new fleet balance
         else
         {
             displayedRelativeStrength = relativeStrength;
+            displayedAlliedFraction = alliedFraction;
         }
 
-        float relativeStrengthPos = barWidth * displayedRelativeStrength,
+        final float relativeStrengthPos = barWidth * displayedRelativeStrength,
+                alliedStrengthPos = relativeStrengthPos * (1f - displayedAlliedFraction),
                 battleStartPos = barWidth * relativeStrengthAtBattleStart;
+        System.out.println(alliedStrengthPos + " | " + relativeStrengthPos + " | " + barWidth);
 
         // Calculate current flash alpha
         boolean playerRetreating = isRetreating(FleetSide.PLAYER),
@@ -202,13 +222,16 @@ public class BattleProgressRenderer implements CombatRenderer
         float flashAlpha = (flashProgress / 2f) + .75f;
 
         // Generate OpenGL color mappings
-        float[] colors = new float[32];
+        float[] colors = new float[48];
         System.arraycopy(getQuadColor(radar.getFriendlyContactColor(),
                 radar.getRadarAlpha() * (playerRetreating ? flashAlpha : 1f)),
                 0, colors, 0, 16);
+        System.arraycopy(getQuadColor(radar.getAlliedContactColor(),
+                radar.getRadarAlpha() * (playerRetreating ? flashAlpha : 1f)),
+                0, colors, 16, 16);
         System.arraycopy(getQuadColor(radar.getEnemyContactColor(),
                 radar.getRadarAlpha() * (enemyRetreating ? flashAlpha : 1f)),
-                0, colors, 16, 16);
+                0, colors, 32, 16);
         colorMap.put(colors).flip();
 
         // Generate vertex mappings
@@ -217,6 +240,11 @@ public class BattleProgressRenderer implements CombatRenderer
             // Player strength
             barLocation.x, barLocation.y,
             barLocation.x, barLocation.y + barHeight,
+            barLocation.x + alliedStrengthPos, barLocation.y + barHeight,
+            barLocation.x + alliedStrengthPos, barLocation.y,
+            // Ally strength
+            barLocation.x + alliedStrengthPos, barLocation.y,
+            barLocation.x + alliedStrengthPos, barLocation.y + barHeight,
             barLocation.x + relativeStrengthPos, barLocation.y + barHeight,
             barLocation.x + relativeStrengthPos, barLocation.y,
             // Enemy strength
@@ -235,6 +263,19 @@ public class BattleProgressRenderer implements CombatRenderer
         glDrawElements(GL_TRIANGLES, indexMap);
         glDisableClientState(GL_COLOR_ARRAY);
         glDisableClientState(GL_VERTEX_ARRAY);
+
+        /*glLineWidth(25f);
+        glBegin(GL_LINES);
+        glColor(Color.GREEN);
+        glVertex2f(barLocation.x, barLocation.y);
+        glVertex2f(barLocation.x+ alliedStrengthPos, barLocation.y + barHeight);
+        glColor(Color.BLUE);
+        glVertex2f(barLocation.x + alliedStrengthPos, barLocation.y);
+        glVertex2f(barLocation.x + relativeStrengthPos, barLocation.y + barHeight);
+        glColor(Color.RED);
+        glVertex2f(barLocation.x + relativeStrengthPos, barLocation.y);
+        glVertex2f(barLocation.x + barWidth, barLocation.y + barHeight);
+        glEnd();*/
 
         // Show original relative strengths
         if (!Global.getCombatEngine().isSimulation())
@@ -267,11 +308,6 @@ public class BattleProgressRenderer implements CombatRenderer
         private float getAllyStrengthFraction()
         {
             return allied / total;
-        }
-
-        private float getTotalStrength()
-        {
-            return total;
         }
     }
 }
