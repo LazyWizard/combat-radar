@@ -32,7 +32,7 @@ public class BattleProgressRenderer implements CombatRenderer
     private FloatBuffer vertexMap, colorMap;
     private IntBuffer indexMap;
     private float relativeStrength, relativeStrengthAtBattleStart,
-            displayedRelativeStrength, nextCheck;
+            alliedFraction, displayedRelativeStrength, nextCheck;
     private float barWidth, barHeight, flashProgress;
 
     @Override
@@ -62,6 +62,36 @@ public class BattleProgressRenderer implements CombatRenderer
         };
     }
 
+    private static FleetStrength getStrength(FleetSide side)
+    {
+        final CombatEngineAPI engine = Global.getCombatEngine();
+        final CombatFleetManagerAPI fm = engine.getFleetManager(side);
+        final List<FleetMemberAPI> ships = fm.getDeployedCopy();
+
+        // Ignore reserves if player is in a refit simulation battle
+        // Also ignore if fleet is in full retreat and can't send them out
+        if (!engine.isSimulation() && !isRetreating(side))
+        {
+            ships.addAll(fm.getReservesCopy());
+        }
+
+        // Total up strength of every ship in the fleet
+        FleetStrength strength = new FleetStrength();
+        for (FleetMemberAPI ship : ships)
+        {
+            strength.add(ship.isAlly(),
+                    ship.getFleetPointCost() * (ship.isCivilian() ? 0.25f : 1f));
+        }
+
+        return strength;
+    }
+
+    private static boolean isRetreating(FleetSide side)
+    {
+        return Global.getCombatEngine().getFleetManager(side)
+                .getTaskManager(false).isInFullRetreat();
+    }
+
     @Override
     public void init(CommonRadar<CombatEntityAPI> radar)
     {
@@ -77,7 +107,7 @@ public class BattleProgressRenderer implements CombatRenderer
                 radarCenter.y - (radarRadius * 1.15f));
 
         // Relative bar section locations
-        relativeStrength = getRelativeStrength();
+        runChecks();
         relativeStrengthAtBattleStart = relativeStrength;
         displayedRelativeStrength = relativeStrength;
 
@@ -101,43 +131,16 @@ public class BattleProgressRenderer implements CombatRenderer
         nextCheck = TIME_BETWEEN_CHECKS;
     }
 
-    private static float getStrength(FleetSide side)
+    private void runChecks()
     {
-        final CombatEngineAPI engine = Global.getCombatEngine();
-        final CombatFleetManagerAPI fm = engine.getFleetManager(side);
-        final List<FleetMemberAPI> ships = fm.getDeployedCopy();
-        float strength = 0f;
-
-        // Ignore reserves if player is in a refit simulation battle
-        // Also ignore if fleet is in full retreat and can't send them out
-        if (!engine.isSimulation() && !isRetreating(side))
-        {
-            ships.addAll(fm.getReservesCopy());
-        }
-
-        // Total up strength of every ship in the fleet
-        for (FleetMemberAPI ship : ships)
-        {
-            strength += ship.getFleetPointCost() * (ship.isCivilian() ? 0.25f : 1f); //ship.getMemberStrength();
-        }
-
-        return strength;
-    }
-
-    private static float getRelativeStrength()
-    {
-        final float playerStrength = getStrength(FleetSide.PLAYER),
-                enemyStrength = getStrength(FleetSide.ENEMY),
-                totalStrength = playerStrength + enemyStrength;
+        final FleetStrength playerStrength = getStrength(FleetSide.PLAYER),
+                enemyStrength = getStrength(FleetSide.ENEMY);
+        final float totalStrength = playerStrength.total + enemyStrength.total;
 
         // No ships on either side = assume a draw
-        return (totalStrength <= 0f ? 0.5f : (playerStrength / totalStrength));
-    }
-
-    private static boolean isRetreating(FleetSide side)
-    {
-        return Global.getCombatEngine().getFleetManager(side)
-                .getTaskManager(false).isInFullRetreat();
+        alliedFraction = playerStrength.getAllyStrengthFraction();
+        relativeStrength = (totalStrength <= 0f ? 0.5f : (playerStrength.total / totalStrength));
+        nextCheck = TIME_BETWEEN_CHECKS;
     }
 
     @Override
@@ -152,8 +155,7 @@ public class BattleProgressRenderer implements CombatRenderer
         nextCheck -= amount;
         if (nextCheck <= 0)
         {
-            relativeStrength = getRelativeStrength();
-            nextCheck = TIME_BETWEEN_CHECKS;
+            runChecks();
         }
 
         // If animated, gradually move to the current fleet balance
@@ -245,6 +247,31 @@ public class BattleProgressRenderer implements CombatRenderer
             glVertex2f(barLocation.x + battleStartPos,
                     barLocation.y - (barHeight * 0.5f));
             glEnd();
+        }
+    }
+
+    private static class FleetStrength
+    {
+        private float allied, total;
+
+        private void add(boolean isAlly, float fp)
+        {
+            if (isAlly)
+            {
+                allied += fp;
+            }
+
+            total += fp;
+        }
+
+        private float getAllyStrengthFraction()
+        {
+            return allied / total;
+        }
+
+        private float getTotalStrength()
+        {
+            return total;
         }
     }
 }
