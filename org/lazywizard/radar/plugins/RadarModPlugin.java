@@ -5,6 +5,10 @@ import com.fs.starfarer.api.Global;
 import org.lazywizard.radar.RadarSettings;
 
 // TODO: Unify combat and campaign codebases
+// TODO: Hyperspace range renderer
+// TODO: Add ally support to BattleProgressRenderer
+// TODO: Transponder status icon?
+// TODO: Nearby patrol status icon?
 public class RadarModPlugin extends BaseModPlugin
 {
     @Override
