@@ -1,3 +1,13 @@
+ 2.2 (November XX, 2015)
+=========================
+Added "allyColor" to radar_settings.json
+Added getAlliedContactColor() to CommonRadar interface
+Added isPointOnRadar() to CommonRadar interface
+Battle progress renderer changes:
+ - Allies have their own section of the bar (defaults to blue)
+Combat ship renderer changes:
+ - Allies are colored differently to your own fleet's ships
+
  2.1 (November 19, 2015)
 =========================
 (thanks to MesoTroniK for spritework and extensive help testing new features)

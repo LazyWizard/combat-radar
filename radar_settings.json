@@ -46,7 +46,7 @@
     "friendlyColor":[0,255,0,255],
     "enemyColor":[255,0,0,255],
     "neutralColor":[150,150,150,255],
-    "allyColor":[255,100,255,255],
+    "allyColor":[0,150,0,255],
 
     ############################
     # RENDERER TOGGLE SETTINGS #
