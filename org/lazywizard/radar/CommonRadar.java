@@ -141,13 +141,27 @@ public interface CommonRadar<T>
 
     /**
      * Returns how far the radar can see at its current zoom level.
-     *
+     * <p>
      * @return How far the radar can see at its current zoom level, in SU
      *         (Starsector world units).
      * <p>
      * @since 2.0
      */
     public float getCurrentSightRadius();
+
+    /**
+     * Checks if a point in world space is visible on the radar.
+     * <p>
+     * @param worldLoc The point to check.
+     * @param padding  Extra distance from {@code worldLoc} to include in the
+     *                 check, usually an object's radius.
+     * <p>
+     * @return Whether {@code worldLoc} is within {@code padding} su of being
+     *         visible on the radar.
+     * <p>
+     * @since 2.2
+     */
+    public boolean isPointOnRadar(Vector2f worldLoc, float padding);
 
     /**
      * Converts a point from world space to radar space. Used to know where to

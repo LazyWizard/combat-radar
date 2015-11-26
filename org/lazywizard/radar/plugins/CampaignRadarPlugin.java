@@ -323,6 +323,13 @@ public class CampaignRadarPlugin implements EveryFrameScript
         }
 
         @Override
+        public boolean isPointOnRadar(Vector2f worldLoc, float padding)
+        {
+            return MathUtils.isWithinRange(
+                    worldLoc, player.getLocation(), sightRadius + padding);
+        }
+
+        @Override
         public Vector2f getPointOnRadar(Vector2f worldLoc)
         {
             float[] loc = getRawPointOnRadar(worldLoc);
