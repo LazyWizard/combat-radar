@@ -3,6 +3,8 @@
     #    GLOBAL RADAR SETTINGS     #
     ################################
 
+    # Controls how large the radar is (as a fraction of the height of the display)
+    "radarRadius":0.1,        # Default: 0.1 (1/10th of the screen's height)
     # How many times per second the radar should update, lower fps = better performance
     "radarFPS":20.0,          # Default: 20.0
     # Whether to use vertex buffers. Disable if you have problems with the radar

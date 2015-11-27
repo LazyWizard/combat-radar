@@ -25,6 +25,7 @@ import org.lazywizard.radar.renderers.CampaignRenderer;
 import org.lazywizard.radar.renderers.CombatRenderer;
 import org.lazywizard.radar.renderers.NullRenderer;
 import org.lwjgl.input.Keyboard;
+import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GLContext;
 
 /**
@@ -55,6 +56,8 @@ public class RadarSettings
     private static boolean RESPECT_FOG_OF_WAR, USE_VBOS;
     private static float TIME_BETWEEN_UPDATE_FRAMES;
     private static int VERTICES_PER_CIRCLE;
+    // Display settings
+    private static float RADAR_RENDER_RADIUS;
     // Radar range settings
     private static float COMBAT_SIGHT_RANGE, CAMPAIGN_SIGHT_RANGE;
     // Zoom controls
@@ -92,6 +95,9 @@ public class RadarSettings
         // Performance tweak settings
         RESPECT_FOG_OF_WAR = settings.getBoolean("onlyShowVisibleContacts");
         VERTICES_PER_CIRCLE = settings.getInt("verticesPerCircle");
+
+        // Size of radar on screen
+        RADAR_RENDER_RADIUS = (float) (Display.getHeight() * settings.getDouble("radarRadius"));
 
         // Only use vertex buffer objects if the graphics card supports them
         // Every graphics card that's still in use should, but just in case...
@@ -400,6 +406,18 @@ public class RadarSettings
         }
 
         return false;
+    }
+
+    /**
+     * Returns the radius of the rendered radar circle, in pixels.
+     * <p>
+     * @return The radius of the radar circle, in pixels.
+     * <p>
+     * @since 2.2
+     */
+    public static float getRadarRenderRadius()
+    {
+        return RADAR_RENDER_RADIUS;
     }
 
     /**
