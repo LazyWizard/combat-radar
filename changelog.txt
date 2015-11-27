@@ -1,6 +1,9 @@
  2.2 (November XX, 2015)
 =========================
-Added "allyColor" to radar_settings.json
+Added to radar_settings.json:
+ - "radarRadius", controls the size of the radar on screen (as a fraction of the
+   display height, defaults to 0.1)
+ - "allyColor", the color of teammates in battle
 Added getAlliedContactColor() to CommonRadar interface
 Added isPointOnRadar() to CommonRadar interface
 Added ReloadRadar console command (only if Console Commands mod is enabled)

@@ -59,7 +59,7 @@ public class CampaignRadarPlugin implements EveryFrameScript
         if (!initialized)
         {
             initialized = true;
-            renderRadius = Display.getHeight() / 10f;
+            renderRadius = RadarSettings.getRadarRenderRadius();
             renderCenter = new Vector2f(Display.getWidth() - (renderRadius * 1.2f),
                     renderRadius * 1.2f);
             setZoomLevel(RadarSettings.getNumZoomLevels());
@@ -194,7 +194,6 @@ public class CampaignRadarPlugin implements EveryFrameScript
         }
 
         // Finalize drawing
-        //radarInfo.disableStencilTest(); // Minor idiot-proofing
         glDisable(GL_BLEND);
         glPopMatrix();
         glMatrixMode(GL_PROJECTION);
