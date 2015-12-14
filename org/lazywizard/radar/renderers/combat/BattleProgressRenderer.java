@@ -201,7 +201,7 @@ public class BattleProgressRenderer implements CombatRenderer
         final float relativeStrengthPos = barWidth * displayedRelativeStrength,
                 alliedStrengthPos = relativeStrengthPos * (1f - displayedAlliedFraction),
                 battleStartPos = barWidth * relativeStrengthAtBattleStart;
-        System.out.println(alliedStrengthPos + " | " + relativeStrengthPos + " | " + barWidth);
+        //System.out.println(alliedStrengthPos + " | " + relativeStrengthPos + " | " + barWidth);
 
         // Calculate current flash alpha
         boolean playerRetreating = isRetreating(FleetSide.PLAYER),
