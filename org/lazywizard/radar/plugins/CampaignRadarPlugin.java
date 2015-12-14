@@ -113,12 +113,9 @@ public class CampaignRadarPlugin implements EveryFrameScript
                         newZoom = RadarSettings.getNumZoomLevels();
                     }
                 }
-                else
+                else if (++newZoom > RadarSettings.getNumZoomLevels())
                 {
-                    if (++newZoom > RadarSettings.getNumZoomLevels())
-                    {
-                        newZoom = 1;
-                    }
+                    newZoom = 1;
                 }
 
                 setZoomLevel(newZoom);
@@ -326,6 +323,14 @@ public class CampaignRadarPlugin implements EveryFrameScript
         {
             return MathUtils.isWithinRange(
                     worldLoc, player.getLocation(), sightRadius + padding);
+        }
+
+        @Override
+        public boolean isPointOnRadar(float worldLocX, float worldLocY, float padding)
+        {
+            final float a = worldLocX - player.getLocation().x,
+                    b = worldLocY - player.getLocation().y;
+            return (a * a) + (b * b) <= (sightRadius * sightRadius + padding * padding);
         }
 
         @Override

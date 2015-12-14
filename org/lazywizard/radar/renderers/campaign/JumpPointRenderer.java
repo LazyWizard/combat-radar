@@ -89,7 +89,7 @@ public class JumpPointRenderer implements CampaignRenderer
         icon.setAlphaMult(radar.getContactAlpha());
         radar.enableStencilTest();
 
-        // Draw all relays
+        // Draw all jump points
         glEnable(GL_TEXTURE_2D);
         for (JumpPointIcon jIcon : toDraw)
         {

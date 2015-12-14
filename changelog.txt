@@ -8,9 +8,11 @@ Added getAlliedContactColor() to CommonRadar interface
 Added isPointOnRadar() to CommonRadar interface
 Added ReloadRadar console command (only if Console Commands mod is enabled)
 Battle progress renderer changes:
- - Allies have their own section of the bar (defaults to blue)
+ - Allies have their own section of the bar
 Combat ship renderer changes:
- - Allies are colored differently to your own fleet's ships
+ - Allied ships have their own color
+New campaign renderer: NebulaRenderer
+ - Handles nebula and deep hyperspace
 
  2.1 (November 19, 2015)
 =========================

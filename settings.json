@@ -17,7 +17,8 @@
             "planet":"graphics/lw_radar/campaign/planet.png",
             "star":"graphics/lw_radar/campaign/star.png",
             "station":"graphics/lw_radar/campaign/station.png",
-            "relay":"graphics/lw_radar/campaign/relay.png"
+            "relay":"graphics/lw_radar/campaign/relay.png",
+            "nebula":"graphics/lw_radar/campaign/nebula.png"
         }
     }
 }
