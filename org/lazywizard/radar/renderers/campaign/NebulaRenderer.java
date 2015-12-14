@@ -10,11 +10,18 @@ import com.fs.starfarer.api.campaign.SectorEntityToken;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 import com.fs.starfarer.api.impl.campaign.ids.Terrain;
 import com.fs.starfarer.api.impl.campaign.terrain.BaseTiledTerrain;
+import org.apache.log4j.BasicConfigurator;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.lazywizard.lazylib.JSONUtils;
+import org.lazywizard.lazylib.MathUtils;
 import org.lazywizard.radar.CommonRadar;
 import org.lazywizard.radar.renderers.CampaignRenderer;
+import org.lazywizard.radar.util.DrawQueue;
+import org.lwjgl.LWJGLException;
+import org.lwjgl.input.Keyboard;
+import org.lwjgl.opengl.Display;
+import org.lwjgl.opengl.DisplayMode;
 import org.lwjgl.util.vector.Vector2f;
 import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
 import static org.lwjgl.opengl.GL11.*;
@@ -29,7 +36,6 @@ public class NebulaRenderer implements CampaignRenderer
     private SpriteAPI sprite;
     private List<NebulaCell> toDraw;
     private CommonRadar<SectorEntityToken> radar;
-    private float lastSize = -1;
 
     @Override
     public void reloadSettings(JSONObject settings) throws JSONException
@@ -67,7 +73,12 @@ public class NebulaRenderer implements CampaignRenderer
                 return ((cellX + cellY) & 7) * 45f;
             }
 
-            return ((cellX + cellY) & 15) * 22.5f;
+            return ((cellX - cellY) & 15) * 22.5f;
+        }
+
+        if ((cellX & 2) == 0)
+        {
+            return ((cellY - cellX) & 15) * 22.25f;
         }
 
         return ((cellX + cellY) & 31) * 11.25f;
@@ -75,13 +86,69 @@ public class NebulaRenderer implements CampaignRenderer
 
     public static void main(String[] args)
     {
-        for (int x = 0; x < 15; x++)
+        final int SCREEN_WIDTH = 800, SCREEN_HEIGHT = 600;
+        try
         {
-            for (int y = 0; y < 15; y++)
+            BasicConfigurator.configure();
+            Display.setDisplayMode(new DisplayMode(1440, 900));
+            Display.create();
+        }
+        catch (LWJGLException ex)
+        {
+            ex.printStackTrace();
+            System.exit(1);
+        }
+
+        // Init OpenGL
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        glOrtho(0, SCREEN_WIDTH, 0, SCREEN_HEIGHT, 1, -1);
+        glMatrixMode(GL_MODELVIEW);
+
+        // Set up vertex data
+        DrawQueue testQueue = new DrawQueue(80 * 60 * 2);
+        testQueue.setNextColor(Color.RED, 1f);
+        for (int x = 0; x < 80; x++)
+        {
+            for (int y = 0; y < 60; y++)
             {
-                System.out.println(x + "," + y + ": " + getAngle(x, y));
+                Vector2f center = new Vector2f((x * 10f) + 5f, (y * 10f) + 5f);
+                testQueue.addVertex(center); // Comment out if using GL_POINTS
+                testQueue.addVertex(MathUtils.getPointOnCircumference(
+                        center, 10f, getAngle(x, y)));
             }
         }
+        testQueue.finishShape(GL_LINES); // GL_POINTS);
+        testQueue.finish();
+
+        while (!Display.isCloseRequested())
+        {
+            // Close on focus change because I always forget to close them myself
+            if (!Display.isActive() || Keyboard.isKeyDown(Keyboard.KEY_ESCAPE))
+            {
+                break;
+            }
+
+            // Clear the screen and depth buffer
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            glClearColor(.1f, .1f, .1f, 0f);
+
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+            glEnableClientState(GL_VERTEX_ARRAY);
+            glEnableClientState(GL_COLOR_ARRAY);
+            glPointSize(5f);
+            glLineWidth(2f);
+            testQueue.draw();
+            glDisableClientState(GL_COLOR_ARRAY);
+            glDisableClientState(GL_VERTEX_ARRAY);
+
+            Display.update();
+            Display.sync(60);
+        }
+
+        Display.destroy();
     }
 
     private void addNebula(CampaignTerrainAPI nebula)
@@ -138,8 +205,9 @@ public class NebulaRenderer implements CampaignRenderer
     // MUCH faster than calling SpriteAPI's render() each time (avoids a ton of bindTexture() calls)
     private void renderNebula(List<NebulaCell> toRender)
     {
-        final float width = sprite.getWidth(), height = sprite.getHeight(), border = 0.001f,
-                texWidth = sprite.getTextureWidth(), texHeight = sprite.getTextureHeight();
+        final float width = sprite.getWidth(), height = sprite.getHeight(),
+                textureWidth = sprite.getTextureWidth(),
+                textureHeight = sprite.getTextureHeight();
 
         sprite.bindTexture();
         glColor(sprite.getColor(), sprite.getAlphaMult(), false);
@@ -148,22 +216,20 @@ public class NebulaRenderer implements CampaignRenderer
             sprite.setSize(nIcon.size, nIcon.size);
             sprite.setAngle(nIcon.angle);
 
-            final float x = nIcon.x - (width / 2f), y = nIcon.y - (height / 2f);
-
             glPushMatrix();
-            glTranslatef(x + (width / 2f), y + (height / 2f), 0f);
+            glTranslatef(nIcon.x, nIcon.y, 0f);
             glRotatef(nIcon.angle, 0f, 0f, 1f);
-            glTranslatef(-width / 2f, -height / 2f, 0f);
+            glTranslatef(-(width / 2f), -(height / 2f), 0f);
 
             glBegin(GL_QUADS);
-            glTexCoord2f(border, border);
+            glTexCoord2f(0f, 0f);
             glVertex2f(0f, 0f);
-            glTexCoord2f(border, texHeight - border);
-            glVertex2f(0f, height);
-            glTexCoord2f(texWidth - border, texHeight - border);
-            glVertex2f(width, height);
-            glTexCoord2f(texWidth - border, border);
+            glTexCoord2f(textureWidth, 0f);
             glVertex2f(width, 0f);
+            glTexCoord2f(textureWidth, textureHeight);
+            glVertex2f(width, height);
+            glTexCoord2f(0f, textureHeight);
+            glVertex2f(0f, height);
             glEnd();
             glPopMatrix();
         }
@@ -222,7 +288,7 @@ public class NebulaRenderer implements CampaignRenderer
         radar.disableStencilTest();
     }
 
-    private class NebulaCell
+    private static class NebulaCell
     {
         private final float x, y, angle, size;
 
