@@ -3,6 +3,7 @@ package org.lazywizard.radar.renderers.campaign;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import com.fs.starfarer.api.campaign.CampaignTerrainAPI;
@@ -16,17 +17,20 @@ import org.lazywizard.lazylib.JSONUtils;
 import org.lazywizard.radar.CommonRadar;
 import org.lazywizard.radar.renderers.CampaignRenderer;
 import org.lwjgl.util.vector.Vector2f;
+import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
 import static org.lwjgl.opengl.GL11.*;
 
+// TODO: Split nebula and hyperspace rendering once storms are _efficiently_ trackable
 public class NebulaRenderer implements CampaignRenderer
 {
     private static boolean SHOW_NEBULAE;
     private static int MAX_NEBULAE_SHOWN;
     private static String NEBULA_ICON;
     private static Color NEBULA_COLOR;
-    private SpriteAPI icon;
-    private List<NebulaIcon> toDraw;
+    private SpriteAPI sprite;
+    private List<NebulaCell> toDraw;
     private CommonRadar<SectorEntityToken> radar;
+    private float lastSize = -1;
 
     @Override
     public void reloadSettings(JSONObject settings) throws JSONException
@@ -49,8 +53,8 @@ public class NebulaRenderer implements CampaignRenderer
         }
 
         this.radar = radar;
-        icon = Global.getSettings().getSprite("radar", NEBULA_ICON);
-        icon.setColor(NEBULA_COLOR);
+        sprite = Global.getSettings().getSprite("radar", NEBULA_ICON);
+        sprite.setColor(NEBULA_COLOR);
         toDraw = new ArrayList<>();
     }
 
@@ -66,15 +70,19 @@ public class NebulaRenderer implements CampaignRenderer
             return;
         }
 
+        // These variables are used later to calculate cell positions
         final BaseTiledTerrain plugin = (BaseTiledTerrain) nebula.getPlugin();
         final Vector2f loc = plugin.getEntity().getLocation();
         final int[][] tiles = plugin.getTiles();
-        final float tileSize = plugin.getTileSize(), halfTile = tileSize/2f,
+        final float tileSize = plugin.getTileSize(), halfTile = tileSize / 2f,
                 tileRenderSize = plugin.getTileRenderSize(),
                 locX = loc.x + halfTile, locY = loc.y + halfTile,
                 llx = locX - (tiles.length * halfTile),
                 lly = locY - (tiles[0].length * halfTile);
 
+        // Used to get angle of each subsell's sprite
+        // Predictable seed is used to ensure a constant facing
+        final Random rng = new Random(12345);
         for (int x = 0; x < tiles.length; x++)
         {
             for (int y = 0; y < tiles[0].length; y++)
@@ -90,13 +98,50 @@ public class NebulaRenderer implements CampaignRenderer
                     continue;
                 }
 
+                // Register each visible nebula cell to be rendered
                 final float rawX = llx + (tileSize * x), rawY = lly + (tileSize * y);
-                if (radar.isPointOnRadar(rawX, rawY, tileRenderSize))
+                final float angle = rng.nextFloat() * 360f;
+                if (radar.isPointOnRadar(rawX, rawY, tileRenderSize * 1.2f))
                 {
                     final float[] coord = radar.getRawPointOnRadar(rawX, rawY);
-                    toDraw.add(new NebulaIcon(coord, tileRenderSize * radar.getCurrentPixelsPerSU()));
+                    toDraw.add(new NebulaCell(coord[0], coord[1], angle,
+                            tileRenderSize * 1.2f * radar.getCurrentPixelsPerSU()));
                 }
             }
+        }
+    }
+
+    // MUCH faster than calling SpriteAPI's render() each time (avoids a ton of bindTexture() calls)
+    private void renderNebula(List<NebulaCell> toRender)
+    {
+        final float width = sprite.getWidth(), height = sprite.getHeight(), border = 0.001f,
+                texWidth = sprite.getTextureWidth(), texHeight = sprite.getTextureHeight();
+
+        sprite.bindTexture();
+        glColor(sprite.getColor(), sprite.getAlphaMult(), false);
+        for (NebulaCell nIcon : toRender)
+        {
+            sprite.setSize(nIcon.size, nIcon.size);
+            sprite.setAngle(nIcon.angle);
+
+            final float x = nIcon.x - (width / 2f), y = nIcon.y - (height / 2f);
+
+            glPushMatrix();
+            glTranslatef(x + (width / 2f), y + (height / 2f), 0f);
+            glRotatef(nIcon.angle, 0f, 0f, 1f);
+            glTranslatef(-width / 2f, -height / 2f, 0f);
+
+            glBegin(GL_QUADS);
+            glTexCoord2f(border, border);
+            glVertex2f(0f, 0f);
+            glTexCoord2f(border, texHeight - border);
+            glVertex2f(0f, height);
+            glTexCoord2f(texWidth - border, texHeight - border);
+            glVertex2f(width, height);
+            glTexCoord2f(texWidth - border, border);
+            glVertex2f(width, 0f);
+            glEnd();
+            glPopMatrix();
         }
     }
 
@@ -139,35 +184,30 @@ public class NebulaRenderer implements CampaignRenderer
             return;
         }
 
-        icon.setAlphaMult(radar.getContactAlpha());
+        sprite.setAlphaMult(radar.getContactAlpha());
         radar.enableStencilTest();
 
         // Draw all nebulae
         glEnable(GL_TEXTURE_2D);
-        for (NebulaIcon nIcon : toDraw)
-        {
-            nIcon.render();
-        }
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        renderNebula(toDraw);
+        glDisable(GL_BLEND);
         glDisable(GL_TEXTURE_2D);
 
         radar.disableStencilTest();
     }
 
-    private class NebulaIcon
+    private class NebulaCell
     {
-        private final float[] coord;
-        private final float size;
+        private final float x, y, angle, size;
 
-        private NebulaIcon(float[] coord, float size)
+        private NebulaCell(float x, float y, float angle, float size)
         {
-            this.coord = coord;
+            this.x = x;
+            this.y = y;
+            this.angle = angle;
             this.size = size;
-        }
-
-        private void render()
-        {
-            icon.setSize(size, size);
-            icon.renderAtCenter(coord[0], coord[1]);
         }
     }
 }

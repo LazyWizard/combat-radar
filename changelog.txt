@@ -1,4 +1,4 @@
- 2.2 (November XX, 2015)
+ 2.2 (December XX, 2015)
 =========================
 Added to radar_settings.json:
  - "radarRadius", controls the size of the radar on screen (as a fraction of the
