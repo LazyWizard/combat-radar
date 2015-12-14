@@ -12,7 +12,7 @@ Battle progress renderer changes:
 Combat ship renderer changes:
  - Allied ships have their own color
 New campaign renderer: NebulaRenderer
- - Handles nebula and deep hyperspace
+ - Handles nebula and deep hyperspace, does not show hyperspace storms yet
 
  2.1 (November 19, 2015)
 =========================

@@ -3,7 +3,6 @@ package org.lazywizard.radar.renderers.campaign;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import com.fs.starfarer.api.campaign.CampaignTerrainAPI;
@@ -58,6 +57,25 @@ public class NebulaRenderer implements CampaignRenderer
         toDraw = new ArrayList<>();
     }
 
+    private static float getAngle(int x, int y)
+    {
+        if ((y & 1) == 0)
+            return ((x - y) & 15) * 22.5f;
+        
+        return ((x + y) & 15) * 22.5f;
+    }
+
+    public static void main(String[] args)
+    {
+        for (int x = 0; x < 15; x++)
+        {
+            for (int y = 0; y < 15; y++)
+            {
+                System.out.println(x + "," + y + ": " + getAngle(x, y));
+            }
+        }
+    }
+
     private void addNebula(CampaignTerrainAPI nebula)
     {
         if (toDraw.size() >= MAX_NEBULAE_SHOWN)
@@ -80,9 +98,7 @@ public class NebulaRenderer implements CampaignRenderer
                 llx = locX - (tiles.length * halfTile),
                 lly = locY - (tiles[0].length * halfTile);
 
-        // Used to get angle of each subsell's sprite
-        // Predictable seed is used to ensure a constant facing
-        final Random rng = new Random(12345);
+        // Detect all radar-visible hyperspace tiles
         for (int x = 0; x < tiles.length; x++)
         {
             for (int y = 0; y < tiles[0].length; y++)
@@ -100,10 +116,10 @@ public class NebulaRenderer implements CampaignRenderer
 
                 // Register each visible nebula cell to be rendered
                 final float rawX = llx + (tileSize * x), rawY = lly + (tileSize * y);
-                final float angle = rng.nextFloat() * 360f;
                 if (radar.isPointOnRadar(rawX, rawY, tileRenderSize * 1.2f))
                 {
                     final float[] coord = radar.getRawPointOnRadar(rawX, rawY);
+                    final float angle = getAngle(x, y);
                     toDraw.add(new NebulaCell(coord[0], coord[1], angle,
                             tileRenderSize * 1.2f * radar.getCurrentPixelsPerSU()));
                 }
@@ -157,7 +173,7 @@ public class NebulaRenderer implements CampaignRenderer
         {
             toDraw.clear();
 
-            List<CampaignTerrainAPI> nebulae = new ArrayList<>();
+            final List<CampaignTerrainAPI> nebulae = new ArrayList<>();
             for (CampaignTerrainAPI terrain : player.getContainingLocation().getTerrainCopy())
             {
                 if (Terrain.NEBULA.equals(terrain.getType())
@@ -174,7 +190,7 @@ public class NebulaRenderer implements CampaignRenderer
                     addNebula(nebula);
                 }
 
-                System.out.println("Found " + toDraw.size() + " nebulae nearby.");
+                //System.out.println("Found " + toDraw.size() + " nebulae nearby.");
             }
         }
 
