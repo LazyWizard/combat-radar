@@ -235,7 +235,7 @@
 
         "nebulaRenderer":
         {
-            "maxShown":400,
+            "maxShown":500,
             # ID of the nebula icon, found in data/config/settings.json
             # Must be in the "radar" subcategory of the "graphics" section
             "nebulaIcon":"nebula",
