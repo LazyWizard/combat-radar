@@ -239,7 +239,7 @@
             # ID of the nebula icon, found in data/config/settings.json
             # Must be in the "radar" subcategory of the "graphics" section
             "nebulaIcon":"nebula",
-            "nebulaColor":[175,80,175,150]
+            "nebulaColor":[175,80,175,100]
         }
     }
 }
