@@ -57,12 +57,20 @@ public class NebulaRenderer implements CampaignRenderer
         toDraw = new ArrayList<>();
     }
 
-    private static float getAngle(int x, int y)
+    // Hides tile pattern by rotating sprite by a predictable but non-uniform angle
+    private static float getAngle(int cellX, int cellY)
     {
-        if ((y & 1) == 0)
-            return ((x - y) & 15) * 22.5f;
-        
-        return ((x + y) & 15) * 22.5f;
+        if ((cellY & 1) == 0)
+        {
+            if ((cellX & 1) == 0)
+            {
+                return ((cellX + cellY) & 7) * 45f;
+            }
+
+            return ((cellX + cellY) & 15) * 22.5f;
+        }
+
+        return ((cellX + cellY) & 31) * 11.25f;
     }
 
     public static void main(String[] args)
