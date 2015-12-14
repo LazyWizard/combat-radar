@@ -328,6 +328,7 @@ public class CampaignRadarPlugin implements EveryFrameScript
         @Override
         public boolean isPointOnRadar(float worldLocX, float worldLocY, float padding)
         {
+            padding += 250f;
             final float a = worldLocX - player.getLocation().x,
                     b = worldLocY - player.getLocation().y;
             return (a * a) + (b * b) <= (sightRadius * sightRadius + padding * padding);
