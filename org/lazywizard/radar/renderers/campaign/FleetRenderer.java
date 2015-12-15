@@ -1,7 +1,6 @@
 package org.lazywizard.radar.renderers.campaign;
 
 import java.awt.Color;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -15,7 +14,6 @@ import com.fs.starfarer.api.campaign.SectorEntityToken.VisibilityLevel;
 import com.fs.starfarer.api.campaign.econ.MarketAPI;
 import com.fs.starfarer.api.campaign.events.CampaignEventPlugin;
 import com.fs.starfarer.api.campaign.events.CampaignEventTarget;
-import com.fs.starfarer.api.graphics.SpriteAPI;
 import com.fs.starfarer.api.impl.campaign.ids.Events;
 import com.fs.starfarer.api.impl.campaign.ids.FleetTypes;
 import com.fs.starfarer.api.impl.campaign.ids.MemFlags;
@@ -25,7 +23,7 @@ import org.json.JSONObject;
 import org.lazywizard.lazylib.JSONUtils;
 import org.lazywizard.radar.CommonRadar;
 import org.lazywizard.radar.renderers.CampaignRenderer;
-import static org.lwjgl.opengl.GL11.*;
+import org.lazywizard.radar.util.SpriteBatch;
 
 // TODO: After 0.7a comes out, play around with neutral/friendly colors for Expanded Battles
 public class FleetRenderer implements CampaignRenderer
@@ -36,8 +34,7 @@ public class FleetRenderer implements CampaignRenderer
     private static int MAX_FLEETS_SHOWN;
     private static String FLEET_ICON;
     private static Color BOUNTY_COLOR;
-    private SpriteAPI icon;
-    private List<FleetIcon> toDraw;
+    private SpriteBatch toDraw;
     private CommonRadar<SectorEntityToken> radar;
     private Set<FactionAPI> factionsWithBounties;
     private float flashTimer = 0f, timeSinceBountyUpdate = TIME_BETWEEN_BOUNTY_UPDATES;
@@ -59,8 +56,7 @@ public class FleetRenderer implements CampaignRenderer
     public void init(CommonRadar<SectorEntityToken> radar)
     {
         this.radar = radar;
-        icon = Global.getSettings().getSprite("radar", FLEET_ICON);
-        toDraw = new ArrayList<>();
+        toDraw = new SpriteBatch(Global.getSettings().getSprite("radar", FLEET_ICON));
         factionsWithBounties = new HashSet<>();
     }
 
@@ -177,8 +173,8 @@ public class FleetRenderer implements CampaignRenderer
                     float size = Math.max(100f, fleet.getRadius() * 2f)
                             * radar.getCurrentPixelsPerSU();
                     size *= 2f; // Scale upwards for better visibility
-                    toDraw.add(new FleetIcon(center[0], center[1],
-                            size, fleet.getFacing(), color));
+                    toDraw.add(center[0], center[1], fleet.getFacing(), size,
+                            color, radar.getContactAlpha());
                 }
             }
         }
@@ -189,40 +185,9 @@ public class FleetRenderer implements CampaignRenderer
             return;
         }
 
-        icon.setAlphaMult(radar.getContactAlpha());
-        radar.enableStencilTest();
-
         // Draw all fleets
-        glEnable(GL_TEXTURE_2D);
-        for (FleetIcon fIcon : toDraw)
-        {
-            fIcon.render();
-        }
-        glDisable(GL_TEXTURE_2D);
-
+        radar.enableStencilTest();
+        toDraw.render();
         radar.disableStencilTest();
-    }
-
-    private class FleetIcon
-    {
-        private final float x, y, size, facing;
-        private final Color color;
-
-        private FleetIcon(float x, float y, float size, float facing, Color color)
-        {
-            this.x = x;
-            this.y = y;
-            this.size = size;
-            this.facing = facing;
-            this.color = color;
-        }
-
-        private void render()
-        {
-            icon.setSize(size, size);
-            icon.setAngle(facing - 90f);
-            icon.setColor(color);
-            icon.renderAtCenter(x, y);
-        }
     }
 }

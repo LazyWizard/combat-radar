@@ -1,18 +1,16 @@
 package org.lazywizard.radar.renderers.combat;
 
 import java.awt.Color;
-import java.util.ArrayList;
 import java.util.List;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.CombatEntityAPI;
 import com.fs.starfarer.api.combat.ShipAPI;
-import com.fs.starfarer.api.graphics.SpriteAPI;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.lazywizard.lazylib.JSONUtils;
 import org.lazywizard.radar.CommonRadar;
 import org.lazywizard.radar.renderers.CombatRenderer;
-import static org.lwjgl.opengl.GL11.*;
+import org.lazywizard.radar.util.SpriteBatch;
 
 public class AsteroidRenderer implements CombatRenderer
 {
@@ -20,8 +18,7 @@ public class AsteroidRenderer implements CombatRenderer
     private static int MAX_ASTEROIDS_SHOWN;
     private static String ASTEROID_ICON;
     private static Color ASTEROID_COLOR;
-    private SpriteAPI icon;
-    private List<AsteroidIcon> toDraw;
+    private SpriteBatch toDraw;
     private CommonRadar<CombatEntityAPI> radar;
 
     @Override
@@ -45,9 +42,7 @@ public class AsteroidRenderer implements CombatRenderer
         }
 
         this.radar = radar;
-        icon = Global.getSettings().getSprite("radar", ASTEROID_ICON);
-        toDraw = new ArrayList<>();
-        icon.setColor(ASTEROID_COLOR);
+        toDraw = new SpriteBatch(Global.getSettings().getSprite("radar", ASTEROID_ICON));
     }
 
     @Override
@@ -71,7 +66,8 @@ public class AsteroidRenderer implements CombatRenderer
                     float size = Math.max(40f, asteroid.getCollisionRadius() * 2f)
                             * radar.getCurrentPixelsPerSU();
                     size *= 1.5f; // Scale upwards for better visibility
-                    toDraw.add(new AsteroidIcon(loc[0], loc[1], size));
+                    toDraw.add(loc[0], loc[1], 0f, size, ASTEROID_COLOR,
+                            radar.getContactAlpha());
                 }
             }
         }
@@ -82,35 +78,9 @@ public class AsteroidRenderer implements CombatRenderer
             return;
         }
 
-        icon.setAlphaMult(radar.getContactAlpha());
-        radar.enableStencilTest();
-
         // Draw all asteroids
-        glEnable(GL_TEXTURE_2D);
-        for (AsteroidIcon aIcon : toDraw)
-        {
-            aIcon.render();
-        }
-        glDisable(GL_TEXTURE_2D);
-
+        radar.enableStencilTest();
+        toDraw.render();
         radar.disableStencilTest();
-    }
-
-    private class AsteroidIcon
-    {
-        private final float x, y, size;
-
-        private AsteroidIcon(float x, float y, float size)
-        {
-            this.x = x;
-            this.y = y;
-            this.size = size;
-        }
-
-        private void render()
-        {
-            icon.setSize(size, size);
-            icon.renderAtCenter(x, y);
-        }
     }
 }

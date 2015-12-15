@@ -1,19 +1,17 @@
 package org.lazywizard.radar.renderers.campaign;
 
 import java.awt.Color;
-import java.util.ArrayList;
 import java.util.List;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import com.fs.starfarer.api.campaign.JumpPointAPI;
 import com.fs.starfarer.api.campaign.SectorEntityToken;
-import com.fs.starfarer.api.graphics.SpriteAPI;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.lazywizard.lazylib.JSONUtils;
 import org.lazywizard.radar.CommonRadar;
 import org.lazywizard.radar.renderers.CampaignRenderer;
-import static org.lwjgl.opengl.GL11.*;
+import org.lazywizard.radar.util.SpriteBatch;
 
 public class JumpPointRenderer implements CampaignRenderer
 {
@@ -22,8 +20,7 @@ public class JumpPointRenderer implements CampaignRenderer
     private static String JUMP_POINT_ICON;
     private static Color JUMP_POINT_COLOR;
     private float angle;
-    private SpriteAPI icon;
-    private List<JumpPointIcon> toDraw;
+    private SpriteBatch toDraw;
     private CommonRadar<SectorEntityToken> radar;
 
     @Override
@@ -47,9 +44,7 @@ public class JumpPointRenderer implements CampaignRenderer
         }
 
         this.radar = radar;
-        icon = Global.getSettings().getSprite("radar", JUMP_POINT_ICON);
-        icon.setColor(JUMP_POINT_COLOR);
-        toDraw = new ArrayList<>();
+        toDraw = new SpriteBatch(Global.getSettings().getSprite("radar", JUMP_POINT_ICON));
     }
 
     @Override
@@ -63,7 +58,7 @@ public class JumpPointRenderer implements CampaignRenderer
         if (isUpdateFrame)
         {
             toDraw.clear();
-            List<JumpPointAPI> jumpPoints = radar.filterVisible(
+            final List<JumpPointAPI> jumpPoints = radar.filterVisible(
                     player.getContainingLocation().getEntities(JumpPointAPI.class), MAX_JUMP_POINTS_SHOWN);
             if (!jumpPoints.isEmpty())
             {
@@ -75,7 +70,10 @@ public class JumpPointRenderer implements CampaignRenderer
                     float size = jumpPoint.getRadius() * 2f * radar.getCurrentPixelsPerSU();
                     // Scale upwards for better visibility
                     size *= (player.getContainingLocation().isHyperspace() ? 2f : 4f);
-                    toDraw.add(new JumpPointIcon(center[0], center[1], size));
+                    toDraw.add(center[0], center[1], angle, size,
+                            JUMP_POINT_COLOR, radar.getContactAlpha());
+                    toDraw.add(center[0], center[1], 360f - angle, size / 2,
+                            JUMP_POINT_COLOR, radar.getContactAlpha());
                 }
             }
         }
@@ -86,40 +84,9 @@ public class JumpPointRenderer implements CampaignRenderer
             return;
         }
 
-        icon.setAlphaMult(radar.getContactAlpha());
-        radar.enableStencilTest();
-
         // Draw all jump points
-        glEnable(GL_TEXTURE_2D);
-        for (JumpPointIcon jIcon : toDraw)
-        {
-            jIcon.render(angle);
-        }
-        glDisable(GL_TEXTURE_2D);
-
+        radar.enableStencilTest();
+        toDraw.render();
         radar.disableStencilTest();
-    }
-
-    private class JumpPointIcon
-    {
-        private final float x, y, size;
-
-        private JumpPointIcon(float x, float y, float size)
-        {
-            this.x = x;
-            this.y = y;
-            this.size = size;
-        }
-
-        private void render(float angle)
-        {
-            icon.setSize(size, size);
-            icon.setAngle(angle);
-            icon.renderAtCenter(x, y);
-
-            icon.setSize(size / 2f, size / 2f);
-            icon.setAngle(360f - angle);
-            icon.renderAtCenter(x, y);
-        }
     }
 }

@@ -7,21 +7,19 @@ import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import com.fs.starfarer.api.campaign.LocationAPI;
 import com.fs.starfarer.api.campaign.SectorEntityToken;
-import com.fs.starfarer.api.graphics.SpriteAPI;
 import com.fs.starfarer.api.impl.campaign.ids.Tags;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.lazywizard.radar.CommonRadar;
 import org.lazywizard.radar.renderers.CampaignRenderer;
-import static org.lwjgl.opengl.GL11.*;
+import org.lazywizard.radar.util.SpriteBatch;
 
 public class CommRelayRenderer implements CampaignRenderer
 {
     private static boolean SHOW_RELAYS;
     private static int MAX_RELAYS_SHOWN;
     private static String RELAY_ICON;
-    private SpriteAPI icon;
-    private List<RelayIcon> toDraw;
+    private SpriteBatch toDraw;
     private CommonRadar<SectorEntityToken> radar;
 
     @Override
@@ -44,8 +42,7 @@ public class CommRelayRenderer implements CampaignRenderer
         }
 
         this.radar = radar;
-        icon = Global.getSettings().getSprite("radar", RELAY_ICON);
-        toDraw = new ArrayList<>();
+        toDraw = new SpriteBatch(Global.getSettings().getSprite("radar", RELAY_ICON));
     }
 
     private static List<SectorEntityToken> getValidRelays(LocationAPI loc)
@@ -104,7 +101,8 @@ public class CommRelayRenderer implements CampaignRenderer
                     float[] center = radar.getRawPointOnRadar(relay.getLocation());
                     float size = relay.getRadius() * 2f * radar.getCurrentPixelsPerSU();
                     size *= 2f; // Scale upwards for better visibility
-                    toDraw.add(new RelayIcon(center[0], center[1], size, color));
+                    toDraw.add(center[0], center[1], 0f, size, color,
+                            radar.getContactAlpha());
                 }
             }
         }
@@ -115,38 +113,9 @@ public class CommRelayRenderer implements CampaignRenderer
             return;
         }
 
-        icon.setAlphaMult(radar.getContactAlpha());
-        radar.enableStencilTest();
-
         // Draw all relays
-        glEnable(GL_TEXTURE_2D);
-        for (RelayIcon sIcon : toDraw)
-        {
-            sIcon.render();
-        }
-        glDisable(GL_TEXTURE_2D);
-
+        radar.enableStencilTest();
+        toDraw.render();
         radar.disableStencilTest();
-    }
-
-    private class RelayIcon
-    {
-        private final float x, y, size;
-        private final Color color;
-
-        private RelayIcon(float x, float y, float size, Color color)
-        {
-            this.x = x;
-            this.y = y;
-            this.size = size;
-            this.color = color;
-        }
-
-        private void render()
-        {
-            icon.setSize(size, size);
-            icon.setColor(color);
-            icon.renderAtCenter(x, y);
-        }
     }
 }
