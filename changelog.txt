@@ -13,6 +13,9 @@ Combat ship renderer changes:
  - Allied ships have their own color
 New campaign renderer: NebulaRenderer
  - Handles nebula and deep hyperspace, does not show hyperspace storms yet
+New utility class: SpriteBatch
+ - Aids in efficiently drawing a sprite many times in a row
+Miscellaneous optimizations and improvements
 
  2.1 (November 19, 2015)
 =========================

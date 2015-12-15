@@ -1,26 +1,23 @@
 package org.lazywizard.radar.renderers.campaign;
 
 import java.awt.Color;
-import java.util.ArrayList;
 import java.util.List;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import com.fs.starfarer.api.campaign.SectorEntityToken;
-import com.fs.starfarer.api.graphics.SpriteAPI;
 import com.fs.starfarer.api.impl.campaign.ids.Tags;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.lazywizard.radar.CommonRadar;
 import org.lazywizard.radar.renderers.CampaignRenderer;
-import static org.lwjgl.opengl.GL11.*;
+import org.lazywizard.radar.util.SpriteBatch;
 
 public class StationRenderer implements CampaignRenderer
 {
     private static boolean SHOW_STATIONS;
     private static int MAX_STATIONS_SHOWN;
     private static String STATION_ICON;
-    private SpriteAPI icon;
-    private List<StationIcon> toDraw;
+    private SpriteBatch toDraw;
     private CommonRadar<SectorEntityToken> radar;
 
     @Override
@@ -43,8 +40,7 @@ public class StationRenderer implements CampaignRenderer
         }
 
         this.radar = radar;
-        icon = Global.getSettings().getSprite("radar", STATION_ICON);
-        toDraw = new ArrayList<>();
+        toDraw = new SpriteBatch(Global.getSettings().getSprite("radar", STATION_ICON));
     }
 
     @Override
@@ -86,7 +82,7 @@ public class StationRenderer implements CampaignRenderer
                     float[] center = radar.getRawPointOnRadar(station.getLocation());
                     float size = station.getRadius() * 2f * radar.getCurrentPixelsPerSU();
                     size *= 2f; // Scale upwards for better visibility
-                    toDraw.add(new StationIcon(center[0], center[1], size, color));
+                    toDraw.add(center[0], center[1], 0f, size, color, radar.getContactAlpha());
                 }
             }
         }
@@ -97,38 +93,9 @@ public class StationRenderer implements CampaignRenderer
             return;
         }
 
-        icon.setAlphaMult(radar.getContactAlpha());
-        radar.enableStencilTest();
-
         // Draw all stations
-        glEnable(GL_TEXTURE_2D);
-        for (StationIcon sIcon : toDraw)
-        {
-            sIcon.render();
-        }
-        glDisable(GL_TEXTURE_2D);
-
+        radar.enableStencilTest();
+        toDraw.render();
         radar.disableStencilTest();
-    }
-
-    private class StationIcon
-    {
-        private final float x, y, size;
-        private final Color color;
-
-        private StationIcon(float x, float y, float size, Color color)
-        {
-            this.x = x;
-            this.y = y;
-            this.size = size;
-            this.color = color;
-        }
-
-        private void render()
-        {
-            icon.setSize(size, size);
-            icon.setColor(color);
-            icon.renderAtCenter(x, y);
-        }
     }
 }

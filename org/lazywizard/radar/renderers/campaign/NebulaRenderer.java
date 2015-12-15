@@ -7,7 +7,6 @@ import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import com.fs.starfarer.api.campaign.CampaignTerrainAPI;
 import com.fs.starfarer.api.campaign.SectorEntityToken;
-import com.fs.starfarer.api.graphics.SpriteAPI;
 import com.fs.starfarer.api.impl.campaign.ids.Terrain;
 import com.fs.starfarer.api.impl.campaign.terrain.BaseTiledTerrain;
 import org.apache.log4j.BasicConfigurator;
@@ -18,12 +17,12 @@ import org.lazywizard.lazylib.MathUtils;
 import org.lazywizard.radar.CommonRadar;
 import org.lazywizard.radar.renderers.CampaignRenderer;
 import org.lazywizard.radar.util.DrawQueue;
+import org.lazywizard.radar.util.SpriteBatch;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
 import org.lwjgl.util.vector.Vector2f;
-import static org.lazywizard.lazylib.opengl.ColorUtils.glColor;
 import static org.lwjgl.opengl.GL11.*;
 
 // TODO: Split nebula and hyperspace rendering once storms are _efficiently_ trackable
@@ -33,8 +32,7 @@ public class NebulaRenderer implements CampaignRenderer
     private static int MAX_NEBULAE_SHOWN;
     private static String NEBULA_ICON;
     private static Color NEBULA_COLOR;
-    private SpriteAPI sprite;
-    private List<NebulaCell> toDraw;
+    private SpriteBatch toDraw;
     private CommonRadar<SectorEntityToken> radar;
 
     @Override
@@ -58,9 +56,7 @@ public class NebulaRenderer implements CampaignRenderer
         }
 
         this.radar = radar;
-        sprite = Global.getSettings().getSprite("radar", NEBULA_ICON);
-        sprite.setColor(NEBULA_COLOR);
-        toDraw = new ArrayList<>();
+        toDraw = new SpriteBatch(Global.getSettings().getSprite("radar", NEBULA_ICON));
     }
 
     // Hides tile pattern by rotating sprite by a predictable but non-uniform angle
@@ -195,39 +191,10 @@ public class NebulaRenderer implements CampaignRenderer
                 {
                     final float[] coord = radar.getRawPointOnRadar(rawX, rawY);
                     final float angle = getAngle(x, y);
-                    toDraw.add(new NebulaCell(coord[0], coord[1], angle,
-                            tileRenderSize * 1.2f * radar.getCurrentPixelsPerSU()));
+                    toDraw.add(coord[0], coord[1], angle, tileRenderSize * 1.2f
+                            * radar.getCurrentPixelsPerSU(), NEBULA_COLOR, radar.getContactAlpha());
                 }
             }
-        }
-    }
-
-    // MUCH faster than calling SpriteAPI's render() each time (avoids a ton of bindTexture() calls)
-    private void renderNebula(List<NebulaCell> toRender)
-    {
-        final float textureWidth = sprite.getTextureWidth(),
-                textureHeight = sprite.getTextureHeight();
-
-        sprite.bindTexture();
-        glColor(sprite.getColor(), sprite.getAlphaMult(), false);
-        for (NebulaCell cell : toRender)
-        {
-            glPushMatrix();
-            glTranslatef(cell.x, cell.y, 0f);
-            glRotatef(cell.angle, 0f, 0f, 1f);
-            glTranslatef(-cell.size * 0.5f, -cell.size * 0.5f, 0f);
-
-            glBegin(GL_QUADS);
-            glTexCoord2f(0f, 0f);
-            glVertex2f(0f, 0f);
-            glTexCoord2f(textureWidth, 0f);
-            glVertex2f(cell.size, 0f);
-            glTexCoord2f(textureWidth, textureHeight);
-            glVertex2f(cell.size, cell.size);
-            glTexCoord2f(0f, textureHeight);
-            glVertex2f(0f, cell.size);
-            glEnd();
-            glPopMatrix();
         }
     }
 
@@ -259,8 +226,6 @@ public class NebulaRenderer implements CampaignRenderer
                 {
                     addNebula(nebula);
                 }
-
-                //System.out.println("Found " + toDraw.size() + " nebulae nearby.");
             }
         }
 
@@ -270,30 +235,9 @@ public class NebulaRenderer implements CampaignRenderer
             return;
         }
 
-        sprite.setAlphaMult(radar.getContactAlpha());
-        radar.enableStencilTest();
-
         // Draw all nebulae
-        glEnable(GL_TEXTURE_2D);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        renderNebula(toDraw);
-        glDisable(GL_BLEND);
-        glDisable(GL_TEXTURE_2D);
-
+        radar.enableStencilTest();
+        toDraw.render();
         radar.disableStencilTest();
-    }
-
-    private static class NebulaCell
-    {
-        private final float x, y, angle, size;
-
-        private NebulaCell(float x, float y, float angle, float size)
-        {
-            this.x = x;
-            this.y = y;
-            this.angle = angle;
-            this.size = size;
-        }
     }
 }
