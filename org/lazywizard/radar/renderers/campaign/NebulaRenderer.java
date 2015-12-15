@@ -86,11 +86,11 @@ public class NebulaRenderer implements CampaignRenderer
 
     public static void main(String[] args)
     {
-        final int SCREEN_WIDTH = 800, SCREEN_HEIGHT = 600;
+        final int SCREEN_WIDTH = 1440, SCREEN_HEIGHT = 900;
         try
         {
             BasicConfigurator.configure();
-            Display.setDisplayMode(new DisplayMode(1440, 900));
+            Display.setDisplayMode(new DisplayMode(SCREEN_WIDTH, SCREEN_HEIGHT));
             Display.create();
         }
         catch (LWJGLException ex)
@@ -102,7 +102,7 @@ public class NebulaRenderer implements CampaignRenderer
         // Init OpenGL
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
-        glOrtho(0, SCREEN_WIDTH, 0, SCREEN_HEIGHT, 1, -1);
+        glOrtho(0, 800, 0, 600, 1, -1);
         glMatrixMode(GL_MODELVIEW);
 
         // Set up vertex data
@@ -167,7 +167,7 @@ public class NebulaRenderer implements CampaignRenderer
         final BaseTiledTerrain plugin = (BaseTiledTerrain) nebula.getPlugin();
         final Vector2f loc = plugin.getEntity().getLocation();
         final int[][] tiles = plugin.getTiles();
-        final float tileSize = plugin.getTileSize(), halfTile = tileSize / 2f,
+        final float tileSize = plugin.getTileSize(), halfTile = tileSize * 0.5f,
                 tileRenderSize = plugin.getTileRenderSize(),
                 locX = loc.x + halfTile, locY = loc.y + halfTile,
                 llx = locX - (tiles.length * halfTile),
@@ -205,31 +205,27 @@ public class NebulaRenderer implements CampaignRenderer
     // MUCH faster than calling SpriteAPI's render() each time (avoids a ton of bindTexture() calls)
     private void renderNebula(List<NebulaCell> toRender)
     {
-        final float width = sprite.getWidth(), height = sprite.getHeight(),
-                textureWidth = sprite.getTextureWidth(),
+        final float textureWidth = sprite.getTextureWidth(),
                 textureHeight = sprite.getTextureHeight();
 
         sprite.bindTexture();
         glColor(sprite.getColor(), sprite.getAlphaMult(), false);
-        for (NebulaCell nIcon : toRender)
+        for (NebulaCell cell : toRender)
         {
-            sprite.setSize(nIcon.size, nIcon.size);
-            sprite.setAngle(nIcon.angle);
-
             glPushMatrix();
-            glTranslatef(nIcon.x, nIcon.y, 0f);
-            glRotatef(nIcon.angle, 0f, 0f, 1f);
-            glTranslatef(-(width / 2f), -(height / 2f), 0f);
+            glTranslatef(cell.x, cell.y, 0f);
+            glRotatef(cell.angle, 0f, 0f, 1f);
+            glTranslatef(-cell.size * 0.5f, -cell.size * 0.5f, 0f);
 
             glBegin(GL_QUADS);
             glTexCoord2f(0f, 0f);
             glVertex2f(0f, 0f);
             glTexCoord2f(textureWidth, 0f);
-            glVertex2f(width, 0f);
+            glVertex2f(cell.size, 0f);
             glTexCoord2f(textureWidth, textureHeight);
-            glVertex2f(width, height);
+            glVertex2f(cell.size, cell.size);
             glTexCoord2f(0f, textureHeight);
-            glVertex2f(0f, height);
+            glVertex2f(0f, cell.size);
             glEnd();
             glPopMatrix();
         }
