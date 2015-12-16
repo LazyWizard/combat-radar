@@ -70,6 +70,8 @@ public class AsteroidRenderer implements CombatRenderer
                             radar.getContactAlpha());
                 }
             }
+
+            toDraw.finish();
         }
 
         // Don't draw if there's nothing to render!
@@ -80,7 +82,7 @@ public class AsteroidRenderer implements CombatRenderer
 
         // Draw all asteroids
         radar.enableStencilTest();
-        toDraw.render();
+        toDraw.draw();
         radar.disableStencilTest();
     }
 }

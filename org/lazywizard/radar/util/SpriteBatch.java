@@ -23,6 +23,7 @@ public class SpriteBatch
     private final int blendSrc, blendDest;
     private final float textureWidth, textureHeight, hScale;
     private final List<DrawCall> toDraw = new ArrayList<>();
+    private boolean finished = false;
 
     public SpriteBatch(SpriteAPI sprite)
     {
@@ -46,6 +47,11 @@ public class SpriteBatch
 
     public void add(float x, float y, float angle, float width, float height, Color color, float alphaMod)
     {
+        if (finished)
+        {
+            clear();
+        }
+
         toDraw.add(new DrawCall(x, y, angle, width, height, new byte[]
         {
             (byte) color.getRed(),
@@ -53,6 +59,8 @@ public class SpriteBatch
             (byte) color.getBlue(),
             (byte) Math.round(color.getAlpha() * alphaMod)
         }));
+
+        finished = false;
     }
 
     public int size()
@@ -63,6 +71,7 @@ public class SpriteBatch
     public void clear()
     {
         toDraw.clear();
+        finished = false;
     }
 
     public boolean isEmpty()
@@ -70,8 +79,24 @@ public class SpriteBatch
         return toDraw.isEmpty();
     }
 
-    public void render()
+    // Does nothing for now, usage is enforced for later move to buffers
+    public void finish()
     {
+        if (finished)
+        {
+            throw new RuntimeException("SpriteBatch is already finished!");
+        }
+
+        finished = true;
+    }
+
+    public void draw()
+    {
+        if (!finished)
+        {
+            throw new RuntimeException("Must call finish() before drawing!");
+        }
+
         if (toDraw.isEmpty())
         {
             return;

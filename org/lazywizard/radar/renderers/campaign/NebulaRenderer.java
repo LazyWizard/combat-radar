@@ -108,7 +108,7 @@ public class NebulaRenderer implements CampaignRenderer
         {
             for (int y = 0; y < 60; y++)
             {
-                Vector2f center = new Vector2f((x * 10f) + 5f, (y * 10f) + 5f);
+                final Vector2f center = new Vector2f((x * 10f) + 5f, (y * 10f) + 5f);
                 testQueue.addVertex(center); // Comment out if using GL_POINTS
                 testQueue.addVertex(MathUtils.getPointOnCircumference(
                         center, 10f, getAngle(x, y)));
@@ -227,6 +227,8 @@ public class NebulaRenderer implements CampaignRenderer
                     addNebula(nebula);
                 }
             }
+
+            toDraw.finish();
         }
 
         // Don't draw if there's nothing to render!
@@ -237,7 +239,7 @@ public class NebulaRenderer implements CampaignRenderer
 
         // Draw all nebulae
         radar.enableStencilTest();
-        toDraw.render();
+        toDraw.draw();
         radar.disableStencilTest();
     }
 }

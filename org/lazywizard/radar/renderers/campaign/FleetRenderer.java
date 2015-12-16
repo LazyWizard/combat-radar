@@ -177,6 +177,8 @@ public class FleetRenderer implements CampaignRenderer
                             color, radar.getContactAlpha());
                 }
             }
+
+            toDraw.finish();
         }
 
         // Don't draw if there's nothing to render!
@@ -187,7 +189,7 @@ public class FleetRenderer implements CampaignRenderer
 
         // Draw all fleets
         radar.enableStencilTest();
-        toDraw.render();
+        toDraw.draw();
         radar.disableStencilTest();
     }
 }

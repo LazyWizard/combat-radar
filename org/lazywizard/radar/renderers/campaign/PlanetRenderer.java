@@ -79,6 +79,9 @@ public class PlanetRenderer implements CampaignRenderer
                     }
                 }
             }
+
+            toDrawStars.finish();
+            toDrawPlanets.finish();
         }
 
         // Don't draw if there's nothing to render!
@@ -89,8 +92,8 @@ public class PlanetRenderer implements CampaignRenderer
 
         // Draw all planets and stars
         radar.enableStencilTest();
-        toDrawPlanets.render();
-        toDrawStars.render();
+        toDrawPlanets.draw();
+        toDrawStars.draw();
         radar.disableStencilTest();
     }
 }

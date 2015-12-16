@@ -68,6 +68,8 @@ public class AsteroidRenderer implements CampaignRenderer
                     toDraw.add(loc[0], loc[1], 0f, size, ASTEROID_COLOR, radar.getContactAlpha());
                 }
             }
+
+            toDraw.finish();
         }
 
         // Don't draw if there's nothing to render!
@@ -78,7 +80,7 @@ public class AsteroidRenderer implements CampaignRenderer
 
         // Draw all asteroids
         radar.enableStencilTest();
-        toDraw.render();
+        toDraw.draw();
         radar.disableStencilTest();
     }
 }
