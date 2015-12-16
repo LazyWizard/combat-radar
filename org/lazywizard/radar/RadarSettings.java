@@ -97,7 +97,8 @@ public class RadarSettings
         VERTICES_PER_CIRCLE = settings.getInt("verticesPerCircle");
 
         // Size of radar on screen
-        RADAR_RENDER_RADIUS = (float) (Display.getHeight() * settings.getDouble("radarRadius"));
+        RADAR_RENDER_RADIUS = (float) (Display.getHeight()
+                * settings.getDouble("radarSize") * .5f);
 
         // Only use vertex buffer objects if the graphics card supports them
         // Every graphics card that's still in use should, but just in case...
