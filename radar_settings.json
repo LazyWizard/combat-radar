@@ -119,7 +119,7 @@
 
         "asteroidRenderer":
         {
-            "maxShown":250,
+            "maxShown":500,
             # ID of the asteroid icon, found in data/config/settings.json
             # Must be in the "radar" subcategory of the "graphics" section
             "asteroidIcon":"asteroid",
@@ -128,7 +128,7 @@
 
         "missileRenderer":
         {
-            "maxShown":150,
+            "maxShown":500,
             # ID of the missile icons, found in data/config/settings.json
             # Must be in the "radar" subcategory of the "graphics" section
             "missileIcon":"missile",
@@ -235,7 +235,7 @@
 
         "nebulaRenderer":
         {
-            "maxShown":500,
+            "maxShown":800,
             # ID of the nebula icon, found in data/config/settings.json
             # Must be in the "radar" subcategory of the "graphics" section
             "nebulaIcon":"nebula",
