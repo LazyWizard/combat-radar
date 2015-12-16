@@ -76,6 +76,8 @@ public class JumpPointRenderer implements CampaignRenderer
                             JUMP_POINT_COLOR, radar.getContactAlpha());
                 }
             }
+
+            toDraw.finish();
         }
 
         // Don't draw if there's nothing to render!
@@ -86,7 +88,7 @@ public class JumpPointRenderer implements CampaignRenderer
 
         // Draw all jump points
         radar.enableStencilTest();
-        toDraw.render();
+        toDraw.draw();
         radar.disableStencilTest();
     }
 }

@@ -85,6 +85,8 @@ public class StationRenderer implements CampaignRenderer
                     toDraw.add(center[0], center[1], 0f, size, color, radar.getContactAlpha());
                 }
             }
+
+            toDraw.finish();
         }
 
         // Don't draw if there's nothing to render!
@@ -95,7 +97,7 @@ public class StationRenderer implements CampaignRenderer
 
         // Draw all stations
         radar.enableStencilTest();
-        toDraw.render();
+        toDraw.draw();
         radar.disableStencilTest();
     }
 }

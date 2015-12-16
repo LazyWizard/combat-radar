@@ -4,6 +4,7 @@ Added to radar_settings.json:
  - "radarSize", determines the size of the radar as a fraction of the display
    height, defaults to 0.2 or 20% display height
  - "allyColor", the color of teammates in battle
+Increased default "maxShown" settings due to optimizations to sprite rendering
 Added getAlliedContactColor() to CommonRadar interface
 Added isPointOnRadar() to CommonRadar interface
 Added ReloadRadar console command (only if Console Commands mod is enabled)

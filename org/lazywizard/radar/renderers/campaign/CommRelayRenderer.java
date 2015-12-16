@@ -105,6 +105,8 @@ public class CommRelayRenderer implements CampaignRenderer
                             radar.getContactAlpha());
                 }
             }
+
+            toDraw.finish();
         }
 
         // Don't draw if there's nothing to render!
@@ -115,7 +117,7 @@ public class CommRelayRenderer implements CampaignRenderer
 
         // Draw all relays
         radar.enableStencilTest();
-        toDraw.render();
+        toDraw.draw();
         radar.disableStencilTest();
     }
 }
