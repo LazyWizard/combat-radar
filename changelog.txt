@@ -1,5 +1,6 @@
  2.2 (December XX, 2015)
 =========================
+Empty rows in radar CSVs are ignored correctly
 Added to radar_settings.json:
  - "radarSize", determines the size of the radar as a fraction of the display
    height, defaults to 0.2 or 20% display height
@@ -14,6 +15,9 @@ Combat ship renderer changes:
  - Allied ships have their own color
 New campaign renderer: NebulaRenderer
  - Handles nebula and deep hyperspace, does not show hyperspace storms yet
+New renderer: MemoryUsageRenderer
+ - Shows percentage of committed memory used (not percentage of allocatable)
+ - Disabled by default, enable in the relevant CSVs in data/config/radar
 New utility class: SpriteBatch
  - Aids in efficiently drawing a sprite many times in a row
 Miscellaneous optimizations and improvements
