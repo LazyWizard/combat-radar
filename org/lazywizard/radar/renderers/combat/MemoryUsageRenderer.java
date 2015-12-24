@@ -19,7 +19,7 @@ public class MemoryUsageRenderer extends BaseMemoryUsageRenderer implements Comb
     @Override
     public void init(CommonRadar<CombatEntityAPI> radar)
     {
-        super.initiate(radar);
+        super.init(radar, 0f);
     }
 
     @Override
