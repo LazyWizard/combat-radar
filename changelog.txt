@@ -16,7 +16,11 @@ Combat ship renderer changes:
 New campaign renderer: NebulaRenderer
  - Handles nebula and deep hyperspace, does not show hyperspace storms yet
 New renderer: MemoryUsageRenderer
- - Shows percentage of committed memory used (not percentage of allocatable)
+ - Appears to the left of the radar in both campaign and combat
+ - White portion of bar is fraction used of max allocatable memory
+ - Gray portion of bar is fraction allocated of max allocatable memory
+ - Shows heap memory on left, non-heap memory on right
+   (heap is the value most users will want to keep an eye on)
  - Disabled by default, enable in the relevant CSVs in data/config/radar
 New utility class: SpriteBatch
  - Aids in efficiently drawing a sprite many times in a row

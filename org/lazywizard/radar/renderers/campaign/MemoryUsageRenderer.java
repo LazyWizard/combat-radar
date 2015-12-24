@@ -10,7 +10,6 @@ import org.lazywizard.radar.renderers.CampaignRenderer;
 
 public class MemoryUsageRenderer extends BaseMemoryUsageRenderer implements CampaignRenderer
 {
-
     @Override
     public void reloadSettings(JSONObject settings) throws JSONException
     {
@@ -19,7 +18,7 @@ public class MemoryUsageRenderer extends BaseMemoryUsageRenderer implements Camp
     @Override
     public void init(CommonRadar<SectorEntityToken> radar)
     {
-        super.initiate(radar);
+        super.init(radar, -radar.getRenderRadius() * .05f);
     }
 
     @Override
