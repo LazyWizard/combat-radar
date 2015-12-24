@@ -9,23 +9,16 @@ import com.fs.starfarer.api.campaign.CampaignTerrainAPI;
 import com.fs.starfarer.api.campaign.SectorEntityToken;
 import com.fs.starfarer.api.impl.campaign.ids.Terrain;
 import com.fs.starfarer.api.impl.campaign.terrain.BaseTiledTerrain;
-import org.apache.log4j.BasicConfigurator;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.lazywizard.lazylib.JSONUtils;
-import org.lazywizard.lazylib.MathUtils;
 import org.lazywizard.radar.CommonRadar;
 import org.lazywizard.radar.renderers.CampaignRenderer;
-import org.lazywizard.radar.util.DrawQueue;
 import org.lazywizard.radar.util.SpriteBatch;
-import org.lwjgl.LWJGLException;
-import org.lwjgl.input.Keyboard;
-import org.lwjgl.opengl.Display;
-import org.lwjgl.opengl.DisplayMode;
 import org.lwjgl.util.vector.Vector2f;
-import static org.lwjgl.opengl.GL11.*;
 
 // TODO: Split nebula and hyperspace rendering once storms are _efficiently_ trackable
+// TODO: Use actual nebula/hyperspace map textures instead of radar's version
 public class NebulaRenderer implements CampaignRenderer
 {
     private static boolean SHOW_NEBULAE;
@@ -78,73 +71,6 @@ public class NebulaRenderer implements CampaignRenderer
         }
 
         return ((cellX + cellY) & 31) * 11.25f;
-    }
-
-    public static void main(String[] args)
-    {
-        final int SCREEN_WIDTH = 1440, SCREEN_HEIGHT = 900;
-        try
-        {
-            BasicConfigurator.configure();
-            Display.setDisplayMode(new DisplayMode(SCREEN_WIDTH, SCREEN_HEIGHT));
-            Display.create();
-        }
-        catch (LWJGLException ex)
-        {
-            ex.printStackTrace();
-            System.exit(1);
-        }
-
-        // Init OpenGL
-        glMatrixMode(GL_PROJECTION);
-        glLoadIdentity();
-        glOrtho(0, 800, 0, 600, 1, -1);
-        glMatrixMode(GL_MODELVIEW);
-
-        // Set up vertex data
-        DrawQueue testQueue = new DrawQueue(80 * 60 * 2);
-        testQueue.setNextColor(Color.RED, 1f);
-        for (int x = 0; x < 80; x++)
-        {
-            for (int y = 0; y < 60; y++)
-            {
-                final Vector2f center = new Vector2f((x * 10f) + 5f, (y * 10f) + 5f);
-                testQueue.addVertex(center); // Comment out if using GL_POINTS
-                testQueue.addVertex(MathUtils.getPointOnCircumference(
-                        center, 10f, getAngle(x, y)));
-            }
-        }
-        testQueue.finishShape(GL_LINES); // GL_POINTS);
-        testQueue.finish();
-
-        while (!Display.isCloseRequested())
-        {
-            // Close on focus change because I always forget to close them myself
-            if (!Display.isActive() || Keyboard.isKeyDown(Keyboard.KEY_ESCAPE))
-            {
-                break;
-            }
-
-            // Clear the screen and depth buffer
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            glClearColor(.1f, .1f, .1f, 0f);
-
-            glEnable(GL_BLEND);
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-            glEnableClientState(GL_VERTEX_ARRAY);
-            glEnableClientState(GL_COLOR_ARRAY);
-            glPointSize(5f);
-            glLineWidth(2f);
-            testQueue.draw();
-            glDisableClientState(GL_COLOR_ARRAY);
-            glDisableClientState(GL_VERTEX_ARRAY);
-
-            Display.update();
-            Display.sync(60);
-        }
-
-        Display.destroy();
     }
 
     private void addNebula(CampaignTerrainAPI nebula)

@@ -143,9 +143,12 @@ public class RadarSettings
         {
             final JSONObject row = csv.getJSONObject(x);
             final String id = row.getString("id");
-            final boolean isPrefix = row.optBoolean("prefix", false);
+            if (id.isEmpty())
+            {
+                continue;
+            }
 
-            if (isPrefix)
+            if (row.optBoolean("prefix", false))
             {
                 EXCLUDED_HULL_PREFIXES.add(id);
             }
@@ -178,6 +181,12 @@ public class RadarSettings
         for (int x = 0; x < csv.length(); x++)
         {
             final JSONObject row = csv.getJSONObject(x);
+            final String id = row.getString("renderer id");
+            if (id.isEmpty())
+            {
+                continue;
+            }
+
             final String className = row.getString("script");
             final String settingsPath = row.optString("settings file (optional)", null);
             final int renderOrder = row.getInt("render order");
