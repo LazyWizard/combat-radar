@@ -1,9 +1,10 @@
- 2.2 (December XX, 2015)
+ 2.2 (December 25, 2015)
 =========================
 Empty rows in radar CSVs are ignored correctly
 Added to radar_settings.json:
  - "radarSize", determines the size of the radar as a fraction of the display
-   height, defaults to 0.2 or 20% display height
+   height, defaults to 0.2 or 20% display height. Keep in mind that the radar
+   adds 10% of its diameter as padding to the side/below.
  - "allyColor", the color of teammates in battle
 Increased default "maxShown" settings due to optimizations to sprite rendering
 Added getAlliedContactColor() to CommonRadar interface
@@ -15,7 +16,7 @@ Combat ship renderer changes:
  - Allied ships have their own color
 New campaign renderer: NebulaRenderer
  - Handles nebula and deep hyperspace, does not show hyperspace storms yet
-New renderer: MemoryUsageRenderer
+New optional renderer: MemoryUsageRenderer
  - Appears to the left of the radar in both campaign and combat
  - White portion of bar is fraction used of max allocatable memory
  - Gray portion of bar is fraction allocated of max allocatable memory
