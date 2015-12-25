@@ -124,6 +124,9 @@ public class MapBorderRenderer implements CombatRenderer
             drawQueue.finish();
         }
 
+        if (drawQueue.isEmpty())
+            return;
+
         // Draw retreat areas and gravity barriers
         radar.enableStencilTest();
         glEnableClientState(GL_VERTEX_ARRAY);

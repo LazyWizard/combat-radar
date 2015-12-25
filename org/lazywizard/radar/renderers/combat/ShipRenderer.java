@@ -305,6 +305,11 @@ public class ShipRenderer implements CombatRenderer
 
             shipDrawQueue.finish();
         }
+        
+        if (shipDrawQueue.isEmpty())
+        {
+            return;
+        }
 
         // Draw cached render data
         radar.enableStencilTest();
