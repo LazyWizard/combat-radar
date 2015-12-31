@@ -1,11 +1,10 @@
 package org.lazywizard.radar.renderers.campaign;
 
 import java.awt.Color;
-import java.util.ArrayList;
-import java.util.List;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import com.fs.starfarer.api.campaign.CampaignTerrainAPI;
+import com.fs.starfarer.api.campaign.CampaignTerrainPlugin;
 import com.fs.starfarer.api.campaign.SectorEntityToken;
 import com.fs.starfarer.api.impl.campaign.ids.Terrain;
 import com.fs.starfarer.api.impl.campaign.terrain.BaseTiledTerrain;
@@ -21,6 +20,14 @@ import org.lwjgl.util.vector.Vector2f;
 // TODO: Use actual nebula/hyperspace map textures instead of radar's version
 public class NebulaRenderer implements CampaignRenderer
 {
+    /**
+     * Custom terrain with this tag will be considered nebulae by the renderer.
+     * They must also have a {@link CampaignTerrainPlugin} that extends
+     * {@link BaseTiledTerrain}, otherwise the renderer will ignore them.
+     * <p>
+     * @since 2.2b
+     */
+    public static final String NEBULA_TAG = "radar_nebula";
     private static boolean SHOW_NEBULAE;
     private static int MAX_NEBULAE_SHOWN;
     private static String NEBULA_ICON;
@@ -136,21 +143,13 @@ public class NebulaRenderer implements CampaignRenderer
         {
             toDraw.clear();
 
-            final List<CampaignTerrainAPI> nebulae = new ArrayList<>();
             for (CampaignTerrainAPI terrain : player.getContainingLocation().getTerrainCopy())
             {
                 if (Terrain.NEBULA.equals(terrain.getType())
-                        || Terrain.HYPERSPACE.equals(terrain.getType()))
+                        || Terrain.HYPERSPACE.equals(terrain.getType())
+                        || terrain.hasTag(NEBULA_TAG))
                 {
-                    nebulae.add(terrain);
-                }
-            }
-
-            if (!nebulae.isEmpty())
-            {
-                for (CampaignTerrainAPI nebula : nebulae)
-                {
-                    addNebula(nebula);
+                    addNebula(terrain);
                 }
             }
 
