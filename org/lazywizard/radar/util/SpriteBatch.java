@@ -21,7 +21,7 @@ public class SpriteBatch
     private static final Logger Log = Logger.getLogger(SpriteBatch.class);
     private final SpriteAPI sprite;
     private final int blendSrc, blendDest;
-    private final float textureWidth, textureHeight, hScale;
+    private final float textureWidth, textureHeight, offsetScaleX, offsetScaleY, hScale;
     private final List<DrawCall> toDraw = new ArrayList<>();
     private boolean finished = false;
 
@@ -38,6 +38,8 @@ public class SpriteBatch
         textureWidth = sprite.getTextureWidth();
         textureHeight = sprite.getTextureHeight();
         hScale = sprite.getWidth() / sprite.getHeight();
+        offsetScaleX = sprite.getCenterX() / (sprite.getWidth() * .5f);
+        offsetScaleY = sprite.getCenterY() / (sprite.getHeight() * .5f);
     }
 
     public void add(float x, float y, float angle, float size, Color color, float alphaMod)
@@ -114,7 +116,7 @@ public class SpriteBatch
             glPushMatrix();
             glTranslatef(call.x, call.y, 0f);
             glRotatef(call.angle, 0f, 0f, 1f);
-            glTranslatef(-call.width * 0.5f, -call.height * 0.5f, 0f);
+            glTranslatef((-call.width * 0.5f) * offsetScaleX, (-call.height * 0.5f) * offsetScaleY, 0f);
 
             glColor4ub(call.color[0], call.color[1], call.color[2], call.color[3]);
             glBegin(GL_QUADS);
