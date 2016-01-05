@@ -10,6 +10,7 @@ import org.json.JSONObject;
 import org.lazywizard.radar.CommonRadar;
 import org.lazywizard.radar.renderers.CampaignRenderer;
 import org.lazywizard.radar.util.SpriteBatch;
+import static org.lwjgl.opengl.GL11.*;
 
 // TODO: Get planet icon sprite directly somehow?
 public class PlanetRenderer implements CampaignRenderer
@@ -92,8 +93,14 @@ public class PlanetRenderer implements CampaignRenderer
 
         // Draw all planets and stars
         radar.enableStencilTest();
-        toDrawPlanets.draw();
+
+        glEnable(GL_TEXTURE_2D);
+        glEnable(GL_BLEND);
         toDrawStars.draw();
+        toDrawPlanets.draw();
+        glDisable(GL_BLEND);
+        glDisable(GL_TEXTURE_2D);
+
         radar.disableStencilTest();
     }
 }

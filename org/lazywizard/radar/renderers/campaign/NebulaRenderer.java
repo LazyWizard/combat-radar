@@ -15,6 +15,7 @@ import org.lazywizard.radar.CommonRadar;
 import org.lazywizard.radar.renderers.CampaignRenderer;
 import org.lazywizard.radar.util.SpriteBatch;
 import org.lwjgl.util.vector.Vector2f;
+import static org.lwjgl.opengl.GL11.*;
 
 // TODO: Split nebula and hyperspace rendering once storms are _efficiently_ trackable
 // TODO: Use actual nebula/hyperspace map textures instead of radar's version
@@ -164,7 +165,13 @@ public class NebulaRenderer implements CampaignRenderer
 
         // Draw all nebulae
         radar.enableStencilTest();
+
+        glEnable(GL_TEXTURE_2D);
+        glEnable(GL_BLEND);
         toDraw.draw();
+        glDisable(GL_BLEND);
+        glDisable(GL_TEXTURE_2D);
+
         radar.disableStencilTest();
     }
 }

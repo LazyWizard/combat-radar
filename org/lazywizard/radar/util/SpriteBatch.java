@@ -4,23 +4,23 @@ import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 import com.fs.starfarer.api.graphics.SpriteAPI;
-import org.apache.log4j.Logger;
 import static org.lwjgl.opengl.GL11.*;
 
 /**
  * Used to efficiently render the same sprite many times. Each instance only
  * handles one unique sprite, and does not modify the underlying
- * {@link SpriteAPI}.
+ * {@link SpriteAPI}. All scaling is based on the state of the {@link SpriteAPI}
+ * at the time of {@code SpriteBatch} instantiation.
  *
  * @author LazyWizard
  * @since 2.2
  */
+// TODO: Rewrite to handle multiple SpriteAPIs
 // TODO: Rewrite to use buffers (clone of DrawQueue?)
 public class SpriteBatch
 {
-    private static final Logger Log = Logger.getLogger(SpriteBatch.class);
-    private final SpriteAPI sprite;
-    private final int blendSrc, blendDest;
+    //private static final Logger Log = Logger.getLogger(SpriteBatch.class);
+    private final int textureId, blendSrc, blendDest;
     private final float textureWidth, textureHeight, offsetScaleX, offsetScaleY, hScale;
     private final List<DrawCall> toDraw = new ArrayList<>();
     private boolean finished = false;
@@ -32,9 +32,9 @@ public class SpriteBatch
 
     public SpriteBatch(SpriteAPI sprite, int blendSrc, int blendDest)
     {
-        this.sprite = sprite;
         this.blendSrc = blendSrc;
         this.blendDest = blendDest;
+        textureId = sprite.getTextureId();
         textureWidth = sprite.getTextureWidth();
         textureHeight = sprite.getTextureHeight();
         hScale = sprite.getWidth() / sprite.getHeight();
@@ -42,6 +42,7 @@ public class SpriteBatch
         offsetScaleY = sprite.getCenterY() / (sprite.getHeight() * .5f);
     }
 
+    // Size is height of sprite, width is automatically calculated
     public void add(float x, float y, float angle, float size, Color color, float alphaMod)
     {
         add(x, y, angle, size * hScale, size, color, alphaMod);
@@ -104,15 +105,10 @@ public class SpriteBatch
             return;
         }
 
-        glEnable(GL_TEXTURE_2D);
-        glEnable(GL_BLEND);
         glBlendFunc(blendSrc, blendDest);
-
-        sprite.bindTexture();
+        glBindTexture(GL_TEXTURE_2D, textureId);
         for (DrawCall call : toDraw)
         {
-            //final float width = call.size, height = call.size;
-
             glPushMatrix();
             glTranslatef(call.x, call.y, 0f);
             glRotatef(call.angle, 0f, 0f, 1f);
@@ -131,9 +127,6 @@ public class SpriteBatch
             glEnd();
             glPopMatrix();
         }
-
-        glDisable(GL_BLEND);
-        glDisable(GL_TEXTURE_2D);
     }
 
     private static class DrawCall

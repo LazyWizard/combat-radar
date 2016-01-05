@@ -16,8 +16,7 @@ import org.lazywizard.radar.CommonRadar;
 import org.lazywizard.radar.renderers.CombatRenderer;
 import org.lazywizard.radar.util.SpriteBatch;
 import org.lwjgl.util.vector.Vector2f;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
-import static org.lwjgl.opengl.GL11.glDisable;
+import static org.lwjgl.opengl.GL11.*;
 
 public class MissileRenderer implements CombatRenderer
 {
@@ -144,8 +143,10 @@ public class MissileRenderer implements CombatRenderer
                             missileSize, color, alphaMod);
                 }
                 else
+                {
                     missileToDraw.add(radarLoc[0], radarLoc[1], missile.getFacing(),
                             missileSize, color, alphaMod);
+                }
             }
 
             missileToDraw.finish();
@@ -160,8 +161,14 @@ public class MissileRenderer implements CombatRenderer
 
         // Draw all missiles and flares
         radar.enableStencilTest();
+
+        glEnable(GL_TEXTURE_2D);
+        glEnable(GL_BLEND);
         missileToDraw.draw();
         flareToDraw.draw();
+        glDisable(GL_BLEND);
+        glDisable(GL_TEXTURE_2D);
+
         radar.disableStencilTest();
 
         if (SHOW_MISSILE_LOCK_ICON && playerLock)
