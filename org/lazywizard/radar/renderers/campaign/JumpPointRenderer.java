@@ -12,6 +12,7 @@ import org.lazywizard.lazylib.JSONUtils;
 import org.lazywizard.radar.CommonRadar;
 import org.lazywizard.radar.renderers.CampaignRenderer;
 import org.lazywizard.radar.util.SpriteBatch;
+import static org.lwjgl.opengl.GL11.*;
 
 public class JumpPointRenderer implements CampaignRenderer
 {
@@ -88,7 +89,13 @@ public class JumpPointRenderer implements CampaignRenderer
 
         // Draw all jump points
         radar.enableStencilTest();
+
+        glEnable(GL_TEXTURE_2D);
+        glEnable(GL_BLEND);
         toDraw.draw();
+        glDisable(GL_BLEND);
+        glDisable(GL_TEXTURE_2D);
+
         radar.disableStencilTest();
     }
 }

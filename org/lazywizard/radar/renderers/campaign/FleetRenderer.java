@@ -24,6 +24,7 @@ import org.lazywizard.lazylib.JSONUtils;
 import org.lazywizard.radar.CommonRadar;
 import org.lazywizard.radar.renderers.CampaignRenderer;
 import org.lazywizard.radar.util.SpriteBatch;
+import static org.lwjgl.opengl.GL11.*;
 
 // TODO: After 0.7a comes out, play around with neutral/friendly colors for Expanded Battles
 public class FleetRenderer implements CampaignRenderer
@@ -189,7 +190,13 @@ public class FleetRenderer implements CampaignRenderer
 
         // Draw all fleets
         radar.enableStencilTest();
+
+        glEnable(GL_TEXTURE_2D);
+        glEnable(GL_BLEND);
         toDraw.draw();
+        glDisable(GL_BLEND);
+        glDisable(GL_TEXTURE_2D);
+
         radar.disableStencilTest();
     }
 }
