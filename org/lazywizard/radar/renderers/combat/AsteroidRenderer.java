@@ -49,7 +49,7 @@ public class AsteroidRenderer implements CombatRenderer
     @Override
     public void render(ShipAPI player, float amount, boolean isUpdateFrame)
     {
-        if (!SHOW_ASTEROIDS)
+        if (!SHOW_ASTEROIDS || !player.isAlive())
         {
             return;
         }
