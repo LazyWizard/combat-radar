@@ -55,14 +55,7 @@ public class SpriteBatch
             clear();
         }
 
-        toDraw.add(new DrawCall(x, y, angle, width, height, new byte[]
-        {
-            (byte) color.getRed(),
-            (byte) color.getGreen(),
-            (byte) color.getBlue(),
-            (byte) Math.round(color.getAlpha() * alphaMod)
-        }));
-
+        toDraw.add(new DrawCall(x, y, angle, width, height, color, alphaMod));
         finished = false;
     }
 
@@ -129,19 +122,33 @@ public class SpriteBatch
         }
     }
 
+    // Example #51395 why C# is better than Java: struct support
     private static class DrawCall
     {
         private final float x, y, angle, width, height;
         private final byte[] color;
 
-        private DrawCall(float x, float y, float angle, float width, float height, byte[] color)
+        private static byte[] getColorBytes(Color color, float alphaMod)
+        {
+            final int value = color.getRGB();
+            return new byte[]
+            {
+                (byte) ((value >> 16) & 0xFF),
+                (byte) ((value >> 8) & 0xFF),
+                (byte) (value & 0xFF),
+                (byte) (Math.round((value >> 24) & 0xFF) * alphaMod)
+            };
+        }
+
+        private DrawCall(float x, float y, float angle, float width, float height,
+                Color color, float alphaMod)
         {
             this.x = x;
             this.y = y;
             this.angle = angle - 90f;
             this.width = width;
             this.height = height;
-            this.color = color;
+            this.color = getColorBytes(color, alphaMod);
         }
     }
 }
