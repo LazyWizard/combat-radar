@@ -4,7 +4,7 @@
     ################################
 
     # Controls how large the radar is (as a fraction of the height of the display)
-    "radarSize":0.2,          # Default: 0.2 (1/5th the screen's height)
+    "radarSize":0.25,          # Default: 0.25 (1/4th the screen's height)
     # How many times per second the radar should update, lower fps = better performance
     "radarFPS":20.0,          # Default: 20.0
     # Whether to use vertex buffers. Disable if you have problems with the radar
@@ -106,7 +106,7 @@
             "maxShown":60,
             "triangulator":"radar.org.newdawn.slick.geom.NeatTriangulator",
             "simpleMode":false, # If true, draw all ships as triangles
-            "fighterSizeMod":2.25, # Multiplies fighter contact size by this
+            "fighterSizeMod":2.5, # Fighter contact size is multiplied by this
             "shieldColor":[0,255,255,200],
             "drawSolidShields":true,
             "maxShieldSegments":64,
