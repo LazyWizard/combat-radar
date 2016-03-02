@@ -1,4 +1,5 @@
 command,class,tags,syntax,help
 ReloadRadar,org.lazywizard.radar.commands.ReloadRadar,"radar,campaign,combat",reloadradar (no arguments),"Reloads the radar's settings."
-#TestSprite,org.lazywizard.radar.commands.TestSprite,"radar,combat,test",testsprite (no arguments),"Tests the new batch sprite renderer with ships."
-#TestNebula,org.lazywizard.radar.commands.TestNebula,"radar,combat,test",testnebula (no arguments),"Renders the nebula map."
+TestNebula,org.lazywizard.radar.commands.TestNebula,"radar,combat,test",testnebula (no arguments),"Renders the nebula map."
+TestSpriteScale,org.lazywizard.radar.commands.TestSpriteScale,"radar,combat,test",testsprite (no arguments),"Tests SpriteBatch's sprite scaling."
+TestSpriteAngle,org.lazywizard.radar.commands.TestSpriteAngle,"radar,combat,test",testspriteangle (no arguments),"Tests SpriteBatch's sprite rotation."

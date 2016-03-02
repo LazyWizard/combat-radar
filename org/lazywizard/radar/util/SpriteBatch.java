@@ -20,6 +20,7 @@ import static org.lwjgl.opengl.GL11.*;
 public class SpriteBatch
 {
     //private static final Logger Log = Logger.getLogger(SpriteBatch.class);
+    private static final boolean DEBUG_MODE = false;
     private final int textureId, blendSrc, blendDest;
     private final float textureWidth, textureHeight, offsetScaleX, offsetScaleY, hScale;
     private final List<DrawCall> toDraw = new ArrayList<>();
@@ -38,8 +39,10 @@ public class SpriteBatch
         textureWidth = sprite.getTextureWidth();
         textureHeight = sprite.getTextureHeight();
         hScale = sprite.getWidth() / sprite.getHeight();
-        offsetScaleX = sprite.getCenterX() / (sprite.getWidth() * .5f);
-        offsetScaleY = sprite.getCenterY() / (sprite.getHeight() * .5f);
+        offsetScaleX = (sprite.getCenterX() > 0f
+                ? sprite.getCenterX() / (sprite.getWidth() * .5f) : 1f);
+        offsetScaleY = (sprite.getCenterY() > 0f
+                ? sprite.getCenterY() / (sprite.getHeight() * .5f) : 1f);
     }
 
     // Size is height of sprite, width is automatically calculated
@@ -103,6 +106,18 @@ public class SpriteBatch
         for (DrawCall call : toDraw)
         {
             glPushMatrix();
+
+            if (DEBUG_MODE)
+            {
+                glDisable(GL_TEXTURE_2D);
+                glPointSize(3f);
+                glColor4f(1f, 1f, 1f, 1f);
+                glBegin(GL_POINTS);
+                glVertex2f(call.x, call.y);
+                glEnd();
+                glEnable(GL_TEXTURE_2D);
+            }
+
             glTranslatef(call.x, call.y, 0f);
             glRotatef(call.angle, 0f, 0f, 1f);
             glTranslatef((-call.width * 0.5f) * offsetScaleX, (-call.height * 0.5f) * offsetScaleY, 0f);

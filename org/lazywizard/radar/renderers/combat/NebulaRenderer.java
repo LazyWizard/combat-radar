@@ -93,7 +93,7 @@ public class NebulaRenderer implements CombatRenderer
 
                 final float rawX = (tileSize * x) - centerX - halfTile,
                         rawY = (tileSize * y) - centerY - halfTile;
-                if (radar.isPointOnRadar(rawX, rawY, tileRenderSize))
+                if (radar.isPointOnRadar(rawX, rawY, tileRenderSize * 1.28f))
                 {
                     final float[] coord = radar.getRawPointOnRadar(rawX, rawY);
                     final float angle = getAngle(x, y);
