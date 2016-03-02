@@ -108,11 +108,13 @@ public class ObjectiveRenderer implements CombatRenderer
         // Draw objectives
         glLineWidth(radar.getCurrentPixelsPerSU() * 25f);
         glEnable(GL_POLYGON_SMOOTH);
+        glEnable(GL_BLEND);
         glEnableClientState(GL_VERTEX_ARRAY);
         glEnableClientState(GL_COLOR_ARRAY);
         drawQueue.draw();
         glDisableClientState(GL_VERTEX_ARRAY);
         glDisableClientState(GL_COLOR_ARRAY);
+        glDisable(GL_BLEND);
         glDisable(GL_POLYGON_SMOOTH);
 
         radar.disableStencilTest();

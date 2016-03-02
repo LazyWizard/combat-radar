@@ -1,5 +1,7 @@
- 2.3 (January XX, 2016)
-========================
+ 2.3 (March XX, 2016)
+======================
+Bumped up default radar size by 25%
+Slightly increased size of fighter contacts
 Fixed SpriteBatch with SpriteAPIs whose centers aren't actually centered
 Campaign nebula renderer changes:
  - Custom campaign terrain with the tag "radar_nebula" will be drawn as nebulae

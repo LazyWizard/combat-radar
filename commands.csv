@@ -1,2 +1,4 @@
 command,class,tags,syntax,help
 ReloadRadar,org.lazywizard.radar.commands.ReloadRadar,"radar,campaign,combat",reloadradar (no arguments),"Reloads the radar's settings."
+#TestSprite,org.lazywizard.radar.commands.TestSprite,"radar,combat,test",testsprite (no arguments),"Tests the new batch sprite renderer with ships."
+#TestNebula,org.lazywizard.radar.commands.TestNebula,"radar,combat,test",testnebula (no arguments),"Renders the nebula map."

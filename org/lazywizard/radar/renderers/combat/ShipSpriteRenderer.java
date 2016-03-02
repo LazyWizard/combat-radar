@@ -227,7 +227,7 @@ public class ShipSpriteRenderer implements CombatRenderer
         SpriteBatch batch = shipBatches.get(textureId);
         if (batch == null)
         {
-            batch = new SpriteBatch(sprite);
+            batch = new SpriteBatch(sprite, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             shipBatches.put(textureId, batch);
         }
 
