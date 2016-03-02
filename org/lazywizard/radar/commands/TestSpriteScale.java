@@ -12,9 +12,9 @@ import org.lazywizard.radar.util.SpriteBatch;
 import org.lwjgl.util.vector.Vector2f;
 import static org.lwjgl.opengl.GL11.*;
 
-public class TestSprite implements BaseCommand
+public class TestSpriteScale implements BaseCommand
 {
-    private static final Logger Log = Logger.getLogger(TestSprite.class);
+    private static final Logger Log = Logger.getLogger(TestSpriteScale.class);
 
     @Override
     public CommandResult runCommand(String args, CommandContext context)
@@ -91,7 +91,7 @@ public class TestSprite implements BaseCommand
             glEnable(GL_TEXTURE_2D);
             glEnable(GL_BLEND);
             //glTexEnv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD);
-            
+
             for (ShipAPI ship : Global.getCombatEngine().getShips())
             {
                 if (viewport.isNearViewport(ship.getLocation(),

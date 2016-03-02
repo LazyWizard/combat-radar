@@ -2,7 +2,7 @@
 ======================
 Bumped up default radar size by 25%
 Slightly increased size of fighter contacts
-Fixed SpriteBatch with SpriteAPIs whose centers aren't actually centered
+Fixed SpriteBatch when used with non-perfectly centered SpriteAPIs
 Campaign nebula renderer changes:
  - Custom campaign terrain with the tag "radar_nebula" will be drawn as nebulae
 Combat asteroid renderer changes:
