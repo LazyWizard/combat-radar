@@ -1,10 +1,11 @@
  2.3 (January XX, 2016)
 ========================
 Fixed SpriteBatch with SpriteAPIs whose centers aren't actually centered
+Campaign nebula renderer changes:
+ - Custom campaign terrain with the tag "radar_nebula" will be drawn as nebulae
 Combat asteroid renderer changes:
  - Fixed asteroids being shown when player is destroyed
-Nebula renderer changes:
- - Custom campaign terrain with the tag "radar_nebula" will be drawn as nebulae
+New combat renderer: NebulaRenderer
 
  2.2 (December 25, 2015)
 =========================

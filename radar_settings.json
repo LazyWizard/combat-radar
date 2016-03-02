@@ -77,7 +77,7 @@
     "showRelays":true,              # Default: true, performance impact ???
     "showCampaignAsteroids":true,   # Default: true, performance impact low
     "showJumpPoints":true,          # Default: true, performance impact ???
-    "showNebulae":true,          # Default: true, performance impact ???
+    "showNebulae":true,             # Default: true, performance impact ???
 
 
     ############################
@@ -143,6 +143,15 @@
         "objectiveRenderer":
         {
             "maxShown":15
+        },
+
+        "nebulaRenderer":
+        {
+            "maxShown":1000,
+            # ID of the nebula icon, found in data/config/settings.json
+            # Must be in the "radar" subcategory of the "graphics" section
+            "nebulaIcon":"nebula",
+            "nebulaColor":[175,80,175,100]
         },
 
         "battleProgressRenderer":
