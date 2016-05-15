@@ -20,9 +20,12 @@ import org.lazywizard.radar.util.DrawQueue;
 import org.lazywizard.radar.util.SpriteBatch;
 import org.lwjgl.util.vector.Vector2f;
 import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL13.*;
+import static org.lwjgl.opengl.GL14.GL_GENERATE_MIPMAP;
+import static org.lwjgl.opengl.GL15.*;
+import static org.lwjgl.opengl.GL30.GL_INVALID_FRAMEBUFFER_OPERATION;
 
 // TODO: Remove triangulator from options
-// TODO: Draw solid color sprites
 public class ShipSpriteRenderer implements CombatRenderer
 {
     private static final Logger LOG = Global.getLogger(ShipSpriteRenderer.class);
@@ -298,30 +301,62 @@ public class ShipSpriteRenderer implements CombatRenderer
 
         // Draw cached render data
         radar.enableStencilTest();
+        glEnable(GL_BLEND);
+
+        if (!drawQueue.isEmpty())
+        {
+            glEnableClientState(GL_VERTEX_ARRAY);
+            glEnableClientState(GL_COLOR_ARRAY);
+            glEnable(GL_POLYGON_SMOOTH);
+            drawQueue.draw();
+            glDisable(GL_POLYGON_SMOOTH);
+            glDisableClientState(GL_COLOR_ARRAY);
+            glDisableClientState(GL_VERTEX_ARRAY);
+        }
 
         glEnable(GL_TEXTURE_2D);
-        glEnable(GL_BLEND);
+        glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+        glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_REPLACE);
+        glTexEnvi(GL_TEXTURE_ENV, GL_SRC0_RGB, GL_PREVIOUS);
+        glTexEnvi(GL_TEXTURE_ENV, GL_SRC1_RGB, GL_TEXTURE);
+        glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
+        glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
         for (SpriteBatch toDraw : shipBatches.values())
         {
             toDraw.draw();
         }
         glDisable(GL_TEXTURE_2D);
-
-        if (drawQueue.isEmpty())
-        {
-            radar.disableStencilTest();
-            return;
-        }
-
-        glEnableClientState(GL_VERTEX_ARRAY);
-        glEnableClientState(GL_COLOR_ARRAY);
-        glEnable(GL_POLYGON_SMOOTH);
-        drawQueue.draw();
-        glDisable(GL_POLYGON_SMOOTH);
-        glDisableClientState(GL_COLOR_ARRAY);
-        glDisableClientState(GL_VERTEX_ARRAY);
         glDisable(GL_BLEND);
 
         radar.disableStencilTest();
+    }
+
+    private static void checkError()
+    {
+        final int error = glGetError();
+        switch (error)
+        {
+            case GL_NO_ERROR:
+                return;
+            case GL_INVALID_ENUM:
+                throw new RuntimeException("GL_INVALID_ENUM");
+            case GL_INVALID_VALUE:
+                throw new RuntimeException("GL_INVALID_VALUE");
+            case GL_INVALID_OPERATION:
+                throw new RuntimeException("GL_INVALID_OPERATION");
+            case GL_INVALID_FRAMEBUFFER_OPERATION:
+                throw new RuntimeException("GL_INVALID_FRAMEBUFFER_OPERATION");
+            case GL_OUT_OF_MEMORY:
+                throw new RuntimeException("GL_OUT_OF_MEMORY");
+            case GL_STACK_UNDERFLOW:
+                throw new RuntimeException("GL_STACK_UNDERFLOW");
+            case GL_STACK_OVERFLOW:
+                throw new RuntimeException("GL_STACK_OVERFLOW");
+            default:
+                throw new RuntimeException("Unknown OpenGL error: " + error);
+        }
     }
 }

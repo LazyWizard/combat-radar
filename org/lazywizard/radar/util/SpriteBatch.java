@@ -137,7 +137,6 @@ public class SpriteBatch
         }
     }
 
-    // Example #51395 why C# is better than Java: struct support
     private static class DrawCall
     {
         private final float x, y, angle, width, height;
