@@ -1,7 +1,10 @@
 package org.lazywizard.radar.renderers.combat;
 
 import java.awt.Color;
+import java.io.IOException;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.CombatEntityAPI;
 import com.fs.starfarer.api.combat.GuidedMissileAI;
@@ -9,6 +12,7 @@ import com.fs.starfarer.api.combat.MissileAIPlugin;
 import com.fs.starfarer.api.combat.MissileAPI;
 import com.fs.starfarer.api.combat.ShipAPI;
 import com.fs.starfarer.api.graphics.SpriteAPI;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.lazywizard.lazylib.JSONUtils;
@@ -20,8 +24,11 @@ import static org.lwjgl.opengl.GL11.*;
 
 public class MissileRenderer implements CombatRenderer
 {
+    private static final String EXCLUDED_MISSILE_LOCKS_PATH
+            = "data/config/radar/excluded_missile_locks.csv";
     private static boolean SHOW_MISSILES, SHOW_MISSILE_LOCK_ICON;
     private static int MAX_MISSILES_SHOWN;
+    private static Set<String> EXCLUDED_MISSILE_LOCKS;
     private static Color MISSILE_LOCKED_COLOR;
     private static String MISSILE_ICON, FLARE_ICON, MISSILE_LOCK_ICON;
     private static float MISSILE_SIZE_MOD, FLARE_SIZE_MOD;
@@ -47,6 +54,35 @@ public class MissileRenderer implements CombatRenderer
         MISSILE_LOCK_ICON = settings.getString("missileLockIcon");
         MISSILE_SIZE_MOD = (float) settings.getDouble("missileContactSize");
         FLARE_SIZE_MOD = (float) settings.getDouble("flareContactSize");
+
+        reloadExcludedMissileLocks();
+    }
+
+    private void reloadExcludedMissileLocks() throws JSONException
+    {
+        final JSONArray csv;
+        try
+        {
+            csv = Global.getSettings().getMergedSpreadsheetDataForMod(
+                    "missile projectile id", EXCLUDED_MISSILE_LOCKS_PATH, "lw_radar");
+        }
+        catch (IOException ex)
+        {
+            throw new RuntimeException("Failed to load " + EXCLUDED_MISSILE_LOCKS_PATH + "!");
+        }
+
+        EXCLUDED_MISSILE_LOCKS = new HashSet<>();
+        for (int x = 0; x < csv.length(); x++)
+        {
+            final JSONObject row = csv.getJSONObject(x);
+            final String id = row.getString("missile projectile id");
+            if (id.isEmpty())
+            {
+                continue;
+            }
+
+            EXCLUDED_MISSILE_LOCKS.add(id);
+        }
     }
 
     @Override
@@ -120,7 +156,9 @@ public class MissileRenderer implements CombatRenderer
                     // Color missiles locked onto us differently
                     MissileAIPlugin ai = missile.getMissileAI();
                     if (ai != null && ai instanceof GuidedMissileAI
-                            && player == ((GuidedMissileAI) ai).getTarget())
+                            && player == ((GuidedMissileAI) ai).getTarget()
+                            && !EXCLUDED_MISSILE_LOCKS.contains(
+                                    missile.getProjectileSpecId()))
                     {
                         playerLock = true;
                         highestThreatAlpha = alphaMod;
