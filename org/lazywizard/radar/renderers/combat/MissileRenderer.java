@@ -140,7 +140,7 @@ public class MissileRenderer implements CombatRenderer
                 if (missile.isFlare())
                 {
                     flareToDraw.add(radarLoc[0], radarLoc[1], missile.getFacing(),
-                            missileSize, color, alphaMod);
+                            flareSize, color, alphaMod);
                 }
                 else
                 {
