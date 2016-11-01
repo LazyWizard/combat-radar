@@ -6,9 +6,9 @@ import org.lazywizard.radar.RadarSettings;
 
 // TODO: Unify combat and campaign codebases
 // TODO: Hyperspace range renderer
-// TODO: Add ally support to BattleProgressRenderer
 // TODO: Transponder status icon?
 // TODO: Nearby patrol status icon?
+// TODO: Add option to reverse direction of radar ring fade
 public class RadarModPlugin extends BaseModPlugin
 {
     @Override
