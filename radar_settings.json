@@ -104,9 +104,8 @@
         "shipRenderer":
         {
             "maxShown":60,
-            "triangulator":"radar.org.newdawn.slick.geom.NeatTriangulator",
             "simpleMode":false, # If true, draw all ships as triangles
-            "fighterSizeMod":2.5, # Fighter contact size is multiplied by this
+            "minFighterSize":5.0, # Minimum size in pixels regardless of zoom
             "shieldColor":[0,255,255,200],
             "drawSolidShields":true,
             "maxShieldSegments":64,

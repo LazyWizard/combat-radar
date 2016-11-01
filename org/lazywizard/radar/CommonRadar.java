@@ -14,7 +14,6 @@ import org.lwjgl.util.vector.Vector2f;
  * <p>
  * @since 2.0
  */
-// TODO: Add isPointOnRadar()
 public interface CommonRadar<T>
 {
     /**

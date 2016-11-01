@@ -14,6 +14,7 @@ import org.lazywizard.radar.renderers.CombatRenderer;
 import org.lazywizard.radar.util.SpriteBatch;
 import static org.lwjgl.opengl.GL11.*;
 
+// TODO: Fix tiling issues
 public class NebulaRenderer implements CombatRenderer
 {
     private static boolean SHOW_NEBULAE;
