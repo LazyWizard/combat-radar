@@ -40,6 +40,9 @@
     # Controls the alpha level of radar contacts (but not the HUD)
     "contactAlpha":0.85, # Default: 0.85
 
+    # Reverses the fade direction of the radar rings (lighter towards inside)
+    "reverseRingFade":false, # Default: false
+
     # If true, will use the same friendly/enemy/neutral color settings as vanilla
     "useVanillaColors":false, # Default: false
 

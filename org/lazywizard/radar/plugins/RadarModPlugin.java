@@ -8,7 +8,7 @@ import org.lazywizard.radar.RadarSettings;
 // TODO: Hyperspace range renderer
 // TODO: Transponder status icon?
 // TODO: Nearby patrol status icon?
-// TODO: Add option to reverse direction of radar ring fade
+// TODO: Make zoom level persistent between scenes
 public class RadarModPlugin extends BaseModPlugin
 {
     @Override

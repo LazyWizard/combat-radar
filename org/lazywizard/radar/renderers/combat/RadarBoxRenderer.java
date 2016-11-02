@@ -21,6 +21,7 @@ public class RadarBoxRenderer implements CombatRenderer
     private static boolean SHOW_BORDER_LINES;
     private static Color RADAR_BG_COLOR, RADAR_FG_COLOR, RADAR_FG_DEAD_COLOR;
     private static float RADAR_OPACITY, RADAR_EDGE_ALPHA;
+    private static boolean REVERSE_FADE;
     private DrawQueue boxDrawQueue, zoomDrawQueue;
     private boolean firstFrame = true, wasAliveLastFrame = false;
     private CommonRadar<CombatEntityAPI> radar;
@@ -33,6 +34,7 @@ public class RadarBoxRenderer implements CombatRenderer
         // Foreground settings (match vanilla HUD)
         RADAR_FG_COLOR = Global.getSettings().getColor("textFriendColor");
         RADAR_FG_DEAD_COLOR = Global.getSettings().getColor("textNeutralColor");
+        REVERSE_FADE = settings.getBoolean("reverseRingFade");
 
         // Background settings
         settings = settings.getJSONObject("combatRenderers")
@@ -54,9 +56,8 @@ public class RadarBoxRenderer implements CombatRenderer
     @Override
     public void render(ShipAPI player, float amount, boolean isUpdateFrame)
     {
-        Vector2f radarCenter = radar.getRenderCenter();
-        float radarRadius = radar.getRenderRadius();
-        float radarAlpha = radar.getRadarAlpha();
+        final Vector2f radarCenter = radar.getRenderCenter();
+        final float radarRadius = radar.getRenderRadius();
 
         // The box itself very rarely changes, so it's cached in a separate DrawQueue
         if (firstFrame || (isUpdateFrame && (player.isAlive() != wasAliveLastFrame)))
@@ -65,8 +66,10 @@ public class RadarBoxRenderer implements CombatRenderer
             wasAliveLastFrame = player.isAlive();
             boxDrawQueue.clear();
 
-            final float radarEdgeFade = radarAlpha * RADAR_EDGE_ALPHA,
-                    radarMidFade = (radarAlpha + radarEdgeFade) / 2f;
+            final float radarAlpha = radar.getRadarAlpha(),
+                    radarCenterFade = REVERSE_FADE ? radarAlpha * RADAR_EDGE_ALPHA : radarAlpha,
+                    radarEdgeFade = REVERSE_FADE ? radarAlpha : radarCenterFade * RADAR_EDGE_ALPHA,
+                    radarMidFade = (radarCenterFade + radarEdgeFade) / 2f;
 
             // Slight darkening of radar background
             boxDrawQueue.setNextColor(RADAR_BG_COLOR, RADAR_OPACITY);
@@ -83,13 +86,13 @@ public class RadarBoxRenderer implements CombatRenderer
             boxDrawQueue.finishShape(GL_LINE_LOOP);
 
             // Middle circle
-            boxDrawQueue.setNextColor(color, radarAlpha * radarMidFade);
+            boxDrawQueue.setNextColor(color, radarMidFade);
             boxDrawQueue.addVertices(ShapeUtils.createCircle(radarCenter.x,
                     radarCenter.y, radarRadius * .66f, RadarSettings.getVerticesPerCircle()));
             boxDrawQueue.finishShape(GL_LINE_LOOP);
 
             // Inner circle
-            boxDrawQueue.setNextColor(color, radarAlpha);
+            boxDrawQueue.setNextColor(color, radarCenterFade);
             boxDrawQueue.addVertices(ShapeUtils.createCircle(radarCenter.x,
                     radarCenter.y, radarRadius * .33f, RadarSettings.getVerticesPerCircle()));
             boxDrawQueue.finishShape(GL_LINE_LOOP);
@@ -97,7 +100,7 @@ public class RadarBoxRenderer implements CombatRenderer
             // Vertical line
             boxDrawQueue.setNextColor(color, radarEdgeFade);
             boxDrawQueue.addVertex(radarCenter.x, radarCenter.y - radarRadius);
-            boxDrawQueue.setNextColor(color, radarAlpha);
+            boxDrawQueue.setNextColor(color, radarCenterFade);
             boxDrawQueue.addVertex(radarCenter.x, radarCenter.y);
             boxDrawQueue.setNextColor(color, radarEdgeFade);
             boxDrawQueue.addVertex(radarCenter.x, radarCenter.y + radarRadius);
@@ -106,7 +109,7 @@ public class RadarBoxRenderer implements CombatRenderer
             // Horizontal line
             boxDrawQueue.setNextColor(color, radarEdgeFade);
             boxDrawQueue.addVertex(radarCenter.x - radarRadius, radarCenter.y);
-            boxDrawQueue.setNextColor(color, radarAlpha);
+            boxDrawQueue.setNextColor(color, radarCenterFade);
             boxDrawQueue.addVertex(radarCenter.x, radarCenter.y);
             boxDrawQueue.setNextColor(color, radarEdgeFade);
             boxDrawQueue.addVertex(radarCenter.x + radarRadius, radarCenter.y);
@@ -119,7 +122,7 @@ public class RadarBoxRenderer implements CombatRenderer
                 boxDrawQueue.setNextColor(color, radarEdgeFade);
                 boxDrawQueue.addVertex(radarCenter.x + (radarRadius * 1.1f),
                         radarCenter.y + (radarRadius * 1.1f));
-                boxDrawQueue.setNextColor(color, radarAlpha);
+                boxDrawQueue.setNextColor(color, radarCenterFade);
                 boxDrawQueue.addVertex(radarCenter.x - (radarRadius * 1.1f),
                         radarCenter.y + (radarRadius * 1.1f));
                 boxDrawQueue.setNextColor(color, radarEdgeFade);
