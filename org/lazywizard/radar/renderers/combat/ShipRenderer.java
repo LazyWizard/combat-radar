@@ -52,10 +52,13 @@ public class ShipRenderer implements CombatRenderer
         }
 
         // Fighters have a minimum size
-        final float baseSize = ship.getShield().getRadius() * radar.getCurrentPixelsPerSU(),
-                relSize = ship.getShield().getRadius() / ship.getCollisionRadius(),
-                size = (!ship.isFighter() ? baseSize : Math.max(baseSize, MIN_FIGHTER_SIZE * relSize));
-
+        final float size = ship.getShield().getRadius() * radar.getCurrentPixelsPerSU();
+        if (ship.isFighter())
+        {
+            return Math.max(size, MIN_FIGHTER_SIZE * (ship.getShield().getRadius()
+                    / ship.getCollisionRadius()));
+        }
+        
         return size;
     }
 

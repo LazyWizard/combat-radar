@@ -146,7 +146,7 @@ public class FleetRenderer implements CampaignRenderer
                     {
                         color = radar.getNeutralContactColor();
                     }
-                    // Person bounty
+                    // Person bounty (solid bounty color)
                     else if (FleetTypes.PERSON_BOUNTY_FLEET.equals(
                             fleet.getMemoryWithoutUpdate().getString(
                                     MemFlags.MEMORY_KEY_FLEET_TYPE)))
