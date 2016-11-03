@@ -32,7 +32,7 @@ public class ShipRenderer implements CombatRenderer
             DRAW_SOLID_SHIELDS, SIMPLE_SHIPS;
     private static int MAX_SHIPS_SHOWN, MAX_SHIELD_SEGMENTS;
     private static Color SHIELD_COLOR, MARKER_COLOR;
-    private static float FIGHTER_SIZE_MOD, MIN_FIGHTER_SIZE, MIN_SHIP_ALPHA_MULT;
+    private static float FIGHTER_SIZE_MOD, MIN_CONTACT_SIZE, MIN_SHIP_ALPHA_MULT;
     private Map<Integer, SpriteBatch> shipBatches;
     private DrawQueue drawQueue;
     private CommonRadar<CombatEntityAPI> radar;
@@ -41,7 +41,7 @@ public class ShipRenderer implements CombatRenderer
     {
         // Fighters have a minimum size
         final float size = ship.getSpriteAPI().getHeight() * radar.getCurrentPixelsPerSU();
-        return (!ship.isFighter() ? size : Math.max(size * FIGHTER_SIZE_MOD, MIN_FIGHTER_SIZE));
+        return Math.max(!ship.isFighter() ? size : size * FIGHTER_SIZE_MOD, MIN_CONTACT_SIZE);
     }
 
     public static float getShieldRadius(ShipAPI ship, CommonRadar<CombatEntityAPI> radar)
@@ -53,13 +53,8 @@ public class ShipRenderer implements CombatRenderer
 
         // Fighters have a minimum size
         final float size = ship.getShield().getRadius() * radar.getCurrentPixelsPerSU();
-        if (ship.isFighter())
-        {
-            return Math.max(size * FIGHTER_SIZE_MOD, MIN_FIGHTER_SIZE
-                    * (ship.getShield().getRadius() / ship.getCollisionRadius()));
-        }
-
-        return size;
+        return Math.max(!ship.isFighter() ? size : size * FIGHTER_SIZE_MOD, MIN_CONTACT_SIZE
+                * (ship.getShield().getRadius() / ship.getCollisionRadius()));
     }
 
     @Override
@@ -73,8 +68,8 @@ public class ShipRenderer implements CombatRenderer
                 .getJSONObject("shipRenderer");
         MAX_SHIPS_SHOWN = settings.optInt("maxShown", 1_000);
         SIMPLE_SHIPS = settings.getBoolean("simpleMode");
+        MIN_CONTACT_SIZE = (float) settings.getDouble("minContactSize");
         FIGHTER_SIZE_MOD = (float) settings.getDouble("fighterSizeMod");
-        MIN_FIGHTER_SIZE = (float) settings.getDouble("minFighterSize");
         SHIELD_COLOR = JSONUtils.toColor(settings.getJSONArray("shieldColor"));
         MARKER_COLOR = JSONUtils.toColor(settings.getJSONArray("targetMarkerColor"));
         DRAW_SOLID_SHIELDS = settings.getBoolean("drawSolidShields");

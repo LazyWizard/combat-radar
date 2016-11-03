@@ -108,8 +108,8 @@
         {
             "maxShown":60,
             "simpleMode":false, # If true, draw all ships as triangles
-            "fighterSizeMod":2.5, # Fighter contact size is multiplied by this
-            "minFighterSize":6.0, # Minimum size in pixels regardless of zoom
+            "minContactSize":6.0, # Minimum size in pixels regardless of zoom
+            "fighterSizeMod":3.0, # Fighter contact size is multiplied by this
             "shieldColor":[0,255,255,200],
             "drawSolidShields":true,
             "maxShieldSegments":64,

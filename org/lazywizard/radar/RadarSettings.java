@@ -122,8 +122,8 @@ public class RadarSettings
                 : JSONUtils.toColor(settings.getJSONArray("enemyColor"));
         NEUTRAL_COLOR = useVanillaColors ? Global.getSettings().getColor("iconNeutralShipColor")
                 : JSONUtils.toColor(settings.getJSONArray("neutralColor"));
-        ALLY_COLOR = useVanillaColors ? Global.getSettings().getColor("") // TODO: Find correct color!
-                : JSONUtils.toColor(settings.getJSONArray("allyColor"));
+        ALLY_COLOR = //useVanillaColors ? Global.getSettings().getColor("") // TODO: Find correct color!
+                JSONUtils.toColor(settings.getJSONArray("allyColor"));
 
         reloadExcluded();
         reloadRenderers(COMBAT_RENDERER_CLASSES, COMBAT_CSV_PATH, CombatRenderer.class);
