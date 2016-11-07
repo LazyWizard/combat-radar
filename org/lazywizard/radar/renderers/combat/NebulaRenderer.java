@@ -14,7 +14,6 @@ import org.lazywizard.radar.renderers.CombatRenderer;
 import org.lazywizard.radar.util.SpriteBatch;
 import static org.lwjgl.opengl.GL11.*;
 
-// TODO: Fix tiling issues
 public class NebulaRenderer implements CombatRenderer
 {
     private static boolean SHOW_NEBULAE;
@@ -72,7 +71,7 @@ public class NebulaRenderer implements CombatRenderer
     private void addNebula(CombatNebulaAPI nebula)
     {
         final float tileSize = nebula.getTileSizeInPixels(),
-                halfTile = tileSize * 0.5f, tileRenderSize = tileSize * 2.4f;
+                halfTile = tileSize * 0.5f, tileRenderSize = tileSize * 3.2f;
         final CombatEngineAPI engine = Global.getCombatEngine();
         final float centerX = engine.getMapWidth() * 0.5f,
                 centerY = engine.getMapHeight() * 0.5f;
@@ -94,12 +93,13 @@ public class NebulaRenderer implements CombatRenderer
 
                 final float rawX = (tileSize * x) - centerX - halfTile,
                         rawY = (tileSize * y) - centerY - halfTile;
-                if (radar.isPointOnRadar(rawX, rawY, tileRenderSize * 1.28f))
+                if (radar.isPointOnRadar(rawX, rawY, tileRenderSize * 1.6f))
                 {
                     final float[] coord = radar.getRawPointOnRadar(rawX, rawY);
                     final float angle = getAngle(x, y);
                     toDraw.add(coord[0], coord[1], angle, tileRenderSize
-                            * radar.getCurrentPixelsPerSU(), NEBULA_COLOR, radar.getContactAlpha());
+                            * radar.getCurrentPixelsPerSU(), NEBULA_COLOR,
+                            radar.getContactAlpha() * (1f - Math.abs(angle * .001f)));
                 }
             }
         }
