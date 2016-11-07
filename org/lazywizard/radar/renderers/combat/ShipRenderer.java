@@ -32,16 +32,30 @@ public class ShipRenderer implements CombatRenderer
             DRAW_SOLID_SHIELDS, SIMPLE_SHIPS;
     private static int MAX_SHIPS_SHOWN, MAX_SHIELD_SEGMENTS;
     private static Color SHIELD_COLOR, MARKER_COLOR;
-    private static float FIGHTER_SIZE_MOD, MIN_CONTACT_SIZE, MIN_SHIP_ALPHA_MULT;
+    private static float FIGHTER_SIZE_MOD, MIN_FIGHTER_SIZE,
+            MIN_SHIP_SIZE, MIN_SHIP_ALPHA_MULT;
     private Map<Integer, SpriteBatch> shipBatches;
     private DrawQueue drawQueue;
     private CommonRadar<CombatEntityAPI> radar;
 
+    private static final float minSize(ShipAPI ship)
+    {
+        return (ship.isFighter() ? MIN_FIGHTER_SIZE : MIN_SHIP_SIZE);
+    }
+
+    public static float getSizeModifier(ShipAPI ship, CommonRadar<CombatEntityAPI> radar)
+    {
+        final float baseRadius = ship.getCollisionRadius() * radar.getCurrentPixelsPerSU(),
+                adjRadius = Math.max(!ship.isFighter() ? baseRadius
+                        : baseRadius * FIGHTER_SIZE_MOD, minSize(ship)),
+                mult = adjRadius / baseRadius;
+        return mult;
+    }
+
     public static float getContactRadius(ShipAPI ship, CommonRadar<CombatEntityAPI> radar)
     {
-        // Fighters have a minimum size
-        final float size = ship.getSpriteAPI().getHeight() * radar.getCurrentPixelsPerSU();
-        return Math.max(!ship.isFighter() ? size : size * FIGHTER_SIZE_MOD, MIN_CONTACT_SIZE);
+        return ship.getCollisionRadius() * getSizeModifier(ship, radar)
+                * radar.getCurrentPixelsPerSU();
     }
 
     public static float getShieldRadius(ShipAPI ship, CommonRadar<CombatEntityAPI> radar)
@@ -51,10 +65,8 @@ public class ShipRenderer implements CombatRenderer
             return 0f;
         }
 
-        // Fighters have a minimum size
-        final float size = ship.getShield().getRadius() * radar.getCurrentPixelsPerSU();
-        return Math.max(!ship.isFighter() ? size : size * FIGHTER_SIZE_MOD, MIN_CONTACT_SIZE
-                * (ship.getShield().getRadius() / ship.getCollisionRadius()));
+        return ship.getShield().getRadius() * getSizeModifier(ship, radar)
+                * radar.getCurrentPixelsPerSU();
     }
 
     @Override
@@ -68,7 +80,8 @@ public class ShipRenderer implements CombatRenderer
                 .getJSONObject("shipRenderer");
         MAX_SHIPS_SHOWN = settings.optInt("maxShown", 1_000);
         SIMPLE_SHIPS = settings.getBoolean("simpleMode");
-        MIN_CONTACT_SIZE = (float) settings.getDouble("minContactSize");
+        MIN_FIGHTER_SIZE = (float) settings.getDouble("minFighterSize");
+        MIN_SHIP_SIZE = (float) settings.getDouble("minShipSize");
         FIGHTER_SIZE_MOD = (float) settings.getDouble("fighterSizeMod");
         SHIELD_COLOR = JSONUtils.toColor(settings.getJSONArray("shieldColor"));
         MARKER_COLOR = JSONUtils.toColor(settings.getJSONArray("targetMarkerColor"));
@@ -251,7 +264,8 @@ public class ShipRenderer implements CombatRenderer
         }
 
         final float[] loc = radar.getRawPointOnRadar(ship.getLocation());
-        batch.add(loc[0], loc[1], ship.getFacing(), getContactRadius(ship, radar),
+        batch.add(loc[0], loc[1], ship.getFacing(), ship.getSpriteAPI().getHeight()
+                * getSizeModifier(ship, radar) * radar.getCurrentPixelsPerSU(),
                 getColor(ship, playerSide), getAlphaMod(ship));
     }
 
