@@ -66,7 +66,7 @@ public class RadarBoxRenderer implements CombatRenderer
             wasAliveLastFrame = player.isAlive();
             boxDrawQueue.clear();
 
-            final float radarAlpha = radar.getRadarAlpha(),
+            final float radarAlpha = radar.getRadarAlpha() * 0.8f,
                     radarCenterFade = REVERSE_FADE ? radarAlpha : radarAlpha * RADAR_EDGE_ALPHA,
                     radarEdgeFade = REVERSE_FADE ? radarCenterFade * RADAR_EDGE_ALPHA : radarAlpha,
                     radarMidFade = (radarCenterFade + radarEdgeFade) / 2f;
@@ -119,15 +119,15 @@ public class RadarBoxRenderer implements CombatRenderer
             if (SHOW_BORDER_LINES)
             {
                 boxDrawQueue.setNextColor(color,
-                        REVERSE_FADE ? radarEdgeFade : radarCenterFade);
+                        (REVERSE_FADE ? radarEdgeFade : radarCenterFade) * 1.25f);
                 boxDrawQueue.addVertex(radarCenter.x + (radarRadius * 1.1f),
                         radarCenter.y + (radarRadius * 1.1f));
                 boxDrawQueue.setNextColor(color,
-                        REVERSE_FADE ? radarCenterFade : radarEdgeFade);
+                        (REVERSE_FADE ? radarCenterFade : radarEdgeFade) * 1.25f);
                 boxDrawQueue.addVertex(radarCenter.x - (radarRadius * 1.1f),
                         radarCenter.y + (radarRadius * 1.1f));
                 boxDrawQueue.setNextColor(color,
-                        REVERSE_FADE ? radarEdgeFade : radarCenterFade);
+                        (REVERSE_FADE ? radarEdgeFade : radarCenterFade) * 1.25f);
                 boxDrawQueue.addVertex(radarCenter.x - (radarRadius * 1.1f),
                         radarCenter.y - (radarRadius * 1.1f));
                 boxDrawQueue.finishShape(GL_LINE_STRIP);

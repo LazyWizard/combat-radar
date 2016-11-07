@@ -36,9 +36,9 @@
     "zoomLevels":3,     # Default: 3
 
     # Controls the alpha level of radar HUD elements (not radar contacts)
-    "radarUIAlpha":0.7,  # Default: 0.7
+    "radarUIAlpha":0.65,  # Default: 0.7
     # Controls the alpha level of radar contacts (but not the HUD)
-    "contactAlpha":0.85, # Default: 0.85
+    "contactAlpha":0.85,  # Default: 0.85
 
     # Use the old fade direction of the radar rings (darker towards inside)
     "reverseRingFade":false, # Default: false
