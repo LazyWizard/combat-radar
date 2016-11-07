@@ -35,7 +35,6 @@ public class TestNebula implements BaseCommand
         {
             final CombatEngineAPI engine = Global.getCombatEngine();
             final CombatNebulaAPI nebula = engine.getNebula();
-            //final Vector2f playerLoc = engine.getPlayerShip().getLocation();
             final float tileSize = nebula.getTileSizeInPixels(),
                     halfTile = tileSize * 0.5f, tileRenderSize = tileSize * 1f;
 
