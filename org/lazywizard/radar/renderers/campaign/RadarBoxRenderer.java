@@ -63,8 +63,8 @@ public class RadarBoxRenderer implements CampaignRenderer
             boxDrawQueue.clear();
 
             final float radarAlpha = radar.getRadarAlpha(),
-                    radarCenterFade = REVERSE_FADE ? radarAlpha * RADAR_EDGE_ALPHA : radarAlpha,
-                    radarEdgeFade = REVERSE_FADE ? radarAlpha : radarCenterFade * RADAR_EDGE_ALPHA,
+                    radarCenterFade = REVERSE_FADE ? radarAlpha : radarAlpha * RADAR_EDGE_ALPHA,
+                    radarEdgeFade = REVERSE_FADE ? radarCenterFade * RADAR_EDGE_ALPHA : radarAlpha,
                     radarMidFade = (radarCenterFade + radarEdgeFade) / 2f;
 
             // Slight darkening of radar background
