@@ -40,7 +40,7 @@
     # Controls the alpha level of radar contacts (but not the HUD)
     "contactAlpha":0.85, # Default: 0.85
 
-    # Reverses the fade direction of the radar rings (lighter towards inside)
+    # Use the old fade direction of the radar rings (darker towards inside)
     "reverseRingFade":false, # Default: false
 
     # If true, will use the same friendly/enemy/neutral color settings as vanilla
@@ -106,13 +106,14 @@
 
         "shipRenderer":
         {
-            "maxShown":60,
+            "maxShown":100,
             "simpleMode":false, # If true, draw all ships as triangles
-            "minContactSize":6.0, # Minimum size in pixels regardless of zoom
-            "fighterSizeMod":3.0, # Fighter contact size is multiplied by this
+            "fighterSizeMod":0.5, # Fighter contact size is multiplied by this
+            "minFighterSize":6.0, # Minimum size in pixels regardless of zoom
+            "minShipSize":8.0, # As above, but used for non-fighter/drone ships
             "shieldColor":[0,255,255,200],
-            "drawSolidShields":true,
-            "maxShieldSegments":64,
+            "drawSolidShields":true, # If false, draw shield outline only
+            "maxShieldSegments":64, # Higher = smoother shield circles
             "targetMarkerColor":[255,255,255,255],
             # Phased ships are drawn partially transparent based on how strong
             # the phase effect is. This sets the lowest opacity allowed

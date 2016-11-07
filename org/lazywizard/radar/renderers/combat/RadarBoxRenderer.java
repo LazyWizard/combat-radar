@@ -67,8 +67,8 @@ public class RadarBoxRenderer implements CombatRenderer
             boxDrawQueue.clear();
 
             final float radarAlpha = radar.getRadarAlpha(),
-                    radarCenterFade = REVERSE_FADE ? radarAlpha * RADAR_EDGE_ALPHA : radarAlpha,
-                    radarEdgeFade = REVERSE_FADE ? radarAlpha : radarCenterFade * RADAR_EDGE_ALPHA,
+                    radarCenterFade = REVERSE_FADE ? radarAlpha : radarAlpha * RADAR_EDGE_ALPHA,
+                    radarEdgeFade = REVERSE_FADE ? radarCenterFade * RADAR_EDGE_ALPHA : radarAlpha,
                     radarMidFade = (radarCenterFade + radarEdgeFade) / 2f;
 
             // Slight darkening of radar background
@@ -118,14 +118,16 @@ public class RadarBoxRenderer implements CombatRenderer
             // Border lines
             if (SHOW_BORDER_LINES)
             {
-                // TODO: Set line width to 1.5 (requires additions to DrawQueue)
-                boxDrawQueue.setNextColor(color, radarEdgeFade);
+                boxDrawQueue.setNextColor(color,
+                        REVERSE_FADE ? radarEdgeFade : radarCenterFade);
                 boxDrawQueue.addVertex(radarCenter.x + (radarRadius * 1.1f),
                         radarCenter.y + (radarRadius * 1.1f));
-                boxDrawQueue.setNextColor(color, radarCenterFade);
+                boxDrawQueue.setNextColor(color,
+                        REVERSE_FADE ? radarCenterFade : radarEdgeFade);
                 boxDrawQueue.addVertex(radarCenter.x - (radarRadius * 1.1f),
                         radarCenter.y + (radarRadius * 1.1f));
-                boxDrawQueue.setNextColor(color, radarEdgeFade);
+                boxDrawQueue.setNextColor(color,
+                        REVERSE_FADE ? radarEdgeFade : radarCenterFade);
                 boxDrawQueue.addVertex(radarCenter.x - (radarRadius * 1.1f),
                         radarCenter.y - (radarRadius * 1.1f));
                 boxDrawQueue.finishShape(GL_LINE_STRIP);
