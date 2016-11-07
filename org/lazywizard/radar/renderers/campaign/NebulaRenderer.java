@@ -17,7 +17,7 @@ import org.lazywizard.radar.util.SpriteBatch;
 import org.lwjgl.util.vector.Vector2f;
 import static org.lwjgl.opengl.GL11.*;
 
-// TODO: Split nebula and hyperspace rendering once storms are _efficiently_ trackable
+// TODO: Show storms (if efficiently possible, needs reflection - profile first?)
 // TODO: Use actual nebula/hyperspace map textures instead of radar's version
 public class NebulaRenderer implements CampaignRenderer
 {
@@ -126,7 +126,8 @@ public class NebulaRenderer implements CampaignRenderer
                     final float[] coord = radar.getRawPointOnRadar(rawX, rawY);
                     final float angle = getAngle(x, y);
                     toDraw.add(coord[0], coord[1], angle, tileRenderSize * 1.2f
-                            * radar.getCurrentPixelsPerSU(), NEBULA_COLOR, radar.getContactAlpha());
+                            * radar.getCurrentPixelsPerSU(), NEBULA_COLOR,
+                            radar.getContactAlpha() * (1f - Math.abs(angle * .001f)));
                 }
             }
         }
