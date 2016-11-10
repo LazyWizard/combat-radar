@@ -12,7 +12,8 @@ public class ReloadRadar implements BaseCommand
         try
         {
             RadarSettings.reloadSettings();
-            Console.showMessage("Reloaded radar settings.");
+            Console.showMessage("Reloaded radar settings. Changes will take effect"
+                    + " after loading a save, or the next battle for the combat radar.");
             return CommandResult.SUCCESS;
         }
         catch (Exception ex)

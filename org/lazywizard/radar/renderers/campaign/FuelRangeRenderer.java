@@ -64,7 +64,7 @@ public class FuelRangeRenderer implements CampaignRenderer
             final float fuelRange = getFuelRangeInSU(player), fuelRadius;
             if (fuelRange <= radar.getCurrentSightRadius())
             {
-                System.out.println("Range: " + fuelRange + "su");
+                System.out.println("Range: " + fuelRange + " su");
                 fuelRadius = fuelRange * radar.getCurrentPixelsPerSU();
             }
             else
