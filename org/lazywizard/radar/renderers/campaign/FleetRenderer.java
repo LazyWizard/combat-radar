@@ -26,7 +26,6 @@ import org.lazywizard.radar.renderers.CampaignRenderer;
 import org.lazywizard.radar.util.SpriteBatch;
 import static org.lwjgl.opengl.GL11.*;
 
-// TODO: After 0.7a comes out, play around with neutral/friendly colors for Expanded Battles
 public class FleetRenderer implements CampaignRenderer
 {
     private static final float TIME_BETWEEN_BOUNTY_UPDATES = 5f;

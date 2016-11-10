@@ -22,7 +22,7 @@ import org.lwjgl.util.vector.Vector2f;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL13.*;
 import static org.lwjgl.opengl.GL14.GL_GENERATE_MIPMAP;
-import static org.lwjgl.opengl.GL15.*;
+import static org.lwjgl.opengl.GL15.GL_SRC0_RGB;
 import static org.lwjgl.opengl.GL30.GL_INVALID_FRAMEBUFFER_OPERATION;
 
 public class ShipRenderer implements CombatRenderer
@@ -47,7 +47,7 @@ public class ShipRenderer implements CombatRenderer
         SIMPLE
     }
 
-    private static final float minSize(ShipAPI ship)
+    private static float minSize(ShipAPI ship)
     {
         return (ship.isFighter() ? MIN_FIGHTER_SIZE : MIN_SHIP_SIZE);
     }
@@ -392,9 +392,9 @@ public class ShipRenderer implements CombatRenderer
         glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
         glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_REPLACE);
         glTexEnvi(GL_TEXTURE_ENV, GL_SRC0_RGB, GL_PREVIOUS);
-        glTexEnvi(GL_TEXTURE_ENV, GL_SRC1_RGB, GL_TEXTURE);
-        glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
-        glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
+        //glTexEnvi(GL_TEXTURE_ENV, GL_SRC1_RGB, GL_TEXTURE);
+        //glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
+        //glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
         for (SpriteBatch toDraw : shipBatches.values())
         {
             toDraw.draw();

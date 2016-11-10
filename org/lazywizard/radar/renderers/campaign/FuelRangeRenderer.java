@@ -57,7 +57,6 @@ public class FuelRangeRenderer implements CampaignRenderer
             return;
         }
 
-        // TODO
         if (isUpdateFrame)
         {
             drawQueue.clear();
