@@ -29,14 +29,23 @@ public class ShipRenderer implements CombatRenderer
 {
     private static final Logger LOG = Global.getLogger(ShipRenderer.class);
     private static boolean SHOW_SHIPS, SHOW_SHIELDS, SHOW_TARGET_MARKER,
-            DRAW_SOLID_SHIELDS, SIMPLE_SHIPS;
+            DRAW_SOLID_SHIELDS, SIMPLE_FIGHTERS, SIMPLE_SHIPS;
     private static int MAX_SHIPS_SHOWN, MAX_SHIELD_SEGMENTS;
     private static Color SHIELD_COLOR, MARKER_COLOR;
+    private static String SIMPLE_ICON;
     private static float FIGHTER_SIZE_MOD, MIN_FIGHTER_SIZE,
             MIN_SHIP_SIZE, MIN_SHIP_ALPHA_MULT;
     private Map<Integer, SpriteBatch> shipBatches;
+    private SpriteBatch simpleBatch;
     private DrawQueue drawQueue;
     private CommonRadar<CombatEntityAPI> radar;
+
+    private static enum RenderMode
+    {
+        SPRITES,
+        SIMPLE_FIGHTERS,
+        SIMPLE
+    }
 
     private static final float minSize(ShipAPI ship)
     {
@@ -79,7 +88,6 @@ public class ShipRenderer implements CombatRenderer
         settings = settings.getJSONObject("combatRenderers")
                 .getJSONObject("shipRenderer");
         MAX_SHIPS_SHOWN = settings.optInt("maxShown", 1_000);
-        SIMPLE_SHIPS = settings.getBoolean("simpleMode");
         MIN_FIGHTER_SIZE = (float) settings.getDouble("minFighterSize");
         MIN_SHIP_SIZE = (float) settings.getDouble("minShipSize");
         FIGHTER_SIZE_MOD = (float) settings.getDouble("fighterSizeMod");
@@ -88,6 +96,15 @@ public class ShipRenderer implements CombatRenderer
         DRAW_SOLID_SHIELDS = settings.getBoolean("drawSolidShields");
         MAX_SHIELD_SEGMENTS = settings.getInt("maxShieldSegments");
         MIN_SHIP_ALPHA_MULT = (float) settings.getDouble("minShipAlphaMult");
+
+        final RenderMode mode = RenderMode.valueOf(settings.getString("renderMode"));
+        SIMPLE_SHIPS = (mode == RenderMode.SIMPLE);
+        SIMPLE_FIGHTERS = (SIMPLE_SHIPS || mode == RenderMode.SIMPLE_FIGHTERS);
+
+        if (SIMPLE_FIGHTERS)
+        {
+            SIMPLE_ICON = settings.getString("simpleIcon");
+        }
     }
 
     @Override
@@ -109,6 +126,11 @@ public class ShipRenderer implements CombatRenderer
 
         drawQueue = new DrawQueue(initialCapacity);
         shipBatches = new LinkedHashMap<>();
+
+        if (SIMPLE_FIGHTERS)
+        {
+            simpleBatch = new SpriteBatch(Global.getSettings().getSprite("radar", SIMPLE_ICON));
+        }
     }
 
     private void addShieldToBuffer(ShipAPI contact)
@@ -247,6 +269,14 @@ public class ShipRenderer implements CombatRenderer
                 1f - ((1f - ship.getCombinedAlphaMult()) * 2f));
     }
 
+    private void addSimpleShip(ShipAPI ship, int playerSide)
+    {
+        final float[] loc = radar.getRawPointOnRadar(ship.getLocation());
+        simpleBatch.add(loc[0], loc[1], ship.getFacing(), ship.getSpriteAPI().getHeight()
+                * getSizeModifier(ship, radar) * radar.getCurrentPixelsPerSU(),
+                getColor(ship, playerSide), getAlphaMod(ship));
+    }
+
     private void addShip(ShipAPI ship, int playerSide)
     {
         final SpriteAPI sprite = ship.getSpriteAPI();
@@ -280,6 +310,10 @@ public class ShipRenderer implements CombatRenderer
         if (isUpdateFrame)
         {
             drawQueue.clear();
+            if (SIMPLE_FIGHTERS)
+            {
+                simpleBatch.clear();
+            }
             for (SpriteBatch batch : shipBatches.values())
             {
                 batch.clear();
@@ -297,10 +331,10 @@ public class ShipRenderer implements CombatRenderer
                         addTargetMarker(ship);
                     }
 
-                    if (SIMPLE_SHIPS)
+                    // Draw ship using sprite or triangle, depending on settings
+                    if (SIMPLE_SHIPS || (SIMPLE_FIGHTERS && ship.isFighter()))
                     {
-                        // TODO: implement simple ships (copy of campaign fleet triangles)
-                        //addSimpleShip(ship, player.getOwner());
+                        addSimpleShip(ship, player.getOwner());
                     }
                     else
                     {
@@ -321,6 +355,10 @@ public class ShipRenderer implements CombatRenderer
             }
 
             drawQueue.finish();
+            if (SIMPLE_FIGHTERS)
+            {
+                simpleBatch.finish();
+            }
             for (SpriteBatch batch : shipBatches.values())
             {
                 batch.finish();
@@ -343,6 +381,11 @@ public class ShipRenderer implements CombatRenderer
         }
 
         glEnable(GL_TEXTURE_2D);
+        if (SIMPLE_FIGHTERS && !simpleBatch.isEmpty())
+        {
+            simpleBatch.draw();
+        }
+
         glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
