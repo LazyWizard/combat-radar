@@ -110,6 +110,12 @@
         "shipRenderer":
         {
             "maxShown":100,
+            # Controls whether ships are drawn as sprites or triangles
+            # Valid options:
+            #  - SPRITES, draws all ships using their sprites
+            #  - SIMPLE_FIGHTERS, draws fighters as triangles, sprites otherwise
+            #  - SIMPLE, draws all ships as triangles
+            "renderMode":SPRITES, # Default: SPRITES, see above
             "simpleMode":false, # If true, draw all ships as triangles
             "fighterSizeMod":0.5, # Fighter contact size is multiplied by this
             "minFighterSize":6.0, # Minimum size in pixels regardless of zoom
@@ -121,7 +127,10 @@
             # Phased ships are drawn partially transparent based on how strong
             # the phase effect is. This sets the lowest opacity allowed
             # Also affects fighters during landing/takeoff
-            "minShipAlphaMult":0.5
+            "minShipAlphaMult":0.5,
+            # ID of the simple ship icon, found in data/config/settings.json
+            # Must be in the "radar" subcategory of the "graphics" section
+            "simpleIcon":"fleet"
         },
 
         "asteroidRenderer":
