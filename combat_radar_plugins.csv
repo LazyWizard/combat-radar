@@ -9,4 +9,4 @@ ShipRenderer,50,org.lazywizard.radar.renderers.combat.ShipRenderer,data/config/r
 AsteroidRenderer,60,org.lazywizard.radar.renderers.combat.AsteroidRenderer,data/config/radar/radar_settings.json
 MissileRenderer,70,org.lazywizard.radar.renderers.combat.MissileRenderer,data/config/radar/radar_settings.json
 ,,,
-#MemoryUsageRenderer,9999,org.lazywizard.radar.renderers.combat.MemoryUsageRenderer,
+MemoryUsageRenderer,9999,org.lazywizard.radar.renderers.combat.MemoryUsageRenderer,data/config/radar/radar_settings.json

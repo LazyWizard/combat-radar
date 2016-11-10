@@ -13,6 +13,7 @@ public class MemoryUsageRenderer extends BaseMemoryUsageRenderer implements Camp
     @Override
     public void reloadSettings(JSONObject settings) throws JSONException
     {
+        super.reloadSettings(settings);
     }
 
     @Override

@@ -10,10 +10,10 @@ import org.lazywizard.radar.renderers.CombatRenderer;
 
 public class MemoryUsageRenderer extends BaseMemoryUsageRenderer implements CombatRenderer
 {
-
     @Override
     public void reloadSettings(JSONObject settings) throws JSONException
     {
+        super.reloadSettings(settings);
     }
 
     @Override
