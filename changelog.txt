@@ -1,13 +1,40 @@
- 2.3 (March XX, 2016)
-======================
-Bumped up default radar size by 25%
-Slightly increased size of fighter contacts
-Fixed SpriteBatch when used with non-perfectly centered SpriteAPIs
+ 2.3 (November 10, 2016)
+=========================
+Bumped up default radar size by 25% (was 1/5 of display height, now 1/4)
+Slightly lowered default radar transparency (was 70%, now 65%)
+Reversed direction of radar ring fade, now more transparent towards center
+ - To use the old setting, enable "reverseRingFade" in radar_settings.json
+Added "showMemoryUsage" setting to radar_settings.json (disabled by default)
+Fixed SpriteBatch position issues when used with non-centered SpriteAPIs
+Removed Slick2D geometry classes (now unused, see ShipRenderer changes below)
+Added data/config/radar/excluded_missile_locks.csv:
+ - Missiles in this file will not be drawn orange when targeting the player,
+   nor will a missile lock icon be shown
 Campaign nebula renderer changes:
  - Custom campaign terrain with the tag "radar_nebula" will be drawn as nebulae
+ - Added slight alpha level variations to visually break up the nebula tile map
 Combat asteroid renderer changes:
- - Fixed asteroids being shown when player is destroyed
+ - Fixed asteroids being drawn when the player flagship is destroyed
+Missile renderer changes:
+ - Fixed flares using the wrong settings, obeys flareContactSize setting now
+Ship renderer changes:
+ - Completely rewritten; now draws ships using their sprite, not collision
+   bounds, for perfect accuracy - this includes fighters as well
+ - Shields are now drawn underneath ships
+ - Minimum render sizes for ships and fighters (independent of zoom level; by
+   default a ship will never go below 8 pixels wide, nor a fighter below 6)
+   This should fix small ships becoming nigh-invisible at max zoom
+ - Bumped up default maxShown setting to 100 (was 60)
+ - New settings:
+   - "renderMode", controls whether ships/fighters are drawn using their sprites
+     or as simple triangles. Valid options: SPRITES, SIMPLE_FIGHTERS, SIMPLE_ALL
+   - "minShipSize", minimum size in pixels a ship will be rendered at regardless
+     of current zoom level (no more invisible ships at max zoom)
+   - "minFighterSize", same as above, but for fighters only
+   - "simpleIcon", the sprite used when a simple render mode is used. By default
+     this is the same triangle used for fleets in the campaign radar
 New combat renderer: NebulaRenderer
+ - Equivalent to campaign nebulae renderer
 
  2.2 (December 25, 2015)
 =========================

@@ -44,7 +44,7 @@ public class ShipRenderer implements CombatRenderer
     {
         SPRITES,
         SIMPLE_FIGHTERS,
-        SIMPLE
+        SIMPLE_ALL
     }
 
     private static float minSize(ShipAPI ship)
@@ -98,7 +98,7 @@ public class ShipRenderer implements CombatRenderer
         MIN_SHIP_ALPHA_MULT = (float) settings.getDouble("minShipAlphaMult");
 
         final RenderMode mode = RenderMode.valueOf(settings.getString("renderMode"));
-        SIMPLE_SHIPS = (mode == RenderMode.SIMPLE);
+        SIMPLE_SHIPS = (mode == RenderMode.SIMPLE_ALL);
         SIMPLE_FIGHTERS = (SIMPLE_SHIPS || mode == RenderMode.SIMPLE_FIGHTERS);
 
         if (SIMPLE_FIGHTERS)

@@ -114,9 +114,9 @@
             # Valid options:
             #  - SPRITES, draws all ships using their sprites
             #  - SIMPLE_FIGHTERS, draws fighters as triangles, sprites otherwise
-            #  - SIMPLE, draws all ships as triangles
+            #  - SIMPLE_ALL, draws all ships as triangles
             "renderMode":SPRITES, # Default: SPRITES, see above
-            "fighterSizeMod":0.5, # Fighter contact size is multiplied by this
+            "fighterSizeMod":0.8, # Fighter contact size is multiplied by this
             "minFighterSize":6.0, # Minimum size in pixels regardless of zoom
             "minShipSize":8.0, # As above, but used for non-fighter/drone ships
             "shieldColor":[0,255,255,200],
