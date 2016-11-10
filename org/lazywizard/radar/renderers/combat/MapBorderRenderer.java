@@ -125,7 +125,9 @@ public class MapBorderRenderer implements CombatRenderer
         }
 
         if (drawQueue.isEmpty())
+        {
             return;
+        }
 
         // Draw retreat areas and gravity barriers
         radar.enableStencilTest();

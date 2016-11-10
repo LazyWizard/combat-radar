@@ -108,7 +108,7 @@ public class NebulaRenderer implements CombatRenderer
     @Override
     public void render(ShipAPI player, float amount, boolean isUpdateFrame)
     {
-        if (!SHOW_NEBULAE)
+        if (!SHOW_NEBULAE || !player.isAlive())
         {
             return;
         }
