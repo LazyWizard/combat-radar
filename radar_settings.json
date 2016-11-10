@@ -57,6 +57,9 @@
     # RENDERER TOGGLE SETTINGS #
     ############################
 
+    # Universal renderer settings
+    "showMemoryUsage":false,        # Default: false, performance impact low
+
     # Controls what shows up on the combat radar. Disabling some of these
     # might improve performance on a particularly slow machine
     "showBorderLines":true,         # Default: true, performance impact very low

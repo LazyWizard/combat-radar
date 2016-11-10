@@ -4,6 +4,8 @@ import java.awt.Color;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.lang.management.MemoryUsage;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.lazywizard.radar.CommonRadar;
 import org.lazywizard.radar.util.DrawQueue;
 import org.lwjgl.util.vector.Vector2f;
@@ -11,32 +13,36 @@ import static org.lwjgl.opengl.GL11.*;
 
 public abstract class BaseMemoryUsageRenderer
 {
-    private static final boolean SHOW_NONHEAP = true;
+    private static boolean SHOW_MEMORY;
     private MemoryMXBean memory;
     private DrawQueue drawQueue;
-    private float barWidth, barHeight, barY, heapBarX, nonHeapBarX;
+    private float barWidth, barHeight, barX, barY;
     private CommonRadar radar;
+
+    protected void reloadSettings(JSONObject settings) throws JSONException
+    {
+        SHOW_MEMORY = settings.getBoolean("showMemoryUsage");
+    }
 
     protected void init(CommonRadar radar, float extraPaddingLeft)
     {
+        if (!SHOW_MEMORY)
+        {
+            return;
+        }
+
         this.radar = radar;
         final Vector2f radarCenter = radar.getRenderCenter();
         final float radarRadius = radar.getRenderRadius();
 
         // Location and size of bar on the screen
-        // TODO: This math is wrong, fix for next release (it's wrong in a way that looks right)
-        barWidth = radarRadius * (SHOW_NONHEAP ? 0.045f : 0.07f);
-        float barOffset = (SHOW_NONHEAP ? barWidth * 0.66f : 0f);
+        barWidth = radarRadius * 0.07f;
         barHeight = radarRadius * 2f;
+        barX = radarCenter.x - (radarRadius * 1.2f) - barWidth - extraPaddingLeft;
         barY = radarCenter.y - radarRadius;
-        heapBarX = radarCenter.x - (radarRadius * 1.2f) - barWidth
-                - extraPaddingLeft - barOffset;
-        nonHeapBarX = heapBarX + barWidth + barOffset;
-        //Location = new Vector2f(((radarCenter.x - (radarRadius * 1.15f))
-        //        - barWidth) - extraPaddingLeft, radarCenter.y - radarRadius);
 
         memory = ManagementFactory.getMemoryMXBean();
-        drawQueue = new DrawQueue(1024); // TODO: calculate actual needed capacity
+        drawQueue = new DrawQueue(24);
     }
 
     private static float[] createRect(float llx, float lly, float urx, float ury)
@@ -50,7 +56,7 @@ public abstract class BaseMemoryUsageRenderer
         };
     }
 
-    private void createBar(MemoryUsage memory, float barX)
+    private void createBar(MemoryUsage memory)
     {
         final double maxMemory = memory.getMax();
         // If max allocatable memory is undefined, show used vs committed memory instead
@@ -79,13 +85,15 @@ public abstract class BaseMemoryUsageRenderer
 
     protected void render(boolean isUpdateFrame)
     {
+        if (!SHOW_MEMORY)
+        {
+            return;
+        }
+
         if (isUpdateFrame)
         {
             drawQueue.clear();
-            final MemoryUsage heap = memory.getHeapMemoryUsage(),
-                    nonHeap = memory.getNonHeapMemoryUsage();
-            createBar(heap, heapBarX);
-            createBar(nonHeap, nonHeapBarX);
+            createBar(memory.getHeapMemoryUsage());
             drawQueue.finish();
         }
 
