@@ -208,12 +208,12 @@ public class CombatReadinessRenderer implements CombatRenderer
             // Draw peak CR timer remaining
             if (SHOW_PEAK_CR && timerFraction > 0f)
             {
-                glLineWidth(barWidth * .25f);
+                glLineWidth(barWidth * .2f);
                 glColor(Color.WHITE, radar.getRadarAlpha() * 0.8f, false);
                 glBegin(GL_LINES);
-                glVertex2f(barLocation.x + (barWidth * 0.5f),
+                glVertex2f(barLocation.x + (barWidth * 0.45f),
                         barLocation.y);
-                glVertex2f(barLocation.x + (barWidth * 0.5f),
+                glVertex2f(barLocation.x + (barWidth * 0.45f),
                         barLocation.y + (barHeight * timerFraction));
                 glEnd();
             }
