@@ -1,3 +1,9 @@
+ 2.3b (March 16, 2017)
+=======================
+Switched version file hosting to Bitbucket
+Combat Readiness renderer changes:
+ - Fixed timer bar being misaligned by a single pixel
+
  2.3 (November 10, 2016)
 =========================
 Bumped up default radar size by 25% (was 1/5 of display height, now 1/4)
