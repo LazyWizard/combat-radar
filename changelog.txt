@@ -1,3 +1,9 @@
+ 2.4 (April 21, 2017
+=====================
+Updated to be compatible with Starsector 0.8a
+Campaign radar is disabled by default now that vanilla has its own radar UI
+ - Enable by setting "showCampaignRadar" to false in data/config/settings.json
+
  2.3b (March 16, 2017)
 =======================
 Switched version file hosting to Bitbucket
