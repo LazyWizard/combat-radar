@@ -20,6 +20,9 @@ public class RadarModPlugin extends BaseModPlugin
     @Override
     public void onGameLoad(boolean newGame)
     {
-        Global.getSector().addTransientScript(new CampaignRadarPlugin());
+        if (!Global.getSettings().getBoolean("showCampaignRadar"))
+        {
+            Global.getSector().addTransientScript(new CampaignRadarPlugin());
+        }
     }
 }
