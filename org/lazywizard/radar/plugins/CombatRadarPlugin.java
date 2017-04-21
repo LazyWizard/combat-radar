@@ -203,7 +203,8 @@ public class CombatRadarPlugin extends BaseEveryFrameCombatPlugin
         // Zoom 0 = radar disabled
         if (enabled && zoomLevel != 0)
         {
-            float amount = engine.getElapsedInLastFrame();
+            float amount = engine.getElapsedInLastFrame()
+                    / engine.getTimeMult().getModifiedValue();
             render(amount);
         }
     }
