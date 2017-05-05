@@ -325,6 +325,13 @@ public class ShipRenderer implements CombatRenderer
             {
                 for (ShipAPI ship : ships)
                 {
+                    // TODO: Get these to look good (re-add triangulator?)
+                    if (ship.isPiece())
+                    {
+                        //ship.getVisualBounds()
+                        continue;
+                    }
+
                     // Draw marker around current ship target
                     if (SHOW_TARGET_MARKER && player.getShipTarget() == ship)
                     {

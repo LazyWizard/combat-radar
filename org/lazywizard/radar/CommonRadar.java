@@ -245,5 +245,6 @@ public interface CommonRadar<T>
      * <p>
      * @since 1.0
      */
+    @SuppressWarnings("unchecked")
     public List filterVisible(List<? extends T> contacts, int maxContacts);
 }
