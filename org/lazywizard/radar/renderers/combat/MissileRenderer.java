@@ -1,16 +1,7 @@
 package org.lazywizard.radar.renderers.combat;
 
-import java.awt.Color;
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 import com.fs.starfarer.api.Global;
-import com.fs.starfarer.api.combat.CombatEntityAPI;
-import com.fs.starfarer.api.combat.GuidedMissileAI;
-import com.fs.starfarer.api.combat.MissileAIPlugin;
-import com.fs.starfarer.api.combat.MissileAPI;
-import com.fs.starfarer.api.combat.ShipAPI;
+import com.fs.starfarer.api.combat.*;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -20,6 +11,13 @@ import org.lazywizard.radar.CommonRadar;
 import org.lazywizard.radar.renderers.CombatRenderer;
 import org.lazywizard.radar.util.SpriteBatch;
 import org.lwjgl.util.vector.Vector2f;
+
+import java.awt.*;
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import static org.lwjgl.opengl.GL11.*;
 
 public class MissileRenderer implements CombatRenderer
@@ -29,7 +27,7 @@ public class MissileRenderer implements CombatRenderer
     private static boolean SHOW_MISSILES, SHOW_MISSILE_LOCK_ICON;
     private static int MAX_MISSILES_SHOWN;
     private static Set<String> EXCLUDED_MISSILE_LOCKS;
-    private static Color MISSILE_LOCKED_COLOR;
+    private static Color FRIENDLY_COLOR, ENEMY_COLOR, MISSILE_LOCKED_COLOR;
     private static String MISSILE_ICON, FLARE_ICON, MISSILE_LOCK_ICON;
     private static float MISSILE_SIZE_MOD, FLARE_SIZE_MOD;
     private SpriteBatch missileToDraw, flareToDraw;
@@ -39,15 +37,31 @@ public class MissileRenderer implements CombatRenderer
     private float missileSize, flareSize, highestThreatAlpha = 0f;
     private CommonRadar<CombatEntityAPI> radar;
 
+    private static Color optColor(JSONArray array, Color defaultColor) throws JSONException
+    {
+        if (array != null)
+        {
+            return JSONUtils.toColor(array);
+        }
+
+        return defaultColor;
+    }
+
     @Override
     public void reloadSettings(JSONObject settings) throws JSONException
     {
         SHOW_MISSILES = settings.getBoolean("showMissiles");
         SHOW_MISSILE_LOCK_ICON = settings.getBoolean("showMissileLockIcon");
 
+        // If missile-specific colors aren't set, default to using ship colors
+        final Color friendlyShipColor = JSONUtils.toColor(settings.getJSONArray("friendlyColor")),
+                enemyShipColor = JSONUtils.toColor(settings.getJSONArray("enemyColor"));
+
         settings = settings.getJSONObject("combatRenderers")
                 .getJSONObject("missileRenderer");
         MAX_MISSILES_SHOWN = settings.optInt("maxShown", 1_000);
+        FRIENDLY_COLOR = optColor(settings.optJSONArray("friendlyMissileColor"), friendlyShipColor);
+        ENEMY_COLOR = optColor(settings.optJSONArray("enemyMissileColor"), enemyShipColor);
         MISSILE_LOCKED_COLOR = JSONUtils.toColor(settings.getJSONArray("lockedMissileColor"));
         MISSILE_ICON = settings.getString("missileIcon");
         FLARE_ICON = settings.getString("flareIcon");
@@ -148,17 +162,17 @@ public class MissileRenderer implements CombatRenderer
                 // Burnt-out missiles count as hostile
                 if (missile.isFizzling())
                 {
-                    color = radar.getEnemyContactColor();
+                    color = ENEMY_COLOR;
                 }
                 // Enemy missiles
                 else if (missile.getOwner() + player.getOwner() == 1)
                 {
                     // Color missiles locked onto us differently
                     MissileAIPlugin ai = missile.getMissileAI();
-                    if (ai != null && ai instanceof GuidedMissileAI
+                    if (ai instanceof GuidedMissileAI
                             && player == ((GuidedMissileAI) ai).getTarget()
                             && !EXCLUDED_MISSILE_LOCKS.contains(
-                                    missile.getProjectileSpecId()))
+                            missile.getProjectileSpecId()))
                     {
                         playerLock = true;
                         highestThreatAlpha = alphaMod;
@@ -166,13 +180,13 @@ public class MissileRenderer implements CombatRenderer
                     }
                     else
                     {
-                        color = radar.getEnemyContactColor();
+                        color = ENEMY_COLOR;
                     }
                 }
                 // Allied missiles
                 else
                 {
-                    color = radar.getFriendlyContactColor();
+                    color = FRIENDLY_COLOR;
                 }
 
                 if (missile.isFlare())
