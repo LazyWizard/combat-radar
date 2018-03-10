@@ -152,7 +152,10 @@
             # Actual size of contacts is radar render radius times these numbers
             "missileContactSize":0.075,
             "flareContactSize":0.04,
-            "lockedMissileColor":[255,200,0,255]
+            # If not set, missiles use ship colors
+            "friendlyMissileColor":[15,85,15,255],
+            "enemyMissileColor":[185,15,115,255],
+            "lockedMissileColor":[255,200,0,255] # When locked on player
         },
 
         "objectiveRenderer":
