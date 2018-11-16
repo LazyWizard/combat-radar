@@ -1,5 +1,7 @@
- 2.5 (March XX, 2018)
-======================
+ 2.5 (November 16, 2018)
+=========================
+Updated to be compatible with Starsector 0.9a
+Added the Squall to the missile lock icon exclusion list
 Missile renderer changes:
  - Changed missile contact colors to make them easier to distinguish from ships
    (default dark purple for enemy and burnt out missiles, dark green for allied,
