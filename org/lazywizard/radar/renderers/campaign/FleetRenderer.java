@@ -78,8 +78,9 @@ public class FleetRenderer implements CampaignRenderer
             }
 
             // Check if there's an active bounty placed by this market
-            final CampaignEventPlugin event = Global.getSector().getEventManager()
-                    .getOngoingEvent(new CampaignEventTarget(market), Events.SYSTEM_BOUNTY);
+            // FIXME
+            final CampaignEventPlugin event = null;//Global.getSector().getEventManager()
+                    //.getOngoingEvent(new CampaignEventTarget(market), Events.SYSTEM_BOUNTY);
             if (event != null)
             {
                 // If so, find every faction they are willing to pay for kills against
