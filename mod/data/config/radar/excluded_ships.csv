@@ -1,0 +1,6 @@
+id,prefix
+# id is the hull id of the ship that should be excluded from the combat radar. All skins based on this hull will also be excluded.
+# Prefix will make the radar ignore all ships whose hull id starts with the given id. Please don't abuse this to make an entire faction invisible unless that's a core part of your faction's concept.
+#hound,FALSE
+#hound_d,TRUE
+#exigency_,TRUE

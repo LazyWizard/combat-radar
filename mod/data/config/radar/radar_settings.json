@@ -1,0 +1,272 @@
+{
+    ################################
+    #    GLOBAL RADAR SETTINGS     #
+    ################################
+
+    # Controls how large the radar is (as a fraction of the height of the display)
+    "radarSize":0.25,          # Default: 0.25 (1/4th the screen's height)
+    # How many times per second the radar should update, lower fps = better performance
+    "radarFPS":20.0,          # Default: 20.0
+    # Whether to use vertex buffers. Disable if you have problems with the radar
+    # If your card doesn't support VBOs this setting won't do anything
+    "useVBOs":true,           # Default: true
+    # More points = smoother circles, slightly higher performance cost
+    # NOT used for shields, see maxShieldSegments further down for that
+    "verticesPerCircle": 144, # Default: 144
+
+    # What buttons to press to change the radar zoom level or toggle radar on/off
+    # Key IDs are integers, and can be found in the LWJGL documentation here:
+    # http://legacy.lwjgl.org/javadoc/constant-values.html#org.lwjgl.input.Keyboard.KEY_0
+    "toggleKey":37,   # Default: K (37)
+    "zoomInKey":13,   # Default: +/= (13)
+    "zoomOutKey":12,  # Default: -/_ (12)
+
+    # Disabling this will help performance on slow rigs,
+    # but the radar won't respect fog of war anymore
+    "onlyShowVisibleContacts":true, # Default: true
+
+    # How far the radar can see, in su
+    # Be very careful, radar CPU cost grows exponentially with higher values
+    "combatRadarRange":2100.0,   # Default: 2100.0
+    "campaignRadarRange":2100.0, # Default: 2100.0
+
+    # How long it takes for the radar to switch zooms, in seconds
+    "zoomDuration":0.4, # Default: 0.4
+    # Number of zoom levels, zoom amount is automatic (3 = 1/3, 2/3, 3/3)
+    "zoomLevels":3,     # Default: 3
+
+    # Controls the alpha level of radar HUD elements (not radar contacts)
+    "radarUIAlpha":0.65,  # Default: 0.65
+    # Controls the alpha level of radar contacts (but not the HUD)
+    "contactAlpha":0.85,  # Default: 0.85
+
+    # Use the old fade direction of the radar rings (darker towards inside)
+    "reverseRingFade":false, # Default: false
+
+    # If true, will use the same friendly/enemy/neutral color settings as vanilla
+    "useVanillaColors":false, # Default: false
+
+    # These colors are ignored if "useVanillaColors" is true
+    # Alpha channel is multiplied by contactAlpha setting
+    "friendlyColor":[0,255,0,255],
+    "enemyColor":[255,0,0,255],
+    "neutralColor":[150,150,150,255],
+    "allyColor":[0,150,0,255],
+
+    ############################
+    # RENDERER TOGGLE SETTINGS #
+    ############################
+
+    # Universal renderer settings
+    "showMemoryUsage":false,        # Default: false, performance impact low
+
+    # Controls what shows up on the combat radar. Disabling some of these
+    # might improve performance on a particularly slow machine
+    "showBorderLines":true,         # Default: true, performance impact very low
+    "showShips":true,               # Default: true, performance impact moderate
+    "showShields":true,             # Default: true, performance impact moderate
+    "showMarkerAroundTarget":true,  # Default: true, performance impact very low
+    "showCombatAsteroids":true,     # Default: true, performance impact low
+    "showMissiles":true,            # Default: true, performance impact low
+    "showMissileLockIcon":true,     # Default: true, performance impact very low
+    "showObjectives":true,          # Default: true, performance impact very low
+    "showMapBorder":true,           # Default: true, performance impact very low
+    "showBattleProgress":true,      # Default: true, performance impact low
+    "showCombatReadiness":true,     # Default: true, performance impact very low
+    "showPeakCRRemaining":true,     # Default: true, performance impact very low
+
+    # Controls what shows up on the campaign radar. Disabling some of these
+    # might improve performance on a particularly slow machine
+    "showFleets":true,              # Default: true, performance impact ???
+    "showPlanets":true,             # Default: true, performance impact ???
+    "showStations":true,            # Default: true, performance impact ???
+    "showRelays":true,              # Default: true, performance impact ???
+    "showCampaignAsteroids":true,   # Default: true, performance impact low
+    "showJumpPoints":true,          # Default: true, performance impact ???
+    "showNebulae":true,             # Default: true, performance impact ???
+
+
+    ############################
+    # COMBAT RENDERER SETTINGS #
+    ############################
+
+    "combatRenderers":
+    {
+        "radarBoxRenderer":
+        {
+            # Radar backdrop colors
+            "radarBackgroundColor":[0,0,0,255],
+            "radarBackgroundAlpha":0.33, # Default: 0.33
+            # Controls how faded the edges of the radar box are
+            "radarEdgeAlpha":0.25        # Default: 0.25
+        },
+
+        "mapBorderRenderer":
+        {
+            "retreatAreaColor":[255,255,0,75],
+            "gravityBarrierColor":[255,0,0,255]
+        },
+
+        "shipRenderer":
+        {
+            "maxShown":100,
+            # Controls whether ships are drawn as sprites or triangles
+            # Valid options:
+            #  - SPRITES, draws all ships using their sprites
+            #  - SIMPLE_FIGHTERS, draws fighters as triangles, sprites otherwise
+            #  - SIMPLE_ALL, draws all ships as triangles
+            "renderMode":SPRITES, # Default: SPRITES, see above
+            "fighterSizeMod":0.8, # Fighter contact size is multiplied by this
+            "minFighterSize":6.0, # Minimum size in pixels regardless of zoom
+            "minShipSize":8.0, # As above, but used for non-fighter/drone ships
+            "shieldColor":[0,255,255,200],
+            "drawSolidShields":true, # If false, draw shield outline only
+            "maxShieldSegments":64, # Higher = smoother shield circles
+            "targetMarkerColor":[255,255,255,255],
+            # Phased ships are drawn partially transparent based on how strong
+            # the phase effect is. This sets the lowest opacity allowed
+            # Also affects fighters during landing/takeoff
+            "minShipAlphaMult":0.5,
+            # ID of the simple ship icon, found in data/config/settings.json
+            # Must be in the "radar" subcategory of the "graphics" section
+            "simpleIcon":"fleet"
+        },
+
+        "asteroidRenderer":
+        {
+            "maxShown":500,
+            # ID of the asteroid icon, found in data/config/settings.json
+            # Must be in the "radar" subcategory of the "graphics" section
+            "asteroidIcon":"asteroid",
+            "asteroidColor":[220,220,220,255]
+        },
+
+        "missileRenderer":
+        {
+            "maxShown":500,
+            # ID of the missile icons, found in data/config/settings.json
+            # Must be in the "radar" subcategory of the "graphics" section
+            "missileIcon":"missile",
+            "flareIcon":"flare",
+            "missileLockIcon":"missileLock",
+            # Actual size of contacts is radar render radius times these numbers
+            "missileContactSize":0.075,
+            "flareContactSize":0.04,
+            # If not set, missiles use ship colors
+            "friendlyMissileColor":[15,85,15,255],
+            "enemyMissileColor":[185,15,115,255],
+            "lockedMissileColor":[255,200,0,255] # When locked on player
+        },
+
+        "objectiveRenderer":
+        {
+            "maxShown":15
+        },
+
+        "nebulaRenderer":
+        {
+            "maxShown":1000,
+            # ID of the nebula icon, found in data/config/settings.json
+            # Must be in the "radar" subcategory of the "graphics" section
+            "nebulaIcon":"nebula",
+            "nebulaColor":[175,80,175,100]
+        },
+
+        "battleProgressRenderer":
+        {
+            # Whether the bar should gradually move when a ship is destroyed
+            "animateProgressBar":true,
+            # How fast the bar should update, in percent per second
+            # This setting is ignored if "animateProgressBar" is false
+            "barAnimationSpeed":25.0
+        },
+
+        "combatReadinessRenderer":
+        {
+            # Color of the portion of the bar representing player's current CR
+            "currentCRColor":[0,255,255,255],
+            # Color of the portion representing CR lost during this battle
+            "lostCRColor":[0,0,255,255],
+            # Color of the portion representing CR never obtained
+            "emptyBarColor":[64,64,64,255]
+        }
+    },
+
+    ##############################
+    # CAMPAIGN RENDERER SETTINGS #
+    ##############################
+
+    "campaignRenderers":
+    {
+        "radarBoxRenderer":
+        {
+            # Radar backdrop colors
+            "radarBackgroundColor":[0,0,0,255],
+            "radarBackgroundAlpha":0.5, # Default: 0.5
+            # Controls how faded the edges of the radar box are
+            "radarEdgeAlpha":0.33       # Default: 0.33
+        },
+
+        "fleetRenderer":
+        {
+            "maxShown":150,
+            # What color fleets with a bounty on their head show up as
+            "bountyColor":[255,215,0,255],
+            # ID of the fleet icon, found in data/config/settings.json
+            # Must be in the "radar" subcategory of the "graphics" section
+            "fleetIcon":"fleet"
+        },
+
+        "stationRenderer":
+        {
+            "maxShown":20,
+            # ID of the station icon, found in data/config/settings.json
+            # Must be in the "radar" subcategory of the "graphics" section
+            "stationIcon":"station"
+        },
+
+        "planetRenderer":
+        {
+            "maxShown":40,
+            # ID of the planet and star icons, found in data/config/settings.json
+            # Must be in the "radar" subcategory of the "graphics" section
+            "planetIcon":"planet",
+            "starIcon":"star"
+        },
+
+        "relayRenderer":
+        {
+            "maxShown":15,
+            # ID of the relay icon, found in data/config/settings.json
+            # Must be in the "radar" subcategory of the "graphics" section
+            "relayIcon":"relay"
+        },
+
+        "asteroidRenderer":
+        {
+            "maxShown":500,
+            # ID of the asteroid icon, found in data/config/settings.json
+            # Must be in the "radar" subcategory of the "graphics" section
+            "asteroidIcon":"asteroid",
+            "asteroidColor":[220,220,220,255]
+        },
+
+        "jumpPointRenderer":
+        {
+            "maxShown":45,
+            # ID of the jump point icon, found in data/config/settings.json
+            # Must be in the "radar" subcategory of the "graphics" section
+            "jumpPointIcon":"jumpPoint",
+            "jumpPointColor":[255,0,255,255]
+        },
+
+        "nebulaRenderer":
+        {
+            "maxShown":800,
+            # ID of the nebula icon, found in data/config/settings.json
+            # Must be in the "radar" subcategory of the "graphics" section
+            "nebulaIcon":"nebula",
+            "nebulaColor":[175,80,175,100]
+        }
+    }
+}

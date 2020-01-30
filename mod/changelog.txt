@@ -1,0 +1,224 @@
+ 2.5 (November 16, 2018)
+=========================
+Updated to be compatible with Starsector 0.9a
+Added the Squall to the missile lock icon exclusion list
+Missile renderer changes:
+ - Changed missile contact colors to make them easier to distinguish from ships
+   (default dark purple for enemy and burnt out missiles, dark green for allied,
+    orange for missiles that are locked onto the player ship)
+ - Added "enemyMissileColor" and "friendlyMissileColor" to radar_settings.json
+
+ 2.4c (May 05, 2017)
+=====================
+Temporarily hide ship debris (will write a proper renderer for it later)
+
+ 2.4b (April 21, 2017)
+=======================
+Fixed choppy radar animations when time dilation ship systems are in effect
+
+ 2.4 (April 21, 2017
+=====================
+Updated to be compatible with Starsector 0.8a
+Campaign radar is disabled by default now that vanilla has its own radar UI
+ - Enable by setting "showCampaignRadar" to false in data/config/settings.json
+
+ 2.3b (March 16, 2017)
+=======================
+Switched version file hosting to Bitbucket
+Combat Readiness renderer changes:
+ - Fixed timer bar being misaligned by a single pixel
+
+ 2.3 (November 10, 2016)
+=========================
+Bumped up default radar size by 25% (was 1/5 of display height, now 1/4)
+Slightly lowered default radar transparency (was 70%, now 65%)
+Reversed direction of radar ring fade, now more transparent towards center
+ - To use the old setting, enable "reverseRingFade" in radar_settings.json
+Added "showMemoryUsage" setting to radar_settings.json (disabled by default)
+Fixed SpriteBatch position issues when used with non-centered SpriteAPIs
+Removed Slick2D geometry classes (now unused, see ShipRenderer changes below)
+Added data/config/radar/excluded_missile_locks.csv:
+ - Missiles in this file will not be drawn orange when targeting the player,
+   nor will a missile lock icon be shown
+Campaign nebula renderer changes:
+ - Custom campaign terrain with the tag "radar_nebula" will be drawn as nebulae
+ - Added slight alpha level variations to visually break up the nebula tile map
+Combat asteroid renderer changes:
+ - Fixed asteroids being drawn when the player flagship is destroyed
+Missile renderer changes:
+ - Fixed flares using the wrong settings, obeys flareContactSize setting now
+Ship renderer changes:
+ - Completely rewritten; now draws ships using their sprite, not collision
+   bounds, for perfect accuracy - this includes fighters as well
+ - Shields are now drawn underneath ships
+ - Minimum render sizes for ships and fighters (independent of zoom level; by
+   default a ship will never go below 8 pixels wide, nor a fighter below 6)
+   This should fix small ships becoming nigh-invisible at max zoom
+ - Bumped up default maxShown setting to 100 (was 60)
+ - New settings:
+   - "renderMode", controls whether ships/fighters are drawn using their sprites
+     or as simple triangles. Valid options: SPRITES, SIMPLE_FIGHTERS, SIMPLE_ALL
+   - "minShipSize", minimum size in pixels a ship will be rendered at regardless
+     of current zoom level (no more invisible ships at max zoom)
+   - "minFighterSize", same as above, but for fighters only
+   - "simpleIcon", the sprite used when a simple render mode is used. By default
+     this is the same triangle used for fleets in the campaign radar
+New combat renderer: NebulaRenderer
+ - Equivalent to campaign nebulae renderer
+
+ 2.2 (December 25, 2015)
+=========================
+Empty rows in radar CSVs are ignored correctly
+Added to radar_settings.json:
+ - "radarSize", determines the size of the radar as a fraction of the display
+   height, defaults to 0.2 or 20% display height. Keep in mind that the radar
+   adds 10% of its diameter as padding to the side/below.
+ - "allyColor", the color of teammates in battle
+Increased default "maxShown" settings due to optimizations to sprite rendering
+Added getAlliedContactColor() to CommonRadar interface
+Added isPointOnRadar() to CommonRadar interface
+Added ReloadRadar console command (only if Console Commands mod is enabled)
+Battle progress renderer changes:
+ - Allies have their own section of the bar
+Combat ship renderer changes:
+ - Allied ships have their own color
+New campaign renderer: NebulaRenderer
+ - Handles nebula and deep hyperspace, does not show hyperspace storms yet
+New optional renderer: MemoryUsageRenderer
+ - Appears to the left of the radar in both campaign and combat
+ - White portion of bar is fraction used of max allocatable memory
+ - Gray portion of bar is fraction allocated of max allocatable memory
+ - Shows heap memory on left, non-heap memory on right
+   (heap is the value most users will want to keep an eye on)
+ - Disabled by default, enable in the relevant CSVs in data/config/radar
+New utility class: SpriteBatch
+ - Aids in efficiently drawing a sprite many times in a row
+Miscellaneous optimizations and improvements
+
+ 2.1 (November 19, 2015)
+=========================
+(thanks to MesoTroniK for spritework and extensive help testing new features)
+Updated to be compatible with Starsector 0.7a
+The "maxShown" setting has been enabled for all renderers, defaults increased
+Added "verticesPerCircle" setting, increase this for smoother radar rings
+Asteroid renderer (both campaign and combat) changes:
+ - Uses a sprite now, should look much smoother
+ - Scaled based on their true size, not a flat value multiplied by zoom level
+Campaign fleet renderer changes:
+ - Uses a sprite now, should look much smoother
+ - Unknown (transponder off) contacts are shown in neutral colors
+ - Fixed issue where player fleet would flash bounty colors if a faction was
+   paying for kills against their enemies and was hostile towards the player
+Planet renderer changes:
+ - Uses vanilla map icons instead of polygons
+ - Differentiates between planets and stars
+Battle objective renderer changes:
+ - Fixed pop-in issue when objective is at the very edge of radar
+ - Added a slight tinge to the center of the objective diamond
+ - Changed render order to be drawn below other combat entities
+Combat readiness renderer changes:
+ - Bar is dimmed until you have started losing combat readiness
+ - Remaining peak CR timer is shown as a white line down the middle of the bar
+Combat ship renderer changes:
+ - Separated ship and shield rendering
+ - Increased transparency of shields
+ - Added smoothing to shields (might cause artifacts on some cards, let me know)
+ - Bumped default shield segment count from 18 (?!) to 64
+ - Transparency of ship contacts is based on the alpha of the actual sprite
+   - Ships with custom right click ship systems won't be momentarily
+     transparent on the radar when using them now (ex: Exigency Incorporated)
+   - Fighters taking off or landing on a carrier should fade in/out
+ - Removed "phasedShipAlphaMult" setting, added "minShipAlphaMult"
+   (ships with 0 alpha will be completely invisible regardless of this setting)
+ - Polygon triangulator is now a config file option, added the other Slick2D
+   triangulator implementations
+ - Fixed bug causing shields to have the wrong number of segments
+ - Bumped default fighter contact scaling from 175% to 225% actual size
+ - Use sprite size instead of collision radius for calculating fighter size
+   (this should fix the issue with shield drones and their oversized radius)
+ - Fixed issue where a fighter's shields weren't being scaled
+Missile renderer changes:
+ - Uses a sprite now, should look much smoother, sprite shows facing of missile
+ - Differentiates between missiles and flares
+ - Missile contacts are the same size at every zoom level
+ - New settings: "missileContactSize" and "flareContactSize"
+
+ 2.0 (October 04, 2015)
+========================
+Radar framerate is now separate from Starsector's framerate, defaults to 20 FPS
+Merged radar settings into a single file, data/config/radar/radar_settings.json
+Combined campaign and combat radars into one codebase
+Replaced CampaignRadar and CombatRadar with a generic CommonRadar interface
+Added excluded_ships.csv, can exclude single hulls or ones with certain prefixes
+Added excluded_missiles.csv, can exclude missiles by their projectile ID
+Added RadarSettings class to retrieve loaded renderers and radar settings
+Added getCurrentSightRadius() to CommonRadar interface
+Improved icon for relays in the campaign
+All renderers now support a "maxShown" setting where valid
+Campaign fleet renderer changes:
+ - Fleets with a bounty on their head are now shown as gold on the radar
+   (faction-level bounties flash between gold and their regular color so you
+    won't accidently chase/attack a friendly faction)
+Combat progress renderer changes:
+ - Relative fleet balance calculation is no longer based on information that
+   the player can't obtain in-game, is instead now based on the ship's fleet
+   point costs (with a 75% penalty to calculated strength for civilian ships)
+New combat renderer: MapBorderRenderer
+ - Displays retreat zones in yellow
+ - Displays gravity barrier line in red
+ - Displays out of bounds in grey
+New combat renderer: ShipRenderer
+ - Replaces ShipSimpleRenderer and ShipPolygonRenderer
+ - Draws proper polygons for ships instead of approximations like old system
+ - Will fall back to approximations on ships that can't be triangulated (only
+   the Paragon in vanilla and a handful of ships in existing mods)
+ - To draw ships as triangles instead (like with the old ShipSimpleRenderer),
+   change "simpleMode" to true in radar_settings.json under "shipRenderer"
+ - Shields are drawn filled, can be reverted to the old behavior by changing
+   "drawSolidShields" to false in radar_settings.json under "shipRenderer"
+New utility class: DrawQueue
+ - Aids in efficiently drawing many primitive shapes multiple frames in a row
+ - Handles native buffer allocation/data/resizing automatically
+ - Uses VBOs if the user's card supports them (hint: it does)
+New utility class: ShapeUtils
+ - Calculates vertices (as float arrays) for common shapes
+All interfaces are now fully documented (see javadoc.zip in mod folder)
+Miscellaneous optimizations and improvements
+
+ 1.1f (March 06, 2015)
+=======================
+Fixed a bug that caused intermittent radar corruption in the campaign
+Lines and points on the radar should look much sharper now (thanks Alex)
+
+ 1.1e (February 12, 2015)
+==========================
+Stations and planets with the "comm_relay" tag aren't considered relays
+The campaign radar won't draw anything with the tag "radar_nodraw"
+
+ 1.1d (December 09, 2014)
+==========================
+Hopefully fixed a bug where campaign radar components would occasionally vanish
+
+ 1.1c (December 03, 2014)
+==========================
+The radar is no longer drawn over menus or when the HUD is turned off
+Greatly increased the speed of the battle progress bar animation
+Fixed crash in ShipPolygonRenderer when rendering ships that lack bounds
+Radar no longer reactivates when the player's ship is fully destroyed
+
+ 1.1b (October 23, 2014)
+=========================
+Campaign fleet renderer changes:
+ - Fleets are only colored red if they are hostile towards the player
+Battle progress bar changes:
+ - Doesn't show initial relative fleet strengths in a simulation battle
+ - Ignores ships still in picker in simulation battles
+ - Doesn't count the reserves of a fleet in full retreat
+
+ 1.1 (October 21, 2014)
+========================
+Updated to support Starsector .65a
+Station rendering fixed in campaign
+Comm relays are now included on the campaign radar
+Zooming is now done using +/-, toggling the radar on/off is still K by default
+Zooming in/out is now animated
