@@ -109,7 +109,7 @@
 
         "shipRenderer":
         {
-            "maxShown":100,
+            "maxShown":999,
             # Controls whether ships are drawn as sprites or triangles
             # Valid options:
             #  - SPRITES, draws all ships using their sprites
@@ -134,7 +134,7 @@
 
         "asteroidRenderer":
         {
-            "maxShown":500,
+            "maxShown":999,
             # ID of the asteroid icon, found in data/config/settings.json
             # Must be in the "radar" subcategory of the "graphics" section
             "asteroidIcon":"asteroid",
@@ -143,7 +143,7 @@
 
         "missileRenderer":
         {
-            "maxShown":500,
+            "maxShown":999,
             # ID of the missile icons, found in data/config/settings.json
             # Must be in the "radar" subcategory of the "graphics" section
             "missileIcon":"missile",
@@ -165,7 +165,7 @@
 
         "nebulaRenderer":
         {
-            "maxShown":1000,
+            "maxShown":9999,
             # ID of the nebula icon, found in data/config/settings.json
             # Must be in the "radar" subcategory of the "graphics" section
             "nebulaIcon":"nebula",
@@ -209,7 +209,7 @@
 
         "fleetRenderer":
         {
-            "maxShown":150,
+            "maxShown":9999,
             # What color fleets with a bounty on their head show up as
             "bountyColor":[255,215,0,255],
             # ID of the fleet icon, found in data/config/settings.json
@@ -219,7 +219,7 @@
 
         "stationRenderer":
         {
-            "maxShown":20,
+            "maxShown":99,
             # ID of the station icon, found in data/config/settings.json
             # Must be in the "radar" subcategory of the "graphics" section
             "stationIcon":"station"
@@ -227,7 +227,7 @@
 
         "planetRenderer":
         {
-            "maxShown":40,
+            "maxShown":99,
             # ID of the planet and star icons, found in data/config/settings.json
             # Must be in the "radar" subcategory of the "graphics" section
             "planetIcon":"planet",
@@ -236,7 +236,7 @@
 
         "relayRenderer":
         {
-            "maxShown":15,
+            "maxShown":99,
             # ID of the relay icon, found in data/config/settings.json
             # Must be in the "radar" subcategory of the "graphics" section
             "relayIcon":"relay"
@@ -244,7 +244,7 @@
 
         "asteroidRenderer":
         {
-            "maxShown":500,
+            "maxShown":999,
             # ID of the asteroid icon, found in data/config/settings.json
             # Must be in the "radar" subcategory of the "graphics" section
             "asteroidIcon":"asteroid",
@@ -253,7 +253,7 @@
 
         "jumpPointRenderer":
         {
-            "maxShown":45,
+            "maxShown":99,
             # ID of the jump point icon, found in data/config/settings.json
             # Must be in the "radar" subcategory of the "graphics" section
             "jumpPointIcon":"jumpPoint",
@@ -262,7 +262,7 @@
 
         "nebulaRenderer":
         {
-            "maxShown":800,
+            "maxShown":9999,
             # ID of the nebula icon, found in data/config/settings.json
             # Must be in the "radar" subcategory of the "graphics" section
             "nebulaIcon":"nebula",
