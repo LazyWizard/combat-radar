@@ -26,9 +26,8 @@
     "onlyShowVisibleContacts":true, # Default: true
 
     # How far the radar can see, in su
-    # Be very careful, radar CPU cost grows exponentially with higher values
-    "combatRadarRange":2100.0,   # Default: 2100.0
-    "campaignRadarRange":2100.0, # Default: 2100.0
+    # Be very careful, radar CPU cost grows quickly with higher values
+    "radarRange":2100.0,   # Default: 2100.0
 
     # How long it takes for the radar to switch zooms, in seconds
     "zoomDuration":0.4, # Default: 0.4
@@ -70,21 +69,11 @@
     "showMissiles":true,            # Default: true, performance impact low
     "showMissileLockIcon":true,     # Default: true, performance impact very low
     "showObjectives":true,          # Default: true, performance impact very low
+    "showNebulae":true,             # Default: true, performance impact low
     "showMapBorder":true,           # Default: true, performance impact very low
     "showBattleProgress":true,      # Default: true, performance impact low
     "showCombatReadiness":true,     # Default: true, performance impact very low
     "showPeakCRRemaining":true,     # Default: true, performance impact very low
-
-    # Controls what shows up on the campaign radar. Disabling some of these
-    # might improve performance on a particularly slow machine
-    "showFleets":true,              # Default: true, performance impact ???
-    "showPlanets":true,             # Default: true, performance impact ???
-    "showStations":true,            # Default: true, performance impact ???
-    "showRelays":true,              # Default: true, performance impact ???
-    "showCampaignAsteroids":true,   # Default: true, performance impact low
-    "showJumpPoints":true,          # Default: true, performance impact ???
-    "showNebulae":true,             # Default: true, performance impact ???
-
 
     ############################
     # COMBAT RENDERER SETTINGS #
@@ -189,84 +178,6 @@
             "lostCRColor":[0,0,255,255],
             # Color of the portion representing CR never obtained
             "emptyBarColor":[64,64,64,255]
-        }
-    },
-
-    ##############################
-    # CAMPAIGN RENDERER SETTINGS #
-    ##############################
-
-    "campaignRenderers":
-    {
-        "radarBoxRenderer":
-        {
-            # Radar backdrop colors
-            "radarBackgroundColor":[0,0,0,255],
-            "radarBackgroundAlpha":0.5, # Default: 0.5
-            # Controls how faded the edges of the radar box are
-            "radarEdgeAlpha":0.33       # Default: 0.33
-        },
-
-        "fleetRenderer":
-        {
-            "maxShown":9999,
-            # What color fleets with a bounty on their head show up as
-            "bountyColor":[255,215,0,255],
-            # ID of the fleet icon, found in data/config/settings.json
-            # Must be in the "radar" subcategory of the "graphics" section
-            "fleetIcon":"fleet"
-        },
-
-        "stationRenderer":
-        {
-            "maxShown":99,
-            # ID of the station icon, found in data/config/settings.json
-            # Must be in the "radar" subcategory of the "graphics" section
-            "stationIcon":"station"
-        },
-
-        "planetRenderer":
-        {
-            "maxShown":99,
-            # ID of the planet and star icons, found in data/config/settings.json
-            # Must be in the "radar" subcategory of the "graphics" section
-            "planetIcon":"planet",
-            "starIcon":"star"
-        },
-
-        "relayRenderer":
-        {
-            "maxShown":99,
-            # ID of the relay icon, found in data/config/settings.json
-            # Must be in the "radar" subcategory of the "graphics" section
-            "relayIcon":"relay"
-        },
-
-        "asteroidRenderer":
-        {
-            "maxShown":999,
-            # ID of the asteroid icon, found in data/config/settings.json
-            # Must be in the "radar" subcategory of the "graphics" section
-            "asteroidIcon":"asteroid",
-            "asteroidColor":[220,220,220,255]
-        },
-
-        "jumpPointRenderer":
-        {
-            "maxShown":99,
-            # ID of the jump point icon, found in data/config/settings.json
-            # Must be in the "radar" subcategory of the "graphics" section
-            "jumpPointIcon":"jumpPoint",
-            "jumpPointColor":[255,0,255,255]
-        },
-
-        "nebulaRenderer":
-        {
-            "maxShown":9999,
-            # ID of the nebula icon, found in data/config/settings.json
-            # Must be in the "radar" subcategory of the "graphics" section
-            "nebulaIcon":"nebula",
-            "nebulaColor":[175,80,175,100]
         }
     }
 }

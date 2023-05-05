@@ -1,9 +1,5 @@
 package org.lazywizard.radar.renderers.combat;
 
-import java.awt.Color;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.CombatEntityAPI;
 import com.fs.starfarer.api.combat.ShieldAPI;
@@ -19,6 +15,12 @@ import org.lazywizard.radar.renderers.CombatRenderer;
 import org.lazywizard.radar.util.DrawQueue;
 import org.lazywizard.radar.util.SpriteBatch;
 import org.lwjgl.util.vector.Vector2f;
+
+import java.awt.Color;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL13.*;
 import static org.lwjgl.opengl.GL14.GL_GENERATE_MIPMAP;
@@ -74,8 +76,8 @@ public class ShipRenderer implements CombatRenderer
             return 0f;
         }
 
-        return ship.getShield().getRadius() * getSizeModifier(ship, radar)
-                * radar.getCurrentPixelsPerSU();
+        final float diff = getContactRadius(ship, radar) - (ship.getCollisionRadius() * radar.getCurrentPixelsPerSU());
+        return (ship.getShield().getRadius() + diff) * radar.getCurrentPixelsPerSU();
     }
 
     @Override
@@ -197,28 +199,28 @@ public class ShipRenderer implements CombatRenderer
         final Vector2f radarLoc = radar.getPointOnRadar(target.getLocation());
         final float margin = size * .5f;
         final float[] vertices = new float[]
-        {
-            // Upper left corner
-            radarLoc.x - size, radarLoc.y + size, // 0
-            radarLoc.x - margin, radarLoc.y + size, // 1
-            radarLoc.x - size, radarLoc.y + size, // 0
-            radarLoc.x - size, radarLoc.y + margin, // 2
-            // Upper right corner
-            radarLoc.x + size, radarLoc.y + size, // 3
-            radarLoc.x + margin, radarLoc.y + size, // 4
-            radarLoc.x + size, radarLoc.y + size, // 3
-            radarLoc.x + size, radarLoc.y + margin, // 5
-            // Lower left corner
-            radarLoc.x - size, radarLoc.y - size, // 6
-            radarLoc.x - margin, radarLoc.y - size, // 7
-            radarLoc.x - size, radarLoc.y - size, // 6
-            radarLoc.x - size, radarLoc.y - margin, // 8
-            // Lower right corner
-            radarLoc.x + size, radarLoc.y - size, // 9
-            radarLoc.x + margin, radarLoc.y - size, // 10
-            radarLoc.x + size, radarLoc.y - size, // 9
-            radarLoc.x + size, radarLoc.y - margin  // 11
-        };
+                {
+                        // Upper left corner
+                        radarLoc.x - size, radarLoc.y + size, // 0
+                        radarLoc.x - margin, radarLoc.y + size, // 1
+                        radarLoc.x - size, radarLoc.y + size, // 0
+                        radarLoc.x - size, radarLoc.y + margin, // 2
+                        // Upper right corner
+                        radarLoc.x + size, radarLoc.y + size, // 3
+                        radarLoc.x + margin, radarLoc.y + size, // 4
+                        radarLoc.x + size, radarLoc.y + size, // 3
+                        radarLoc.x + size, radarLoc.y + margin, // 5
+                        // Lower left corner
+                        radarLoc.x - size, radarLoc.y - size, // 6
+                        radarLoc.x - margin, radarLoc.y - size, // 7
+                        radarLoc.x - size, radarLoc.y - size, // 6
+                        radarLoc.x - size, radarLoc.y - margin, // 8
+                        // Lower right corner
+                        radarLoc.x + size, radarLoc.y - size, // 9
+                        radarLoc.x + margin, radarLoc.y - size, // 10
+                        radarLoc.x + size, radarLoc.y - size, // 9
+                        radarLoc.x + size, radarLoc.y - margin  // 11
+                };
 
         drawQueue.setNextColor(MARKER_COLOR, radar.getContactAlpha());
         drawQueue.addVertices(vertices);
@@ -273,7 +275,7 @@ public class ShipRenderer implements CombatRenderer
     {
         final float[] loc = radar.getRawPointOnRadar(ship.getLocation());
         simpleBatch.add(loc[0], loc[1], ship.getFacing(), ship.getSpriteAPI().getHeight()
-                * getSizeModifier(ship, radar) * radar.getCurrentPixelsPerSU(),
+                        * getSizeModifier(ship, radar) * radar.getCurrentPixelsPerSU(),
                 getColor(ship, playerSide), getAlphaMod(ship));
     }
 
@@ -295,7 +297,7 @@ public class ShipRenderer implements CombatRenderer
 
         final float[] loc = radar.getRawPointOnRadar(ship.getLocation());
         batch.add(loc[0], loc[1], ship.getFacing(), ship.getSpriteAPI().getHeight()
-                * getSizeModifier(ship, radar) * radar.getCurrentPixelsPerSU(),
+                        * getSizeModifier(ship, radar) * radar.getCurrentPixelsPerSU(),
                 getColor(ship, playerSide), getAlphaMod(ship));
     }
 

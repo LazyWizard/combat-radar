@@ -1,6 +1,6 @@
 <component name="ArtifactManager">
   <artifact build-on-make="true" name="combat-radar:mod">
-    <output-path>$STARSECTOR_INSTALL_DIR$/mods/Common Radar</output-path>
+    <output-path>$STARSECTOR_INSTALL_DIR$/mods/Combat Radar</output-path>
     <root id="root">
       <element id="dir-copy" path="$PROJECT_DIR$/mod" />
     </root>

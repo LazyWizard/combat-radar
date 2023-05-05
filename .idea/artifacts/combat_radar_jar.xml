@@ -1,8 +1,9 @@
 <component name="ArtifactManager">
   <artifact type="jar" build-on-make="true" name="combat-radar:jar">
-    <output-path>$STARSECTOR_INSTALL_DIR$/mods/Common Radar/jars</output-path>
+    <output-path>$STARSECTOR_INSTALL_DIR$/mods/Combat Radar/jars</output-path>
     <root id="archive" name="lw_Radar.jar">
       <element id="module-output" name="combat-radar" />
+      <element id="dir-copy" path="$PROJECT_DIR$/src" />
     </root>
   </artifact>
 </component>

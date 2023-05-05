@@ -11,7 +11,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import com.fs.starfarer.api.Global;
-import com.fs.starfarer.api.campaign.SectorEntityToken;
 import com.fs.starfarer.api.combat.CombatEntityAPI;
 import com.fs.starfarer.api.combat.MissileAPI;
 import com.fs.starfarer.api.combat.ShipAPI;
@@ -21,7 +20,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.lazywizard.lazylib.JSONUtils;
 import org.lazywizard.radar.renderers.BaseRenderer;
-import org.lazywizard.radar.renderers.CampaignRenderer;
 import org.lazywizard.radar.renderers.CombatRenderer;
 import org.lazywizard.radar.renderers.NullRenderer;
 import org.lwjgl.input.Keyboard;
@@ -39,35 +37,31 @@ public class RadarSettings
 {
     // Path to master settings files, link to individual renderers + their settings
     private static final String SETTINGS_FILE = "data/config/radar/radar_settings.json";
-    private static final String COMBAT_CSV_PATH = "data/config/radar/combat_radar_plugins.csv";
-    private static final String CAMPAIGN_CSV_PATH = "data/config/radar/campaign_radar_plugins.csv";
+    private static final String COMBAT_CSV_PATH = "data/config/radar/radar_plugins.csv";
     private static final String EXCLUDED_SHIPS_CSV_PATH = "data/config/radar/excluded_ships.csv";
     private static final String EXCLUDED_MISSILES_CSV_PATH = "data/config/radar/excluded_missiles.csv";
-    // Controls what tokens/ships are excluded from the radar
-    private static final String NODRAW_TAG = "radar_nodraw";
     private static final Set<String> EXCLUDED_HULLS = new HashSet<>();
     private static final Set<String> EXCLUDED_HULL_PREFIXES = new HashSet<>();
     private static final Set<String> EXCLUDED_MISSILES = new HashSet<>();
     // List of loaded rendering plugins
     private static final List<Class<? extends CombatRenderer>> COMBAT_RENDERER_CLASSES = new ArrayList<>();
-    private static final List<Class<? extends CampaignRenderer>> CAMPAIGN_RENDERER_CLASSES = new ArrayList<>();
     private static final Logger LOG = Global.getLogger(RadarSettings.class);
     // Performance settings
-    private static boolean RESPECT_FOG_OF_WAR, USE_VBOS;
-    private static float TIME_BETWEEN_UPDATE_FRAMES;
-    private static int VERTICES_PER_CIRCLE;
+    private static boolean respectFogOfWar, useVBOS;
+    private static float timeBetweenUpdateFrames;
+    private static int verticesPerCircle;
     // Display settings
-    private static float RADAR_RENDER_RADIUS;
+    private static float radarRenderRadius;
     // Radar range settings
-    private static float COMBAT_SIGHT_RANGE, CAMPAIGN_SIGHT_RANGE;
+    private static float sightRange;
     // Zoom controls
-    private static float ZOOM_ANIMATION_DURATION = .4f;
-    private static int NUM_ZOOM_LEVELS;
+    private static float zoomAnimationDuration = .4f;
+    private static int numZoomLevels;
     // Radar color settings
-    private static float RADAR_ALPHA, CONTACT_ALPHA;
-    private static Color FRIENDLY_COLOR, ENEMY_COLOR, NEUTRAL_COLOR, ALLY_COLOR;
+    private static float radarAlpha, contactAlpha;
+    private static Color friendlyColor, enemyColor, neutralColor, allyColor;
     // Radar button LWJGL constants
-    private static int RADAR_TOGGLE_KEY, ZOOM_IN_KEY, ZOOM_OUT_KEY;
+    private static int radarToggleKey, zoomInKey, zoomOutKey;
 
     /**
      * Reloads all radar settings from the config file. Some changes may not
@@ -82,52 +76,50 @@ public class RadarSettings
         final JSONObject settings = Global.getSettings().loadJSON(SETTINGS_FILE);
 
         // Radar framerate limiter
-        TIME_BETWEEN_UPDATE_FRAMES = 1f / (float) settings.getDouble("radarFPS");
-        ZOOM_ANIMATION_DURATION = (float) settings.getDouble("zoomDuration");
+        timeBetweenUpdateFrames = 1f / (float) settings.getDouble("radarFPS");
+        zoomAnimationDuration = (float) settings.getDouble("zoomDuration");
 
         // Key bindings
-        RADAR_TOGGLE_KEY = settings.getInt("toggleKey");
-        ZOOM_IN_KEY = settings.getInt("zoomInKey");
-        ZOOM_OUT_KEY = settings.getInt("zoomOutKey");
-        LOG.info("Radar toggle key set to " + Keyboard.getKeyName(RADAR_TOGGLE_KEY)
-                + " (" + RADAR_TOGGLE_KEY + ")");
+        radarToggleKey = settings.getInt("toggleKey");
+        zoomInKey = settings.getInt("zoomInKey");
+        zoomOutKey = settings.getInt("zoomOutKey");
+        LOG.info("Radar toggle key set to " + Keyboard.getKeyName(radarToggleKey)
+                + " (" + radarToggleKey + ")");
 
         // Performance tweak settings
-        RESPECT_FOG_OF_WAR = settings.getBoolean("onlyShowVisibleContacts");
-        VERTICES_PER_CIRCLE = settings.getInt("verticesPerCircle");
+        respectFogOfWar = settings.getBoolean("onlyShowVisibleContacts");
+        verticesPerCircle = settings.getInt("verticesPerCircle");
 
         // Size of radar on screen
-        RADAR_RENDER_RADIUS = (float) (Display.getHeight()
+        radarRenderRadius = (float) (Display.getHeight()
                 * settings.getDouble("radarSize") * .5f);
 
         // Only use vertex buffer objects if the graphics card supports them
         // Every graphics card that's still in use should, but just in case...
-        USE_VBOS = GLContext.getCapabilities().OpenGL15 && settings.getBoolean("useVBOs");
-        LOG.info("Using vertex buffer objects: " + USE_VBOS);
+        useVBOS = GLContext.getCapabilities().OpenGL15 && settings.getBoolean("useVBOs");
+        LOG.info("Using vertex buffer objects: " + useVBOS);
 
         // Radar options
-        RADAR_ALPHA = (float) settings.getDouble("radarUIAlpha");
+        radarAlpha = (float) settings.getDouble("radarUIAlpha");
 
         // Radar range
-        COMBAT_SIGHT_RANGE = (float) settings.getDouble("combatRadarRange");
-        CAMPAIGN_SIGHT_RANGE = (float) settings.getDouble("campaignRadarRange");
-        NUM_ZOOM_LEVELS = Math.max(1, settings.getInt("zoomLevels"));
+        sightRange = (float) settings.getDouble("radarRange");
+        numZoomLevels = Math.max(1, settings.getInt("zoomLevels"));
 
         // Radar contact colors
         final boolean useVanillaColors = settings.getBoolean("useVanillaColors");
-        CONTACT_ALPHA = (float) settings.getDouble("contactAlpha");
-        FRIENDLY_COLOR = useVanillaColors ? Global.getSettings().getColor("iconFriendColor")
+        contactAlpha = (float) settings.getDouble("contactAlpha");
+        friendlyColor = useVanillaColors ? Global.getSettings().getColor("iconFriendColor")
                 : JSONUtils.toColor(settings.getJSONArray("friendlyColor"));
-        ENEMY_COLOR = useVanillaColors ? Global.getSettings().getColor("iconEnemyColor")
+        enemyColor = useVanillaColors ? Global.getSettings().getColor("iconEnemyColor")
                 : JSONUtils.toColor(settings.getJSONArray("enemyColor"));
-        NEUTRAL_COLOR = useVanillaColors ? Global.getSettings().getColor("iconNeutralShipColor")
+        neutralColor = useVanillaColors ? Global.getSettings().getColor("iconNeutralShipColor")
                 : JSONUtils.toColor(settings.getJSONArray("neutralColor"));
-        ALLY_COLOR = //useVanillaColors ? Global.getSettings().getColor("") // TODO: Find correct color!
+        allyColor = //useVanillaColors ? Global.getSettings().getColor("") // TODO: Find correct color!
                 JSONUtils.toColor(settings.getJSONArray("allyColor"));
 
         reloadExcluded();
         reloadRenderers(COMBAT_RENDERER_CLASSES, COMBAT_CSV_PATH, CombatRenderer.class);
-        reloadRenderers(CAMPAIGN_RENDERER_CLASSES, CAMPAIGN_CSV_PATH, CampaignRenderer.class);
     }
 
     private static void reloadExcluded() throws IOException, JSONException
@@ -268,20 +260,6 @@ public class RadarSettings
     }
 
     /**
-     * Returns the list of renderers used on the campaign map.
-     * <p>
-     * @return the {@link List} of {@link CampaignRenderer}s used on the
-     *         campaign
-     *         map.
-     * <p>
-     * @since 2.0
-     */
-    public static List<Class<? extends CampaignRenderer>> getCampaignRendererClasses()
-    {
-        return Collections.unmodifiableList(CAMPAIGN_RENDERER_CLASSES);
-    }
-
-    /**
      * Returns whether the radar will ignore contacts that the player can't
      * currently see.
      * <p>
@@ -292,7 +270,7 @@ public class RadarSettings
      */
     public static boolean isRespectingFogOfWar()
     {
-        return RESPECT_FOG_OF_WAR;
+        return respectFogOfWar;
     }
 
     /**
@@ -306,7 +284,7 @@ public class RadarSettings
      */
     public static boolean usesVertexBufferObjects()
     {
-        return USE_VBOS;
+        return useVBOS;
     }
 
     /**
@@ -318,22 +296,7 @@ public class RadarSettings
      */
     public static int getVerticesPerCircle()
     {
-        return VERTICES_PER_CIRCLE;
-    }
-
-    /**
-     * Checks if a campaign object should be drawn on the campaign radar or not.
-     * <p>
-     * @param token The {@link SectorEntityToken} to check.
-     * <p>
-     * @return {@code true} if {@code token} should <i>not</i> be drawn,
-     *         {@code false} otherwise.
-     * <p>
-     * @since 2.0
-     */
-    public static boolean isFilteredOut(SectorEntityToken token)
-    {
-        return token.hasTag(NODRAW_TAG);
+        return verticesPerCircle;
     }
 
     /**
@@ -427,7 +390,7 @@ public class RadarSettings
      */
     public static float getRadarRenderRadius()
     {
-        return RADAR_RENDER_RADIUS;
+        return radarRenderRadius;
     }
 
     /**
@@ -439,7 +402,7 @@ public class RadarSettings
      */
     public static float getTimeBetweenUpdateFrames()
     {
-        return TIME_BETWEEN_UPDATE_FRAMES;
+        return timeBetweenUpdateFrames;
     }
 
     /**
@@ -451,20 +414,7 @@ public class RadarSettings
      */
     public static float getMaxCombatSightRange()
     {
-        return COMBAT_SIGHT_RANGE;
-    }
-
-    /**
-     * Returns the maximum campaign radar range.
-     * <p>
-     * @return How far the radar can see on the campaign map at maximum zoom, in
-     *         SU.
-     * <p>
-     * @since 2.0
-     */
-    public static float getMaxCampaignSightRange()
-    {
-        return CAMPAIGN_SIGHT_RANGE;
+        return sightRange;
     }
 
     /**
@@ -476,7 +426,7 @@ public class RadarSettings
      */
     public static float getZoomAnimationDuration()
     {
-        return ZOOM_ANIMATION_DURATION;
+        return zoomAnimationDuration;
     }
 
     /**
@@ -489,7 +439,7 @@ public class RadarSettings
      */
     public static int getNumZoomLevels()
     {
-        return NUM_ZOOM_LEVELS;
+        return numZoomLevels;
     }
 
     /**
@@ -503,7 +453,7 @@ public class RadarSettings
      */
     public static float getRadarUIAlpha()
     {
-        return RADAR_ALPHA;
+        return radarAlpha;
     }
 
     /**
@@ -517,7 +467,7 @@ public class RadarSettings
      */
     public static float getRadarContactAlpha()
     {
-        return CONTACT_ALPHA;
+        return contactAlpha;
     }
 
     /**
@@ -529,7 +479,7 @@ public class RadarSettings
      */
     public static Color getFriendlyContactColor()
     {
-        return FRIENDLY_COLOR;
+        return friendlyColor;
     }
 
     /**
@@ -541,7 +491,7 @@ public class RadarSettings
      */
     public static Color getEnemyContactColor()
     {
-        return ENEMY_COLOR;
+        return enemyColor;
     }
 
     /**
@@ -553,7 +503,7 @@ public class RadarSettings
      */
     public static Color getNeutralContactColor()
     {
-        return NEUTRAL_COLOR;
+        return neutralColor;
     }
 
     /**
@@ -565,7 +515,7 @@ public class RadarSettings
      */
     public static Color getAlliedContactColor()
     {
-        return ALLY_COLOR;
+        return allyColor;
     }
 
     /**
@@ -580,7 +530,7 @@ public class RadarSettings
      */
     public static int getRadarToggleKey()
     {
-        return RADAR_TOGGLE_KEY;
+        return radarToggleKey;
     }
 
     /**
@@ -595,7 +545,7 @@ public class RadarSettings
      */
     public static int getZoomInKey()
     {
-        return ZOOM_IN_KEY;
+        return zoomInKey;
     }
 
     /**
@@ -610,7 +560,7 @@ public class RadarSettings
      */
     public static int getZoomOutKey()
     {
-        return ZOOM_OUT_KEY;
+        return zoomOutKey;
     }
 
     private RadarSettings()

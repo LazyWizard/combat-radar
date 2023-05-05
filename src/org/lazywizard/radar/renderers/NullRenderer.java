@@ -12,7 +12,7 @@ import org.lazywizard.radar.CommonRadar;
  * For example: set ShipRenderer's script to NullRenderer if you are making your
  * own system to draw ships and don't want to use ShipRenderer as its ID for
  * some reason.
- * <p>
+ *
  * @author LazyWizard
  * @since 2.0
  */

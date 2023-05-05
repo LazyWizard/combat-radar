@@ -8,17 +8,11 @@
     {
         "radar":
         {
-            "flare":"graphics/lw_radar/campaign/planet.png",
+            "flare":"graphics/lw_radar/combat/asteroid.png",
             "missile":"graphics/lw_radar/combat/missile.png",
             "missileLock":"graphics/lw_radar/combat/missile_lock.png",
-            "asteroid":"graphics/lw_radar/campaign/planet.png",
-            "fleet":"graphics/lw_radar/campaign/fleet.png",
-            "jumpPoint":"graphics/lw_radar/campaign/portal.png",
-            "planet":"graphics/lw_radar/campaign/planet.png",
-            "star":"graphics/lw_radar/campaign/star.png",
-            "station":"graphics/lw_radar/campaign/station.png",
-            "relay":"graphics/lw_radar/campaign/relay.png",
-            "nebula":"graphics/lw_radar/campaign/nebula.png"
+            "asteroid":"graphics/lw_radar/combat/asteroid.png",
+            "nebula":"graphics/lw_radar/combat/nebula.png"
         }
     }
 }

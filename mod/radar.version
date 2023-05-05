@@ -1,11 +1,11 @@
 {
-    "masterVersionFile":"https://bitbucket.org/LazyWizard/common-radar/downloads/radar.version",
-    "modName":"Common Radar",
+    "masterVersionFile":"https://raw.githubusercontent.com/LazyWizard/combat-radar/master/mod/radar.version",
+    "modName":"Combat Radar",
     "modThreadId":7526,
     "modVersion":
     {
-        "major":2,
-        "minor":5,
-        "patch":b
+        "major":3,
+        "minor":0,
+        "patch":0
     }
 }
