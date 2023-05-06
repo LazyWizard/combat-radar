@@ -5,7 +5,7 @@
     "utility": "true",
     "version": "3.0",
     "description": "**Requires LazyLib**\n\nThis mod adds a simple radar to the combat layer of Starsector. This radar includes an extensible plugin system, allowing other mods to add custom element rendering with (relative) ease.\n\nYou can find the files to configure the radar in data/config/radar/\n\nPlease note that this mod deliberately uses the incredibly outdated OpenGL 1.x immediate mode to match core Starsector and should not be used as a guideline for working with OpenGL elsewhere. Use shaders, people!",
-    "gameVersion": "0.96a-RC7",
+    "gameVersion": "0.96a-RC8",
     "jars": ["jars/lw_Radar.jar"],
     "dependencies": [
         {

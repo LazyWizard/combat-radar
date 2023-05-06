@@ -1,4 +1,5 @@
 {
+    "changelogURL":"https://raw.githubusercontent.com/LazyWizard/combat-radar/master/mod/changelog.txt",
     "masterVersionFile":"https://raw.githubusercontent.com/LazyWizard/combat-radar/master/mod/radar.version",
     "modName":"Combat Radar",
     "modThreadId":7526,
